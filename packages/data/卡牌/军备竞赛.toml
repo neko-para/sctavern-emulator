@@ -1,0 +1,42 @@
+[[card]]
+name = "黑色行动"
+race = "T"
+pack = "军备竞赛"
+level = 4
+unit = { "恶蝠游骑兵" = 2, "反应堆" = 1 }
+desc = ["快速生产: 获得{1|2}恶蝠游骑兵", "反应堆生产修理无人机", "每回合结束时, 此卡牌将所有陆战队员精英化"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "英雄叉"
+race = "P"
+pack = "军备竞赛"
+level = 2
+unit = { "卡尔达利斯" = 1, "水晶塔" = 2 }
+desc = ["折跃单位到此卡牌时, 将所有折跃的狂热者(精英)变为卡尔达利斯"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "机械感染"
+race = "Z"
+pack = "军备竞赛"
+level = 3
+unit = { "被感染的女妖" = 6 }
+desc = ["每回合开始时, 若雷兽数量≥4, 则获得1末日巨兽并抹除卡牌描述", "每回合结束时, 孵化1被感染的女妖"]
+pool = true
+[card.attr]
+gold = true
+
+[[card]]
+name = "死亡之握"
+race = "N"
+pack = "军备竞赛"
+level = 6
+unit = { "死亡之握水晶" = 1 }
+desc = ["唯一: 每回合结束时, 获得每张当前未购买卡牌中的{1|2}非英雄单位", "唯一: 刷新时, 复制此卡牌{1|2}非英雄单位"]
+rmrk = "原文的刷新描述没有唯一, 此处根据实际效果添加该标签, 可能是一个bug"
+pool = true
+[card.attr]
+void = true

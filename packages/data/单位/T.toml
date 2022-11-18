@@ -1,0 +1,867 @@
+[[unit]]
+name = "女妖"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 140
+[[unit.weapon]]
+name = "反冲火箭"
+damage = 12
+range = 6
+speed = 0.89
+target = "G"
+multiple = 2
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 3.85
+
+[[unit]]
+name = "诺娃"
+race = "T"
+value = 400
+utype = "normal"
+tag = ["生物单位", "灵能单位"]
+health = 300
+[[unit.weapon]]
+name = "激光刀"
+damage = "20, vs 轻甲 40"
+range = "melee"
+speed = 0.71
+target = "G"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 4.55
+
+[[unit]]
+name = "火蝠"
+race = "T"
+value = 125
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 100
+[[unit.weapon]]
+name = "毁灭之炎喷射器"
+damage = "8, vs 轻甲 12"
+range = 2
+speed = 1
+target = "G"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "火蝠(精英)"
+race = "T"
+value = 300
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 275
+[[unit.weapon]]
+name = "烈焰风暴火焰喷射器"
+damage = "10, vs 轻甲 20"
+range = 2
+speed = 1
+target = "G"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 3
+speed = 3.5
+
+[[unit]]
+name = "幽魂"
+race = "T"
+value = 275
+utype = "normal"
+tag = ["生物单位", "灵能单位"]
+health = 160
+[[unit.weapon]]
+name = "AGR-14型电磁枪"
+damage = "18, vs 重甲 23"
+range = 8
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.85
+
+[[unit]]
+name = "恶蝠游骑兵"
+race = "T"
+value = 650
+utype = "normal"
+tag = ["轻甲", "生物单位", "机械单位"]
+health = 400
+[[unit.weapon]]
+name = "爆燃汽油喷射器"
+damage = 36
+range = 2
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 3
+speed = 3.15
+
+[[unit]]
+name = "反应堆"
+race = "T"
+value = 0
+utype = "spbd"
+tag = []
+health = 0
+bref = "每回合结束时, 根据卡牌描述生产指定单位, 金色卡牌可以生产两轮"
+
+[[unit]]
+name = "科技实验室"
+race = "T"
+value = 0
+utype = "spbd"
+tag = []
+health = 0
+bref = "能触发某些卡牌的特殊效果"
+
+[[unit]]
+name = "高级科技实验室"
+race = "T"
+value = 0
+utype = "spbd"
+tag = []
+health = 0
+bref = '''
+此挂件类型无法再被改变
+保留科技实验室效果的基础上, 同时每回合结束时, 触发此卡牌的快速生产'''
+rmrk = '''
+不视为反应堆
+每回合结束时, 不视为挂件变更'''
+
+[[unit]]
+name = "收割者"
+race = "T"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 60
+[[unit.weapon]]
+name = "P-45型电磁手枪"
+damage = 4
+range = 5
+speed = 0.79
+target = "G"
+multiple = 2
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 5.25
+
+[[unit]]
+name = "恶蝠"
+race = "T"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位", "机械单位"]
+rmrk = "可以变形为恶火"
+health = 135
+[[unit.weapon]]
+name = "凝固汽油喷射器"
+damage = "18"
+range = 2
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "恶火"
+race = "T"
+value = 100
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+rmrk = "可以变形为恶蝠"
+health = 90
+[[unit.weapon]]
+name = "地狱火喷射器"
+damage = "8, vs 轻甲 14"
+range = 5
+speed = 1.79
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 0
+speed = 5.95
+
+[[unit]]
+name = "陆战队员"
+race = "T"
+value = 50
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 45
+[[unit.weapon]]
+name = "C-14型电磁枪"
+damage = 6
+range = 5
+speed = 0.61
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "响尾蛇战车"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 200
+[[unit.weapon]]
+name = "处决者电磁炮"
+damage = "20, vs 重甲 40"
+range = 6
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 4.13
+
+[[unit]]
+name = "医疗兵"
+race = "T"
+value = 125
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 60
+power = 200
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "攻城坦克"
+race = "T"
+value = 275
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 175
+[[unit.weapon]]
+name = "90毫米口径火炮"
+damage = "15, vs 重甲 25"
+range = 7
+speed = 0.74
+target = "G"
+[[unit.weapon]]
+name = "穿冲震击炮"
+damage = "40, vs 重甲 70"
+range = 13
+speed = 2.14
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "歌利亚"
+race = "T"
+value = 200
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 150
+[[unit.weapon]]
+name = "机关炮"
+damage = 18
+range = 6
+speed = 1.07
+target = "G"
+[[unit.weapon]]
+name = "地狱火飞弹"
+damage = "12, vs 重甲 20"
+range = 6
+speed = 1.07
+target = "A"
+multiple = 2
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.76
+
+[[unit]]
+name = "寡妇雷"
+race = "T"
+value = 100
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 90
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.94
+
+[[unit]]
+name = "劫掠者"
+race = "T"
+value = 125
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 125
+[[unit.weapon]]
+name = "惩罚者榴弹"
+damage = "10, vs 重甲 20"
+range = 6
+speed = 1.07
+target = "G"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "医疗运输机"
+race = "T"
+value = 200
+utype = "normal"
+tag = ["重甲", "机械单位"]
+rmrk = "自动模式不会使用后燃推进系统"
+health = 150
+power = 200
+[unit.armor]
+name = "人类舰船钢板"
+defense = 1
+speed = 3.5
+
+[[unit]]
+name = "秃鹫"
+race = "T"
+value = 75
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+rmrk = "蜘蛛雷伤害70, 但是一直不埋地看不清护甲和血量"
+health = 75
+[[unit.weapon]]
+name = "碎片榴弹"
+damage = "10, vs 轻甲 25"
+range = 6
+speed = 1.21
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 5.95
+
+[[unit]]
+name = "飓风"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 120
+[[unit.weapon]]
+name = "台风飞弹舱"
+damage = 18
+range = 5
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 4.72
+
+[[unit]]
+name = "铁鸦"
+race = "T"
+value = 300
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+rmrk = "初始能量100, 自动模式不会使用制造自动机炮"
+health = 140
+power = 200
+[unit.armor]
+name = "人类舰船钢板"
+defense = 1
+speed = 4.13
+
+[[unit]]
+name = "战狼"
+race = "T"
+value = 300
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 280
+[[unit.weapon]]
+name = "轨道枪"
+damage = 23
+range = 6
+speed = 0.93
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.94
+
+[[unit]]
+name = "维京战机"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 135
+[[unit.weapon]]
+name = "格林机关炮"
+damage = "12, vs 机械单位 20"
+range = 6
+speed = 0.71
+target = "G"
+[[unit.weapon]]
+name = "兰泽尔飞雷"
+damage = "10, vs 重甲 14"
+range = 9
+speed = 1.43
+target = "A"
+multiple = 2
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = "3.15(机甲模式), 3.85(战机模式)"
+
+[[unit]]
+name = "解放者"
+race = "T"
+value = 300
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 180
+[[unit.weapon]]
+name = "列克星敦火箭"
+damage = 5
+range = 5
+speed = 1.29
+target = "A"
+multiple = 2
+[[unit.weapon]]
+name = "康科德火炮"
+damage = 75
+range = 12
+speed = 1.14
+target = "G"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 4.72
+
+[[unit]]
+name = "斯台特曼"
+race = "T"
+value = 200
+utype = "normal"
+tag = ["轻甲", "生物单位", "英雄单位"]
+health = 150
+power = 250
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "思旺"
+race = "T"
+value = 200
+utype = "normal"
+tag = ["重甲", "生物单位", "英雄单位"]
+rmrk = "可以部署热辣贝蒂"
+health = 200
+[[unit.weapon]]
+name = "震荡榴弹"
+damage = 25
+range = 5
+speed = 0.86
+target = "G"
+multiple = 1
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "热辣贝蒂"
+race = "T"
+value = 0
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑"]
+rmrk = "若由思旺召唤, 则持续32秒, 含有召唤标签"
+health = 750
+[[unit.weapon]]
+name = "火焰喷射器"
+damage = 14
+range = 6
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 1
+speed = 0
+
+[[unit]]
+name = "怨灵战机"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 180
+[[unit.weapon]]
+name = "脉冲激光炮"
+damage = 13
+range = 5
+speed = 1.21
+target = "G"
+[[unit.weapon]]
+name = "双子飞弹"
+damage = "8, vs 重甲 15"
+range = 5
+speed = 0.89
+target = "A"
+multiple = 2
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 5.25
+
+[[unit]]
+name = "黄昏之翼"
+race = "T"
+value = 275
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 155
+[[unit.weapon]]
+name = "尖啸飞弹"
+damage = 18
+range = 6
+speed = 0.89
+target = "G"
+multiple = 2
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 3.85
+
+[[unit]]
+name = "泰凯斯"
+race = "T"
+value = 500
+utype = "normal"
+tag = ["轻甲", "生物单位", "英雄单位"]
+health = 240
+[[unit.weapon]]
+name = "重机枪"
+damage = 14
+range = 5
+speed = 0.18
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 2
+speed = 3.15
+
+[[unit]]
+name = "牛头人陆战队员"
+race = "T"
+value = 550
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 350
+[[unit.weapon]]
+name = "电磁枪"
+damage = 24
+range = 6
+speed = 0.61
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.29
+
+[[unit]]
+name = "鱼人陆战队员"
+race = "T"
+value = 75
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 70
+[[unit.weapon]]
+name = "C-14电磁枪"
+damage = 16
+range = 6
+speed = 0.61
+target = "GA"
+[unit.armor]
+name = "未知"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "雷神"
+race = "T"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 400
+[[unit.weapon]]
+name = "雷神之锤"
+damage = 30
+range = 7
+speed = 0.91
+target = "G"
+multiple = 2
+[[unit.weapon]]
+name = "250毫米口径惩罚者火炮"
+damage = "25, vs 重型单位 35"
+range = 11
+speed = 0.91
+target = "A"
+[[unit.weapon]]
+name = "标枪导弹发射筒"
+damage = "6, vs 轻甲 12"
+range = 10
+speed = 2.14
+target = "A"
+multiple = 4
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 2.62
+
+[[unit]]
+name = "雷诺(指挥官)"
+race = "T"
+value = 800
+utype = "normal"
+tag = ["轻甲", "生物单位", "英雄单位"]
+health = 350
+[[unit.weapon]]
+name = "电磁枪"
+damage = "20, vs 重甲 30"
+range = 8
+speed = 0.61
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 2
+speed = 3.15
+
+[[unit]]
+name = "雷诺(狙击手)"
+race = "T"
+value = 650
+utype = "normal"
+tag = ["轻甲", "生物单位", "英雄单位"]
+health = 175
+[[unit.weapon]]
+name = "突击步枪"
+damage = 50
+range = 9
+speed = 1.25
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "沃菲尔德将军"
+race = "T"
+value = 0
+utype = "normal"
+tag = ["轻甲", "生物单位", "英雄单位"]
+health = 200
+[[unit.weapon]]
+name = "T-200模块化突击加农炮"
+damage = 10
+range = 6
+speed = 0.93
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "帝盾卫兵"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 200
+[[unit.weapon]]
+name = "惩罚者榴弹"
+damage = "20, vs 重甲 40"
+range = 7
+speed = 0.96
+target = "G"
+multiple = 1
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "战列巡航舰"
+race = "T"
+value = 700
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+rmrk = "大和炮冷却21秒, 伤害240"
+health = 550
+[[unit.weapon]]
+name = "空对地激光炮组"
+damage = 8
+range = 6
+speed = 0.16
+target = "G"
+[[unit.weapon]]
+name = "空对空激光炮组"
+damage = 6
+range = 6
+speed = 0.16
+target = "A"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 3
+speed = 2.62
+
+[[unit]]
+name = "陆战队员(精英)"
+race = "T"
+value = 125
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 90
+[[unit.weapon]]
+name = "电磁枪"
+damage = 12
+range = 5
+speed = 0.61
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "劫掠者(精英)"
+race = "T"
+value = 250
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 250
+[[unit.weapon]]
+name = "惩罚者榴弹"
+damage = "12, vs 重甲 30"
+range = 6
+speed = 1.07
+target = "G"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "歌利亚(精英)"
+race = "T"
+value = 300
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 200
+[[unit.weapon]]
+name = "格林机关炮"
+damage = 24
+range = 6
+speed = 1.07
+target = "G"
+[[unit.weapon]]
+name = "兰泽尔飞雷"
+damage = "14, vs 重甲 28"
+range = 6
+speed = 1.07
+target = "A"
+multiple = 2
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.76
+
+[[unit]]
+name = "战狼(精英)"
+race = "T"
+value = 450
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 400
+[[unit.weapon]]
+name = "龙卷风发射器"
+damage = 10
+range = 7
+speed = 0.93
+target = "G"
+multiple = 6
+[unit.armor]
+name = "人类战车钢板"
+defense = 2
+speed = 3.94
+
+[[unit]]
+name = "维京战机(精英)"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 180
+[[unit.weapon]]
+name = "格林机关炮"
+damage = 18
+range = 6
+speed = 0.71
+target = "G"
+[[unit.weapon]]
+name = "兰泽尔飞雷"
+damage = "14, vs 重甲 20"
+range = 9
+speed = 1.43
+target = "A"
+multiple = 2
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = "3.15(机甲模式), 3.85(战机模式)"
+
+[[unit]]
+name = "攻城坦克(精英)"
+race = "T"
+value = 625
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 225
+[[unit.weapon]]
+name = "90毫米口径火炮"
+damage = "25, vs 重甲 35"
+range = 7
+speed = 0.74
+target = "G"
+[[unit.weapon]]
+name = "弧光震击炮"
+damage = "60, vs 重甲 100"
+range = 13
+speed = 2.14
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.15

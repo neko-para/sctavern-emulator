@@ -1,0 +1,47 @@
+[[card]]
+name = "死亡之翼"
+race = "N"
+pack = "拉克希尔"
+level = 2
+unit = { "凤凰" = 4 }
+desc = ["被夺取时, 获得{1|2}天霸", "任意卡牌三连时, 三连卡牌夺取此卡牌"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "虚空援军"
+race = "N"
+pack = "拉克希尔"
+level = 3
+unit = { "攻城坦克" = 3 }
+desc = ["进场时, 此卡牌尝试消耗1瓦斯获得随机升级", "每回合结束时, 价值最高的卡牌夺取此卡牌, 保留升级"]
+rmrk = "可以通过此卡牌使非虚影卡牌获得虚空能量升级"
+pool = true
+[card.attr]
+void = true
+
+[[card]]
+name = "深渊行者"
+race = "N"
+pack = "拉克希尔"
+level = 4
+unit = { "先锋" = 3, "不死队" = 3 }
+desc = ["10黑暗值时单位复活1次", "任意卡牌被夺取时, 获得{1|2}先锋"]
+
+pool = true
+[card.attr]
+dark = true
+
+[[card]]
+name = "黑暗祭坛"
+race = "N"
+pack = "拉克希尔"
+level = 4
+unit = { "黑暗执政官" = 2, "凤凰" = 2 }
+desc = ["获得黑暗值时, 获得{1|2}凤凰", "每回合结束时, 夺取价值最低的卡牌"]
+
+pool = true
+[card.attr]
+dark = true

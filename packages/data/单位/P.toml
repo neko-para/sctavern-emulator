@@ -1,0 +1,892 @@
+[[unit]]
+name = "泽拉图"
+race = "P"
+value = 1000
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位", "英雄单位"]
+health = 400
+shield = 300
+[[unit.weapon]]
+name = "大师曲光战刃"
+damage = "45, vs 重甲 70"
+range = 1
+speed = 0.57
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 2
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "先知"
+race = "P"
+value = 300
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位"]
+health = 100
+shield = 60
+power = 200
+rmrk = "初始100能量"
+[[unit.weapon]]
+name = "脉冲光束"
+damage = "15, vs 轻甲 22"
+range = 4
+speed = 0.61
+target = "G"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 5.6
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "水晶塔"
+race = "P"
+value = 0
+utype = "spbd"
+tag = []
+health = 0
+bref = "每个为自身卡牌和相邻卡牌提供1能量强度"
+
+[[unit]]
+name = "虚空水晶塔"
+race = "P"
+value = 0
+utype = "spbd"
+tag = []
+health = 0
+bref = '''
+每个为自身卡牌和相邻卡牌提供1能量强度
+卡牌出售时将自身转移给相邻(优先左侧)神族卡牌'''
+
+[[unit]]
+name = "追猎者"
+race = "P"
+value = 175
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 80
+shield = 80
+[[unit.weapon]]
+name = "粒子碎裂炮"
+damage = "13, vs 重甲 18"
+range = 6
+speed = 1.34
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.13
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "狂热者"
+race = "P"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 100
+shield = 50
+[[unit.weapon]]
+name = "灵能利刃"
+damage = 8
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "使徒"
+race = "P"
+value = 150
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 70
+shield = 70
+[[unit.weapon]]
+name = "刃炮"
+damage = "10, vs 轻甲 23"
+range = 4
+speed = 1.61
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.5
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "龙骑士"
+race = "P"
+value = 175
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 120
+shield = 80
+[[unit.weapon]]
+name = "相位碎裂炮"
+damage = "14, vs 重甲 22"
+range = 5
+speed = 0.89
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.13
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "机械哨兵"
+race = "P"
+value = 150
+utype = "normal"
+tag = ["轻甲", "机械单位", "灵能单位"]
+rmrk = '''
+初始能量100
+显示没有武器, 但是可以攻击'''
+health = 40
+shield = 40
+power = 200
+[[unit.weapon]]
+name = "清洁光束"
+damage = 6
+range = 5
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "不朽者"
+race = "P"
+value = 375
+utype = "normal"
+tag = ["重甲", "机械单位"]
+bref = "不巧者"
+health = 200
+shield = 100
+[[unit.weapon]]
+name = "相位碎裂炮"
+damage = "20, vs 重甲 50"
+range = 6
+speed = 1.04
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "高阶圣堂武士"
+race = "P"
+value = 200
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位"]
+bref = '''
+初始能量100
+战斗中能量消耗完后会尝试融合, 产生的执政官不享受升级'''
+health = 40
+shield = 40
+power = 200
+[[unit.weapon]]
+name = "灵能波"
+damage = 9
+range = 7
+speed = 1.25
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 0
+speed = 3.5
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "折跃棱镜"
+race = "P"
+value = 250
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位"]
+health = 80
+shield = 100
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 5.36
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "黑暗圣堂武士"
+race = "P"
+value = 250
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位"]
+health = 40
+shield = 60
+[[unit.weapon]]
+name = "曲光战刃"
+damage = 45
+range = "melee"
+speed = 1.21
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "掠夺者"
+race = "P"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 200
+shield = 150
+[[unit.weapon]]
+name = "金甲虫"
+damage = "100, vs 建筑 150"
+range = 9
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 2.8
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "巨像"
+race = "P"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 200
+shield = 150
+[[unit.weapon]]
+name = "热能射线枪"
+damage = "10, vs 轻甲 15"
+range = 9
+speed = 1.07
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "凯拉克斯"
+race = "P"
+value = 600
+utype = "normal"
+tag = ["生物单位", "英雄单位"]
+health = 200
+shield = 200
+[[unit.weapon]]
+name = "仆从机轰炸"
+damage = "15, vs 重甲 30"
+range = 6
+speed = 1.07
+target = "GA"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.5
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 1
+
+[[unit]]
+name = "虚空辉光舰"
+race = "P"
+value = 400
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 150
+shield = 100
+[[unit.weapon]]
+name = "棱镜光束"
+damage = "6, vs 重甲 10"
+range = 6
+speed = 0.36
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.85
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "执政官"
+race = "P"
+value = 450
+utype = "normal"
+tag = ["灵能单位", "重型单位"]
+health = 10
+shield = 350
+[[unit.weapon]]
+name = "灵能冲击波"
+damage = "25, vs 生物单位 35"
+range = 3
+speed = 1.25
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 0
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "航母"
+race = "P"
+value = 600
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 300
+shield = 150
+[[unit.weapon]]
+name = "拦截机"
+damage = 5
+range = 8
+speed = 2.14
+target = "GA"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 2.62
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "风暴战舰"
+race = "P"
+value = 425
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 200
+shield = 100
+[[unit.weapon]]
+name = "谐振盘"
+damage = 60
+range = 10
+speed = 2
+target = "G"
+[[unit.weapon]]
+name = "动能过载"
+damage = 60
+range = 10
+speed = 2
+target = "A"
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "侦察机"
+race = "P"
+value = 250
+utype = "normal"
+tag = ["重甲", "机械单位"]
+rmrk = "大主教座驾"
+health = 100
+shield = 60
+[[unit.weapon]]
+name = "光子冲击炮"
+damage = 8
+range = 4
+speed = 1.21
+target = "G"
+[[unit.weapon]]
+name = "反物质飞弹"
+damage = "12, vs 重甲 19"
+range = 4
+speed = 0.89
+target = "A"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "莫汗达尔"
+race = "P"
+value = 600
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 500
+shield = 300
+[[unit.weapon]]
+name = "棱镜光束"
+damage = 10
+range = 8
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 3
+speed = 4.73
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "泰坦棱镜"
+race = "P"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
+health = 500
+shield = 500
+[[unit.weapon]]
+name = "棱镜射线"
+damage = 40
+range = 11
+speed = 1.79
+target = "G"
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 3.5
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "菲尼克斯"
+race = "P"
+value = 1000
+utype = "normal"
+tag = ["机械单位", "重型单位", "英雄单位"]
+health = 300
+shield = 500
+[[unit.weapon]]
+name = "净化者之刃"
+damage = "60, vs 重甲 100"
+range = "melee"
+speed = 0.86
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 3
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 3
+
+[[unit]]
+name = "旋风狂热者"
+race = "P"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 100
+shield = 50
+[[unit.weapon]]
+name = "太阳能战斧"
+damage = 16
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 1
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "科罗拉里昂"
+race = "P"
+value = 1500
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
+health = 600
+shield = 300
+[[unit.weapon]]
+name = "太阳能射线"
+damage = "10, vs 重甲 16"
+range = 8
+speed = 0.36
+target = "A"
+[[unit.weapon]]
+name = "拦截机"
+damage = 5
+range = 8
+speed = 2.14
+target = "GA"
+multiple = 2
+[[unit.weapon]]
+name = "强击机"
+damage = 12
+range = 8
+speed = 2.14
+target = "G"
+multiple = 4
+[unit.armor]
+name = "星灵护板"
+defense = 3
+speed = 2.97
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 1
+
+[[unit]]
+name = "卡尔达利斯"
+race = "P"
+value = 800
+utype = "normal"
+tag = ["轻甲", "机械单位", "英雄单位"]
+health = 400
+shield = 200
+[[unit.weapon]]
+name = "灵能利刃"
+damage = 18
+range = "melee"
+speed = 0.57
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 2
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 1
+
+[[unit]]
+name = "仲裁者"
+race = "P"
+value = 1000
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 300
+shield = 500
+[[unit.weapon]]
+name = "裂空光炮"
+damage = 20
+range = 9
+speed = 1.07
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "英雄不朽者"
+race = "P"
+value = 900
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+bref = "不是不朽者的精英变种"
+health = 300
+shield = 300
+[[unit.weapon]]
+name = "相位碎裂炮"
+damage = "40, vs 重甲 80"
+range = 8
+speed = 1.04
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "阿塔尼斯"
+race = "P"
+value = 1000
+utype = "normal"
+tag = ["生物单位", "灵能单位", "英雄单位"]
+health = 200
+shield = 300
+[[unit.weapon]]
+name = "光影双刃"
+damage = 20
+range = "melee"
+speed = 0.71
+target = "G"
+multiple = 2
+[[unit.weapon]]
+name = "灵能突击"
+damage = 20
+range = 4
+speed = 0.71
+target = "A"
+[unit.armor]
+name = "星灵护甲"
+defense = 3
+speed = 4.13
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 3
+
+[[unit]]
+name = "激励者"
+race = "P"
+value = 150
+utype = "normal"
+tag = ["轻甲", "机械单位", "灵能单位"]
+rmrk = "初始能量100"
+health = 40
+shield = 40
+power = 200
+[[unit.weapon]]
+name = "清洁光束"
+damage = 6
+range = 5
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "追猎者(精英)"
+race = "P"
+value = 350
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 150
+shield = 130
+[[unit.weapon]]
+name = "粒子碎裂炮"
+damage = "26, vs 重甲 36"
+range = 6
+speed = 1.34
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.13
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "狂热者(精英)"
+race = "P"
+value = 200
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 175
+shield = 80
+[[unit.weapon]]
+name = "灵能利刃"
+damage = 14
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "旋风狂热者(精英)"
+race = "P"
+value = 200
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 175
+shield = 80
+[[unit.weapon]]
+name = "太阳能巨斧"
+damage = 16
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 1
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.85
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "使徒(精英)"
+race = "P"
+value = 250
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 70
+shield = 70
+[[unit.weapon]]
+name = "净化者刃炮"
+damage = "20, vs 轻甲 30"
+range = 5
+speed = 0.96
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.5
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "黑暗圣堂武士(精英)"
+race = "P"
+value = 375
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位"]
+health = 80
+shield = 80
+[[unit.weapon]]
+name = "灵能镰刀"
+damage = 90
+range = "melee"
+speed = 1.21
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "巨像(精英)"
+race = "P"
+value = 800
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 350
+shield = 250
+[[unit.weapon]]
+name = "焚化射线"
+damage = 20
+range = 9
+speed = 1.57
+target = "G"
+multiple = 2
+[[unit.weapon]]
+name = "热能射线枪(对空)"
+damage = 8
+range = 8
+speed = 1.18
+target = "A"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "虚空辉光舰(精英)"
+race = "P"
+value = 550
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 250
+shield = 150
+[[unit.weapon]]
+name = "棱镜光束"
+damage = "8, vs 重甲 12"
+range = 6
+speed = 0.36
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "执政官(精英)"
+race = "P"
+value = 650
+utype = "normal"
+tag = ["灵能单位", "重型单位"]
+health = 10
+shield = 450
+[[unit.weapon]]
+name = "灵能进射"
+damage = 35
+range = 5
+speed = 1.25
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 0
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0

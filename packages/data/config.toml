@@ -1,0 +1,35 @@
+[tr]
+S = "特殊"
+"3" = "三连"
+T = "人族"
+P = "神族"
+Z = "虫族"
+N = "中立"
+C = "公共"
+G = "通用"
+V = "虚影"
+O = "原始"
+rare = "稀有"
+gold = "无法三连"
+insert = "定点部署"
+origin = "原始虫群"
+dark = "黑暗容器"
+void = "虚影"
+spbd = "特殊建筑"
+spun = "特殊单位"
+
+[attr]
+rare = "作为极低概率出现的卡牌"
+gold = "无法三连"
+insert = "可以定点部署"
+origin = "属于原始虫群"
+dark = "具有黑暗容器"
+void = "具有虚空投影"
+
+[order]
+card_race = ["T", "P", "Z", "N"]
+unit_race = ["T", "P", "Z", "N"]
+term_race = ["T", "P", "Z", "N", "G"]
+upgrade_race = ["S", "3", "T", "P", "Z", "C", "V", "O"]
+pack = ["核心", "天空之怒", "并肩作战", "拉克希尔", "短兵相接", "快速启动", "独辟蹊径", "军备竞赛"]
+attr = ["rare", "gold", "insert", "origin", "dark", "void"]

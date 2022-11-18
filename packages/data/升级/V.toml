@@ -1,0 +1,6 @@
+[[upgrade]]
+name = "虚空能量"
+category = "V"
+override = false
+bref = "虚空投影加成生命值的同时还会加成相同百分比的伤害"
+rmrk = ""

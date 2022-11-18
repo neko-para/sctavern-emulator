@@ -1,0 +1,269 @@
+[[card]]
+name = "虫群先锋"
+race = "Z"
+pack = "核心"
+level = 1
+unit = { "跳虫" = 8, "爆虫" = 3 }
+desc = ["每回合结束时, 获得{2|4}跳虫"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "蟑螂小队"
+race = "Z"
+pack = "核心"
+level = 1
+unit = { "蟑螂" = 3, "爆虫" = 1 }
+desc = ["每回合开始时, 将{1|2}蟑螂变为破坏者", "出售时, 注卵{2|4}蟑螂"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "屠猎者"
+race = "Z"
+pack = "核心"
+level = 2
+unit = { "跳虫" = 10, "刺蛇" = 2 }
+desc = ["每回合结束时, 将所有刺蛇变为刺蛇(精英)", "提升酒馆等级时, 获得{1|2}刺蛇(精英)"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "埋地刺蛇"
+race = "Z"
+pack = "核心"
+level = 2
+unit = { "刺蛇" = 6 }
+desc = ["出售时, 注卵{3|6}刺蛇"]
+
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "变异军团"
+race = "Z"
+pack = "核心"
+level = 2
+unit = { "被感染的陆战队员" = 7 }
+desc = ["任意卡牌注卵时, 获得{1|2}被感染的陆战队员"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "孵化蟑螂"
+race = "Z"
+pack = "核心"
+level = 2
+unit = { "蟑螂" = 4, "破坏者" = 2 }
+desc = ["每回合结束时, 孵化{1|2}蟑螂"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "爆虫滚滚"
+race = "Z"
+pack = "核心"
+level = 3
+unit = { "爆虫" = 10 }
+desc = ["每回合结束时, 每有{20|15}爆虫孵化1爆虫", "唯一: 获得任意出售卡牌中的跳虫, 并将其变为爆虫"]
+rmrk = '''
+每回合只孵化一次
+跳虫(精英)将变为爆虫(精英)'''
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "飞龙骑脸"
+race = "Z"
+pack = "核心"
+level = 3
+unit = { "跳虫" = 15, "异龙" = 5 }
+desc = ["出售时, 孵化{2|4}异龙"]
+
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "凶残巨兽"
+race = "Z"
+pack = "核心"
+level = 3
+unit = { "雷兽" = 2 }
+desc = ["出售时, 注卵{1|2}雷兽"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "注卵虫后"
+race = "Z"
+pack = "核心"
+level = 3
+unit = { "虫后" = 5 }
+desc = ["每回合开始时, 注卵{1|2}蟑螂和{1|2}刺蛇"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "孵化所"
+race = "Z"
+pack = "核心"
+level = 4
+unit = { "菌毯肿瘤" = 1, "虫后" = 2, "守卫" = 2 }
+desc = ["唯一: 任意卡牌孵化至此卡牌时, 额外孵化{2|3}单位"]
+rmrk = "对于来自虫卵牌的孵化, 额外的单位是最后被注卵的单位"
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "地底伏击"
+race = "Z"
+pack = "核心"
+level = 4
+unit = { "潜伏者" = 3 }
+desc = ["进场时, 孵化{1|2}潜伏者"]
+
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "孵化刺蛇"
+race = "Z"
+pack = "核心"
+level = 4
+unit = { "蟑螂" = 4, "刺蛇(精英)" = 3 }
+desc = ["每回合结束时, 孵化{1|2}刺蛇(精英)"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "感染深渊"
+race = "Z"
+pack = "核心"
+level = 4
+unit = { "感染者" = 2, "陆战队员" = 3 }
+desc = [
+  "每回合结束时, 所有卡牌将{2|4}陆战队员变为被感染的陆战队员, 并将他们注卵",
+  "每回合开始时, 所有卡牌将{1|2}被感染的陆战队员变为畸变体",
+]
+rmrk = "不能注卵陆战队员(精英)"
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "腐化大龙"
+race = "Z"
+pack = "核心"
+level = 5
+unit = { "腐化者" = 6 }
+desc = ["每回合结束时, 将{2|4}腐化者变为巢虫领主", "出售时, 注卵{2|4}巢虫领主"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "空中管制"
+race = "Z"
+pack = "核心"
+level = 5
+unit = { "异龙(精英)" = 4, "飞蛇" = 1 }
+desc = ["进场时, 孵化{3|6}爆蚊", "每回合结束时, 孵化{1|2}异龙(精英)"]
+
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "虫群大军"
+race = "Z"
+pack = "核心"
+level = 5
+unit = { "雷兽" = 2, "刺蛇" = 8 }
+desc = ["每回合结束时, 若拥有至少4张虫族卡牌, 则注卵{1|2}雷兽"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "终极进化"
+race = "Z"
+pack = "核心"
+level = 5
+unit = { "莽兽" = 2 }
+desc = ["进场时, 相邻两侧卡牌将{1|2}蟑螂变为莽兽"]
+
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "凶猛巨兽"
+race = "Z"
+pack = "核心"
+level = 6
+unit = { "利维坦" = 1 }
+desc = ["进场时, 所有虫族卡牌获得{2|4}腐化者", "每回合结束时, 相邻两侧虫族卡牌获得{2|4}守卫"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "扎加拉"
+race = "Z"
+pack = "核心"
+level = 6
+unit = { "扎加拉" = 1 }
+desc = ["唯一: 任意卡牌进行孵化时, 单位额外孵化到此卡牌{|, 并且此卡牌获得1巢虫领主}"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "斯托科夫"
+race = "Z"
+pack = "核心"
+level = 6
+unit = { "斯托科夫" = 1 }
+desc = ["唯一: {偶数次|任意}六星以下的非虫族卡牌进场时, 将其中的非英雄单位注卵"]
+rmrk = '''
+原文为'注卵到最左侧的虫卵牌', 但是并不存在对应情况
+对于跳虫这一角色, 会向两个卵牌注卵'''
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "虫卵"
+race = "Z"
+pack = "核心"
+level = 0
+unit = {}
+desc = ["每回合开始时, 如果相邻两侧的卡牌是虫族卡牌, 摧毁这张牌, 获得1晶体矿并孵化其中的生物单位"]
+rmrk = "是金色卡牌"
+pool = false
+[card.attr]

@@ -1,0 +1,334 @@
+[[card]]
+name = "原始蟑螂"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "原始蟑螂" = 4, "精华" = 3 }
+desc = ["供养(1): 原始蟑螂"]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "不死队"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "不死队" = 4 }
+desc = ["获得黑暗值时, 获得{1|2}不死队", "8黑暗值时单位复活1次"]
+
+pool = true
+[card.attr]
+dark = true
+
+[[card]]
+name = "紧急部署"
+race = "N"
+pack = "核心"
+level = 2
+unit = { "自动机炮" = 4, "修理无人机" = 1 }
+desc = []
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "原始刺蛇"
+race = "N"
+pack = "核心"
+level = 2
+unit = { "原始刺蛇" = 7 }
+desc = ["供养(1): 原始刺蛇", "每回合结束时, 获得{1|2}原始刺蛇和{2|4}精华"]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "原始异龙"
+race = "N"
+pack = "核心"
+level = 3
+unit = { "原始异龙" = 4 }
+desc = [
+  "任意卡牌进场时, 相邻右侧卡牌获得{1|2}精华",
+  "每回合结束时, 若晶体矿数量≥1, 则摧毁所有卡牌中的精华, 每摧毁2精华, 获得1原始异龙",
+]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "虚空大军"
+race = "N"
+pack = "核心"
+level = 3
+unit = { "歌利亚" = 1, "刺蛇" = 1, "龙骑士" = 1 }
+desc = [
+  "每回合结束时, 若你拥有人族卡牌, 则获得{1|2}歌利亚; 若你拥有虫族卡牌, 则获得{1|2}刺蛇; 若你拥有神族卡牌, 则获得{1|2}龙骑士",
+]
+
+pool = true
+[card.attr]
+void = true
+
+[[card]]
+name = "鲜血猎手"
+race = "N"
+pack = "核心"
+level = 3
+unit = { "鲜血猎手" = 6, "浩劫" = 1 }
+desc = ["获得黑暗值时, 获得{1|2}鲜血猎手", "5黑暗值时单位复活1次"]
+
+pool = true
+[card.attr]
+dark = true
+
+[[card]]
+name = "暴掠龙"
+race = "N"
+pack = "核心"
+level = 3
+unit = { "暴掠龙" = 2 }
+desc = ["供养(2): 暴掠龙", "每回合结束时, 获得{1|2}暴掠龙和{2|4}精华"]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "适者生存"
+race = "N"
+pack = "核心"
+level = 4
+unit = { "亚格卓拉" = 1 }
+desc = ["每回合结束时, 将场上随机{5|8}个生物单位精英化"]
+
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "毁灭者"
+race = "N"
+pack = "核心"
+level = 4
+unit = { "毁灭者" = 4 }
+desc = ["出售时, 相邻左侧卡牌获得等于黑暗值数量的毁灭者(不超过{10|30})"]
+
+pool = true
+[card.attr]
+dark = true
+
+[[card]]
+name = "原始点火虫"
+race = "N"
+pack = "核心"
+level = 4
+unit = { "原始点火虫" = 4, "精华" = 2 }
+desc = ["每回合结束时, 补充原始点火虫至精华数量的两倍, 最多补充到20"]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "原始雷兽"
+race = "N"
+pack = "核心"
+level = 4
+unit = { "原始雷兽" = 3 }
+desc = ["供养(4): 原始暴龙兽", "每回合结束时, 获得{1|2}原始雷兽并每有1张中立卡牌获得1精华"]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "马拉什"
+race = "N"
+pack = "核心"
+level = 5
+unit = { "马拉什" = 1 }
+desc = ["每回合结束时, 相邻两侧卡牌获得虚空投影增益"]
+rmrk = "染黑"
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "黑暗预兆"
+race = "N"
+pack = "核心"
+level = 5
+unit = { "混合体毁灭者" = 3 }
+desc = ["每回合结束时, 若场上有4个种族的卡牌, 则获得{2|4}混合体毁灭者"]
+
+pool = true
+[card.attr]
+void = true
+
+[[card]]
+name = "阿拉纳克"
+race = "N"
+pack = "核心"
+level = 5
+unit = { "阿拉纳克" = 1 }
+desc = ["进场时, 夺取除自身随机两张卡牌, 保留升级"]
+rmrk = '''
+不保留虚空投影增益
+会依次随机选取两张卡牌(不一定是先左后右)夺取, 超过数量上限的单位会被摧毁, 超过升级上限的升级会被舍弃'''
+pool = true
+[card.attr]
+
+
+[[card]]
+name = "天罚行者"
+race = "N"
+pack = "核心"
+level = 5
+unit = { "天罚行者" = 2 }
+desc = [
+  "进场时, 夺取4星及以下所有卡牌的黑暗值, 每夺取5点获得1天罚行者",
+  "每回合结束时, 每有10黑暗值, 获得{1|2}天罚行者, 最多获得{2|4}",
+]
+
+pool = true
+[card.attr]
+dark = true
+
+[[card]]
+name = "德哈卡"
+race = "N"
+pack = "核心"
+level = 5
+unit = { "德哈卡" = 1, "德哈卡分身" = 3 }
+desc = [
+  "任意卡牌出售时, 若其中精华数量≥3, 则获得{2|4}德哈卡分身",
+  "唯一: 每回合结束时, 若晶体矿数量≥1, 则下回合发现1张星级低于5星的原始虫群卡牌",
+]
+
+pool = true
+[card.attr]
+origin = true
+
+[[card]]
+name = "我叫小明"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "尤尔兰" = 1 }
+desc = ["进场时, 复制左侧相邻1-6星卡牌到暂存区", "出售时, 左侧相邻卡牌获得星空加速升级"]
+
+pool = true
+[card.attr]
+rare = true
+insert = true
+
+[[card]]
+name = "豆浆油条KT1"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "武装机器人" = 1 }
+desc = ["进场时, 此卡牌和相邻卡牌获得随机升级"]
+
+pool = true
+[card.attr]
+rare = true
+insert = true
+
+[[card]]
+name = "豆浆油条"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "赛兰迪丝" = 1 }
+desc = ["每回合结束时, 右侧所有卡牌获得虚空投影增益"]
+
+pool = true
+[card.attr]
+rare = true
+
+[[card]]
+name = "战斗号角"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "虚空辉光舰(精英)" = 4 }
+desc = ["任意六星以下卡牌出售时, 获得其中价值最高的单位"]
+
+pool = true
+[card.attr]
+rare = true
+
+[[card]]
+name = "凯瑞甘"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "莎拉·凯瑞甘" = 1 }
+desc = ["进场时, 吞噬左侧卡牌所有单位, 获得这些单位150%的生命和护盾", "进场时, 若两张凯瑞甘相邻, 合并为刀锋女王"]
+rmrk = '''
+本体的生命值只有1点
+被吞噬的卡牌视为被摧毁
+合并的女王位于先进场的凯瑞甘处
+进场后, 卡牌获得献祭升级
+虽然吞噬效果写在合并效果之前，但是进场时若能合并则并不会吞噬左侧卡牌'''
+pool = true
+[card.attr]
+gold = true
+insert = true
+
+[[card]]
+name = "刀锋女王"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "刀锋女王" = 1 }
+desc = ["唯一: 与你战斗的玩家虚空投影加成效果降低30%(最低为0)"]
+rmrk = '''
+通过凯瑞甘合并获得
+原文没有无法三连, 但是确实是暗金色卡牌'''
+pool = false
+[card.attr]
+gold = true
+
+[[card]]
+name = "虚空构造体"
+race = "N"
+pack = "核心"
+level = 6
+unit = { "虚空构造体" = 1 }
+desc = ["唯一: 在场时, 虚空投影获得额外{20|40}%加成"]
+
+pool = true
+[card.attr]
+insert = true
+void = true
+
+[[card]]
+name = "黄金矿工"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ["每回合开始时, 获得1晶体矿", "出售时, 获得3晶体矿"]
+rmrk = '''多张黄金矿工效果可以叠加
+更改为此卡面描述时, 不修改名称, 星级和种族'''
+pool = false
+[card.attr]
+
+[[card]]
+name = "岗哨机枪"
+race = "N"
+pack = "核心"
+level = 1
+unit = {}
+desc = ["建筑卡", "每回合结束时, 将每个自动机炮变为2岗哨机枪", "任意卡牌进场时, 获得{2|3}岗哨机枪"]
+
+pool = false
+[card.attr]

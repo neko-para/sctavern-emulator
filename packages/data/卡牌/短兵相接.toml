@@ -1,0 +1,40 @@
+[[card]]
+name = "帝国敢死队"
+race = "T"
+pack = "短兵相接"
+level = 5
+unit = { "诺娃" = 3, "反应堆" = 1 }
+desc = ["快速生产: 获得2诺娃", "反应堆生产诺娃", "任意任务完成时, 获得{1|2}诺娃"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "黑暗教长"
+race = "P"
+pack = "短兵相接"
+level = 5
+unit = { "泽拉图" = 1, "虚空水晶塔" = 1 }
+desc = ["进场时, 获得暗影战士升级", "集结(5): 获得{1|2}黑暗圣堂武士(精英)"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "雷兽窟"
+race = "Z"
+pack = "短兵相接"
+level = 3
+unit = { "幼雷兽" = 5 }
+desc = ["每回合开始时, 将{1|2}幼雷兽变为雷兽", "每回合结束时, 孵化{1|2}幼雷兽"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "混合体巨兽"
+race = "N"
+pack = "短兵相接"
+level = 6
+unit = { "混合体巨兽" = 2 }
+desc = ["每回合结束时, 若场上有4个种族的卡牌, 则获得{1|2}混合体巨兽"]
+pool = true
+[card.attr]
+void = true

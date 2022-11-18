@@ -1,0 +1,41 @@
+[[card]]
+name = "以火治火"
+race = "T"
+pack = "快速启动"
+level = 3
+unit = { "火蝠" = 6, "反应堆" = 1 }
+desc = ["每回合开始时, 所有具有反应堆的人族卡牌获得{1|2}火蝠", "快速生产: 所有人族卡牌将{2|3}火蝠精英化"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "六脉神剑"
+race = "P"
+pack = "快速启动"
+level = 3
+unit = { "先知" = 4, "水晶塔" = 1 }
+desc = ["任意卡牌进场时, 若先知数量小于能量强度, 则折跃{1|2}先知"]
+pool = true
+[card.attr]
+
+[[card]]
+name = "优质基因"
+race = "Z"
+pack = "快速启动"
+level = 4
+unit = { "巢虫领主" = 2, "雷兽" = 1 }
+desc = ["每回合结束时, 摧毁所有虫卵牌并且所有虫族卡牌获得1虫卵牌中价值最高的{非英雄|}单位"]
+pool = true
+[card.attr]
+insert = true
+
+[[card]]
+name = "埃蒙仆从"
+race = "N"
+pack = "快速启动"
+level = 4
+unit = { "刺蛇(精英)" = 2, "旋风狂热者(精英)" = 2 }
+desc = ["每回合结束时, 尝试同时摧毁1张虫族和神族卡牌, 使所有具有虚空投影的卡牌获得{2|3}混合体毁灭者"]
+pool = true
+[card.attr]
+void = true

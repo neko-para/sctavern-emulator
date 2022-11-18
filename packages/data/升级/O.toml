@@ -1,0 +1,20 @@
+[[upgrade]]
+name = "原始尖塔"
+category = "O"
+override = true
+bref = "出售一张中立牌, 此卡牌获得1原始异龙"
+rmrk = ""
+
+[[upgrade]]
+name = "原始甲壳"
+category = "O"
+override = true
+bref = "卡牌内所有单位生命值+30%"
+rmrk = ""
+
+[[upgrade]]
+name = "原始尖刺"
+category = "O"
+override = true
+bref = "卡牌内所有单位获得20%伤害加成, 同时远程单位获得1射程加成"
+rmrk = ""

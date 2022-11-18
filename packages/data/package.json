@@ -1,0 +1,15 @@
+{
+    "name": "data",
+    "main": "index.ts",
+    "scripts": {
+        "gen": "node generate.js pubdata.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.9",
+        "typescript": "^4.8.4"
+    },
+    "dependencies": {
+        "@ltd/j-toml": "^1.35.2",
+        "ahocorasick-ts": "^1.0.2"
+    }
+}

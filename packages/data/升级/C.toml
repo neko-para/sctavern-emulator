@@ -1,0 +1,86 @@
+[[upgrade]]
+name = "黄金矿工"
+category = "C"
+override = false
+bref = '''
+卡牌变为金色, 卡面描述变为
+每回合开始时, 获得1晶体矿
+出售时, 获得3晶体矿'''
+rmrk = "多张黄金矿工卡牌的效果叠加"
+
+[[upgrade]]
+name = "修理无人机"
+category = "C"
+override = true
+bref = "一次性效果: 给你的卡牌添加n个修理无人机(n=当前酒馆等级+3)"
+rmrk = ""
+
+[[upgrade]]
+name = "内在潜力"
+category = "C"
+override = true
+bref = "卡牌内所有单位伤害提高50%, 但每秒受到最大生命和护盾值2%的伤害"
+rmrk = ""
+
+[[upgrade]]
+name = "阳光滋润"
+category = "C"
+override = true
+bref = "卡牌内所有单位每秒受到最大生命和护盾值2%的治疗效果"
+rmrk = ""
+
+[[upgrade]]
+name = "吸血"
+category = "C"
+override = true
+bref = "卡牌内所有单位攻击伤害造成的20%转化为自身生命值"
+rmrk = ""
+
+[[upgrade]]
+name = "顽强生命力"
+category = "C"
+override = true
+bref = "卡牌内所有单位生命值+20%"
+rmrk = ""
+
+[[upgrade]]
+name = "毒质变"
+category = "C"
+override = false
+bref = "卡牌内单位造成伤害时, 受伤单位会得到持续5秒, 每秒伤害为最大生命值2%的中毒效果, 中毒效果不叠加"
+rmrk = ""
+
+[[upgrade]]
+name = "电磁加速器"
+category = "C"
+override = true
+bref = "卡牌内所有单位攻速提高20%"
+rmrk = ""
+
+[[upgrade]]
+name = "灼热打击"
+category = "C"
+override = true
+bref = "卡牌内所有单位伤害提高20%"
+rmrk = ""
+
+[[upgrade]]
+name = "重力炸弹"
+category = "C"
+override = false
+bref = "此卡牌的单位对空中单位造成伤害时, 会强制其落地3秒"
+rmrk = ""
+
+[[upgrade]]
+name = "刚毅护盾"
+category = "C"
+override = false
+bref = "卡牌内所有单位能将每次受到的伤害减少到1/4最大生命值+护盾值, 但一次最多抵消40伤害"
+rmrk = ""
+
+[[upgrade]]
+name = "缩小光束"
+category = "C"
+override = true
+bref = "卡牌内所有单位体积减小15%并且远程武器射程+1"
+rmrk = ""

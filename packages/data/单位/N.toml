@@ -1,0 +1,780 @@
+[[unit]]
+name = "塔达林母舰"
+race = "N"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位", "重型单位", "英雄单位"]
+health = 800
+shield = 400
+[[unit.weapon]]
+name = "净化光束"
+damage = 24
+range = 7
+speed = 1.58
+target = "GA"
+multiple = 6
+[unit.armor]
+name = "星灵护板"
+defense = 4
+speed = 1.97
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "虚空裂隙"
+race = "N"
+value = 0
+utype = "spbd"
+tag = []
+health = 1500
+rmrk = "血量通过凯瑞甘测算得来"
+
+[[unit]]
+name = "百夫长"
+race = "N"
+value = 200
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 130
+shield = 100
+[[unit.weapon]]
+name = "曲光战刃"
+damage = 8
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "凤凰"
+race = "N"
+value = 250
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 120
+shield = 60
+[[unit.weapon]]
+name = "离子炮"
+damage = "5, 轻甲10"
+range = 7
+speed = 0.79
+target = "A"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 5.95
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "天霸"
+race = "N"
+value = 600
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 300
+shield = 150
+[[unit.weapon]]
+name = "拦截机"
+damage = 5
+range = 8
+speed = 2.14
+target = "GA"
+multiple = 6
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 2.62
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "先锋"
+race = "N"
+value = 375
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 200
+shield = 100
+[[unit.weapon]]
+name = "离散光炮"
+damage = "4, 重甲7"
+range = 6
+speed = 1.79
+target = "G"
+multiple = 16
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "黑暗执政官"
+race = "N"
+value = 450
+utype = "normal"
+tag = ["灵能单位", "重型单位"]
+health = 10
+shield = 350
+rmrk = "初始100能量"
+[[unit.weapon]]
+name = "混沌洪流"
+damage = 18
+range = 3
+speed = 1.25
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 0
+speed = 3.94
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "混合体巨兽"
+race = "N"
+value = 1200
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位", "英雄单位"]
+health = 1000
+[[unit.weapon]]
+name = "利爪"
+damage = 24
+range = 1.2
+speed = 1.43
+target = "G"
+[[unit.weapon]]
+name = "生化弹幕"
+damage = 35
+range = 6
+speed = 0.86
+target = "A"
+[unit.armor]
+name = "虚空甲壳"
+defense = 2
+speed = 3.94
+
+[[unit]]
+name = "沃拉尊"
+race = "N"
+value = 0
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位", "英雄单位"]
+health = 300
+shield = 300
+rmrk = "是无敌的"
+[[unit.weapon]]
+name = "暗影镰刀"
+damage = 100
+range = "melee"
+speed = 1.21
+target = "G"
+[unit.armor]
+name = "星灵护板"
+defense = 1
+speed = 4.2
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 1
+
+[[unit]]
+name = "死亡之握水晶"
+race = "N"
+value = 1000
+utype = "normal"
+tag = ["英雄单位"]
+health = 250
+shield = 250
+[unit.armor]
+name = "萨尔纳加护板"
+defense = 0
+speed = 2.1
+[unit.sarmor]
+name = "萨尔纳加护盾"
+defense = 0
+
+[[unit]]
+name = "零件"
+race = "N"
+value = 0
+utype = "spun"
+tag = []
+health = 0
+bref = "用于制造"
+
+[[unit]]
+name = "精华"
+race = "N"
+value = 0
+utype = "spun"
+tag = []
+health = 0
+bref = "用于供养和原始异龙消耗"
+
+[[unit]]
+name = "原始蟑螂"
+race = "N"
+value = 100
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 120
+[[unit.weapon]]
+name = "酸性唾液"
+damage = 16
+range = 4
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 0
+speed = 4.55
+
+[[unit]]
+name = "不死队"
+race = "N"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 100
+shield = 50
+[[unit.weapon]]
+name = "灵能利刃"
+damage = 8
+range = "melee"
+speed = 0.86
+target = "G"
+multiple = 2
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "自动机炮"
+race = "N"
+value = 200
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑"]
+health = 250
+rmrk = "拥有消防系统"
+[[unit.weapon]]
+name = "12毫米口径电磁炮"
+damage = 10
+range = 8
+speed = 0.57
+target = "GA"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 1
+speed = 0
+
+[[unit]]
+name = "修理无人机"
+race = "N"
+value = 0
+utype = "normal"
+tag = ["轻甲", "机械单位", "英雄单位"]
+health = 50
+power = 200
+rmrk = "初始100能量"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 0
+speed = 2.8
+
+[[unit]]
+name = "原始刺蛇"
+race = "N"
+value = 150
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 80
+[[unit.weapon]]
+name = "骨针"
+damage = 12
+range = 5
+speed = 0.59
+target = "GA"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 0
+speed = 3.5
+
+[[unit]]
+name = "原始异龙"
+race = "N"
+value = 250
+utype = "normal"
+tag = ["轻甲", "生物单位"]
+health = 175
+[[unit.weapon]]
+name = "刃虫"
+damage = 9
+range = 3
+speed = 0.55
+target = "GA"
+[unit.armor]
+name = "异虫飞行生物甲壳"
+defense = 0
+speed = 5.25
+
+[[unit]]
+name = "鲜血猎手"
+race = "N"
+value = 125
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位"]
+health = 80
+shield = 40
+[[unit.weapon]]
+name = "背弃之刃"
+damage = 45
+range = "melee"
+speed = 1.21
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 4.48
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "浩劫"
+race = "N"
+value = 200
+utype = "normal"
+tag = ["轻甲", "机械单位"]
+health = 60
+shield = 40
+rmrk = "初始100能量"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.85
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "暴掠龙"
+race = "N"
+value = 200
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 200
+[[unit.weapon]]
+name = "不稳定投射物"
+damage = "20, vs 轻甲 30"
+range = 9
+speed = 2.14
+target = "G"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 1
+speed = 2.8
+
+[[unit]]
+name = "亚格卓拉"
+race = "N"
+value = 1000
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位", "英雄单位"]
+health = 2000
+[[unit.weapon]]
+name = "喷吐火焰"
+damage = "50, vs 重型单位 100"
+range = 10
+speed = 2.86
+target = "G"
+multiple = 1
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 1
+speed = 0
+
+[[unit]]
+name = "毁灭者"
+race = "N"
+value = 400
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 150
+shield = 100
+[[unit.weapon]]
+name = "毁灭光束"
+damage = "6, vs 重甲 10"
+range = 6
+speed = 0.36
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 0
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "原始点火虫"
+race = "N"
+value = 300
+utype = "normal"
+tag = ["重甲", "生物单位"]
+health = 300
+rmrk = "原始蟑螂进化而来"
+[[unit.weapon]]
+name = "火焰吐息"
+damage = 35
+range = 2
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 2
+speed = 4.55
+
+[[unit]]
+name = "原始雷兽"
+race = "N"
+value = 425
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位"]
+health = 300
+[[unit.weapon]]
+name = "巨刃"
+damage = 25
+range = 1
+speed = 0.61
+target = "G"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 2
+speed = 4.13
+
+[[unit]]
+name = "原始暴龙兽"
+race = "N"
+value = 600
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位", "英雄单位"]
+health = 600
+rmrk = "原始雷兽进化而来"
+[[unit.weapon]]
+name = "巨刃"
+damage = 25
+range = 1
+speed = 1.14
+target = "G"
+[[unit.weapon]]
+name = "尖刺喷射"
+damage = 15
+range = 5
+speed = 1.43
+target = "A"
+multiple = 5
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 3
+speed = 4.13
+
+[[unit]]
+name = "马拉什"
+race = "N"
+value = 800
+utype = "normal"
+tag = ["生物单位", "灵能单位", "英雄单位"]
+health = 100
+shield = 300
+power = 200
+rmrk = "初始100能量"
+[[unit.weapon]]
+name = "痛苦冲击"
+damage = 9
+range = 7
+speed = 1.25
+target = "G"
+[[unit.weapon]]
+name = "灵能波"
+damage = 9
+range = 7
+speed = 1.25
+target = "G"
+[unit.armor]
+name = "星灵护甲"
+defense = 0
+speed = 3.15
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "混合体毁灭者"
+race = "N"
+value = 500
+utype = "normal"
+tag = ["重甲", "生物单位", "英雄单位"]
+health = 200
+shield = 200
+[[unit.weapon]]
+name = "虚空冲击波"
+damage = 35
+range = 7
+speed = 0.86
+target = "GA"
+[unit.armor]
+name = "虚空甲壳"
+defense = 1
+speed = 3.94
+[unit.sarmor]
+name = "混合体护盾"
+defense = 0
+
+[[unit]]
+name = "阿拉纳克"
+race = "N"
+value = 1500
+utype = "normal"
+tag = ["生物单位", "灵能单位", "英雄单位"]
+health = 300
+shield = 350
+[[unit.weapon]]
+name = "背弃之刃"
+damage = 20
+range = "melee"
+speed = 0.71
+target = "G"
+multiple = 1
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 4.13
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 2
+
+[[unit]]
+name = "天罚行者"
+race = "N"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位"]
+health = 200
+shield = 150
+[[unit.weapon]]
+name = "风暴聚合器"
+damage = 80
+range = 10
+speed = 5.71
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 1
+speed = 2.8
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "德哈卡"
+race = "N"
+value = 750
+utype = "normal"
+tag = ["生物单位", "英雄单位"]
+health = 650
+rmrk = "可以由德哈卡分身进化而来"
+[[unit.weapon]]
+name = "利爪"
+damage = "25, 建筑50"
+range = 1
+speed = 0.86
+target = "G"
+[[unit.weapon]]
+name = "腐蚀脊刺"
+damage = "50, 建筑75"
+range = 3
+speed = 1.43
+target = "A"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 1
+speed = 4.76
+
+[[unit]]
+name = "德哈卡分身"
+race = "N"
+value = 300
+utype = "normal"
+tag = ["生物单位"]
+health = 250
+[[unit.weapon]]
+name = "利爪"
+damage = "25, 建筑50"
+range = 1
+speed = 0.86
+target = "G"
+[[unit.weapon]]
+name = "腐蚀脊刺"
+damage = "50, 建筑75"
+range = 3
+speed = 1.43
+target = "A"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 1
+speed = 4.76
+
+[[unit]]
+name = "尤尔兰"
+race = "N"
+value = 400
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 150
+shield = 150
+[[unit.weapon]]
+name = "能量光束"
+damage = 15
+range = 6
+speed = 0.79
+target = "A"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 5.95
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "武装机器人"
+race = "N"
+value = 1000
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 15000
+[[unit.weapon]]
+name = "120毫米口径火炮"
+damage = 32
+range = 8
+speed = 0.57
+target = "GA"
+[unit.armor]
+name = "人类战车钢板"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "赛兰迪丝"
+race = "N"
+value = 1000
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
+health = 800
+shield = 500
+[[unit.weapon]]
+name = "拦截机"
+damage = 8
+range = 8
+speed = 0.07
+target = "GA"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 4
+speed = 2.62
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "莎拉·凯瑞甘"
+race = "N"
+value = 50
+utype = "normal"
+tag = ["生物单位", "灵能单位", "英雄单位"]
+health = 1
+[[unit.weapon]]
+name = "C-20A 霰弹步枪"
+damage = 100
+range = 6
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "人类步兵护甲"
+defense = 0
+speed = 3.15
+
+[[unit]]
+name = "刀锋女王"
+race = "N"
+value = 100
+utype = "normal"
+tag = ["轻甲", "生物单位", "灵能单位", "英雄单位"]
+health = 1
+[[unit.weapon]]
+name = "能量冲击"
+damage = 100
+range = 6
+speed = 1.07
+target = "GA"
+[unit.armor]
+name = "异虫地面单位甲壳"
+defense = 1
+speed = 3.94
+
+[[unit]]
+name = "虚空构造体"
+race = "N"
+value = 3000
+utype = "normal"
+tag = ["重甲", "重型单位", "英雄单位"]
+health = 2500
+[[unit.weapon]]
+name = "眼棱冲击"
+damage = 80
+range = 8
+speed = 1
+target = "GA"
+[unit.armor]
+name = "星灵护甲"
+defense = 2
+speed = 2.8
+
+[[unit]]
+name = "岗哨机枪"
+race = "N"
+value = 100
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑"]
+health = 125
+[[unit.weapon]]
+name = "岗哨机枪"
+damage = 8
+range = 6
+speed = 0.57
+target = "GA"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 1
+speed = 0

@@ -1,0 +1,29 @@
+[[upgrade]]
+name = "献祭"
+category = "S"
+override = false
+bref = '''
+此卡牌的所有单位献祭给卡内价值最高的战斗单位, 获得献祭单位150%生命和护盾值
+新添加的单位同样会献祭'''
+rmrk = ""
+
+[[upgrade]]
+name = "轨道空降"
+category = "S"
+override = false
+bref = "战斗阶段, 地图上将出现可移动的空降信标, 此卡牌的所有单位都将在20秒后空降到信标附近(自动模式为10秒)"
+rmrk = ""
+
+[[upgrade]]
+name = "暗影战士"
+category = "S"
+override = false
+bref = "战斗时, 卡牌内的单位获得20秒的隐身, 隐身时无敌, 制造2次伤害则会现形"
+rmrk = "该升级在三连时不保留"
+
+[[upgrade]]
+name = "完美冻结"
+category = "S"
+override = true
+bref = "此卡牌所有单位的第一次攻击会使目标冻结1秒(被冻结的单位无法移动, 攻击或被攻击)"
+rmrk = ""

@@ -1,0 +1,38 @@
+[[upgrade]]
+name = "反甲"
+category = "3"
+override = true
+bref = "战斗时卡牌内的单位受伤时, 攻击者受到造成伤害的1/3的反伤"
+rmrk = ""
+
+[[upgrade]]
+name = "力大砖飞"
+category = "3"
+override = false
+bref = '''
+卡牌内所有地面单位变为空中单位, 生命值低于1/3时落地
+巨像除外'''
+rmrk = '''
+飞天单位仍然持有地面状态的碰撞箱, 和真正的空中单位不同
+巨像, 巨像(精英), 天罚行者均不会获得享受升级'''
+
+[[upgrade]]
+name = "金光闪闪"
+category = "3"
+override = true
+bref = "卡牌内所有单位获得20%生命加成和20%伤害加成"
+rmrk = ""
+
+[[upgrade]]
+name = "狙击镜"
+category = "3"
+override = false
+bref = "卡牌内所有单位远程武器攻击距离+2"
+rmrk = "此升级对如地刺等初始状态下没有远程武器的单位无效"
+
+[[upgrade]]
+name = "重构之壳"
+category = "3"
+override = false
+bref = "卡牌内的单位受到致命伤害后, 避免一次死亡, 并缓慢恢复50点生命值"
+rmrk = "重生的前几秒不会被敌方选中为攻击目标"
