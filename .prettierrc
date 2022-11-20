@@ -1,3 +1,11 @@
 {
-  "singleQuote": true
+  "trailingComma": "es5",
+  "semi": false,
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "vueIndentScriptAndStyle": false,
+  "printWidth": 80,
+  "options": {
+    "editorconfig": true
+  }
 }

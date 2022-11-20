@@ -1,6 +1,7 @@
 import { AhoCorasick } from 'ahocorasick-ts'
 
 import type {
+  Race,
   Card,
   Term,
   Unit,
@@ -11,7 +12,7 @@ import type {
   SplitResult,
   SplitResultRefer,
 } from './types'
-import { data as raw, AllUnit } from './pubdata'
+import { data as raw, AllCard, AllUnit, AllTerm, AllUpgrade } from './pubdata'
 import type {
   CardKey,
   TermKey,
@@ -27,8 +28,9 @@ export const Units: Map<UnitKey, Unit> = new Map()
 export const Upgrades: Map<UpgradeKey, Upgrade> = new Map()
 
 export { attr, tr, order }
+export { AllCard, AllUnit, AllTerm, AllUpgrade }
 export { CardKey, TermKey, UnitKey, UpgradeKey, PossibleKey }
-export { Card, Term, Unit, Upgrade, Weapon, Armor, SArmor }
+export { Race, Card, Term, Unit, Upgrade, Weapon, Armor, SArmor }
 export { SplitResult, SplitResultRefer }
 
 card.forEach(c => Cards.set(c.name, c))
