@@ -67,12 +67,6 @@ type PlayerBusTemplate = {
     level: number
   }
   refreshed: {} // 刷新商店
-  discover: {
-    // 发现
-    item: (CardKey | UpgradeKey)[]
-    target?: CardInstance
-    cancel?: true
-  }
 
   'card-destroyed': {
     // 摧毁卡牌
@@ -98,10 +92,9 @@ type PlayerBusTemplate = {
   }
   inject: {
     // 注卵
-    from: CardInstance
+    from: CardInstance | null
     units: UnitKey[]
   }
-
   wrap: {
     // 折跃
     units: UnitKey[]
@@ -111,54 +104,27 @@ type PlayerBusTemplate = {
 
 type PlayerBus = ApplyKey<PlayerBusTemplate, { player: number }>
 
-type CardBusTemplate = {
-  'obtain-unit': {
-    // 获得单位
-    units: UnitKey[]
-  }
-  'obtain-upgrade': {
-    // 获得升级
-    upgrade: UpgradeKey
-  }
-  'replace-unit': {
-    places: number[]
-    unit: UnitKey | ((u: UnitKey) => UnitKey)
-  }
-  'clear-desc': {
-    // 清除卡面描述
-  }
-  'add-desc': {
-    // 添加卡面描述
-    desc: DescriptorGenerator
-  }
+export type ObtainUnitWay = 'normal' | 'incubate' | 'wrap'
 
-  seize: {
-    // 夺取
-    target: CardInstance
-    real: boolean
-    upgrade: 'discard' | 'keep'
+type CardBusTemplate = {
+  'obtain-unit-prev': {
+    // 获得单位前
+    units: UnitKey[]
+    way: ObtainUnitWay
+  }
+  'obtain-unit-post': {
+    // 获得单位后
+    units: UnitKey[]
+    way: ObtainUnitWay
   }
 
   'task-done': {}
   'infr-changed': {} // 挂件切换
   'fast-prod': {} // 快速生产
 
-  'incubate-into': {
-    // 孵化入 用于孵化所
-    units: UnitKey[]
-  }
-
   regroup: {
     // 集结
     id: number
-  }
-  'regroup-count': {
-    // 查询集结词条个数 用于后勤处
-    count: number
-  }
-  'wrap-into': {
-    // 折跃入 用于英雄叉
-    units: UnitKey[]
   }
 
   'gain-darkness': {
@@ -168,6 +134,10 @@ type CardBusTemplate = {
 
   'post-enter': {}
   'post-sell': {}
+  seize: {
+    // 夺取
+    target: CardInstance
+  }
 }
 
 type CardBus = ApplyKey<CardBusTemplate, { player: number; card: number }>
@@ -175,34 +145,33 @@ type CardBus = ApplyKey<CardBusTemplate, { player: number; card: number }>
 export type LogicBus = GameBus & PlayerBus & CardBus & InputBus
 
 interface OutputBusTemplate {
-  'info-update': {}
-  'store-update': {
-    place: number
-  }
-  'hand-update': {
-    place: number
-  }
-  'present-update': {
-    place: number
-  }
+  refresh: {}
+  'begin-insert': {}
+  'end-insert': {}
+  'begin-discover': {}
+  'end-discover': {}
 }
 
 export type OutputBus = ApplyKey<OutputBusTemplate, { client: number }>
 
 export interface DescriptorGenerator {
-  (card: CardInstance): Descriptor
+  (card: CardInstance, gold: boolean, text: [string, string]): Descriptor // 白球之类的导致不能单纯靠卡牌属性来判断是否为金色
 }
 
 export interface Descriptor {
-  text: string
+  text: [string, string]
+  gold: boolean
+  unique?: string
+  disabled?: boolean
 
   unbind(): void
 }
 
-export type DescriptorTable = {
-  [key in string]: DescriptorGenerator
+export type CardDescriptorTable = {
+  [key in CardKey]?: DescriptorGenerator[]
 }
 
-export type CardDescriptorTable = {
-  [key in CardKey]?: string[]
+export interface PlayerConfig {
+  MaxUnitPerCard: number
+  MaxUpgradePerCard: number
 }

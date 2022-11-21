@@ -1,4 +1,4 @@
-interface Func {
+export interface FuncBase {
   (p: any): Promise<void>
 }
 
@@ -6,23 +6,35 @@ export class Emitter<Msg extends Record<string, object>> {
   tran: string
   child: (Emitter<Msg> | null)[]
   func: {
-    [msg in string & keyof Msg]?: Func[]
+    [msg in string & keyof Msg]?: FuncBase[]
   }
+  rec: [string & keyof Msg, FuncBase][]
 
   constructor(tran: string, child: (Emitter<Msg> | null)[]) {
     this.tran = tran
     this.child = child
     this.func = {}
+    this.rec = []
   }
 
-  on<M extends string & keyof Msg>(
-    msg: M,
-    func: (p: Msg[M]) => Promise<void>
-  ): (p: Msg[M]) => Promise<void> {
+  begin() {
+    this.rec = []
+  }
+
+  end() {
+    const r = this.rec
+    return () => {
+      for (const [m, f] of r) {
+        this.off(m, f)
+      }
+    }
+  }
+
+  on<M extends string & keyof Msg>(msg: M, func: (p: Msg[M]) => Promise<void>) {
     const ft = this.func[msg] || []
     ft.push(func)
     this.func[msg] = ft
-    return func
+    this.rec.push([msg, func])
   }
 
   off<M extends string & keyof Msg>(
@@ -30,17 +42,6 @@ export class Emitter<Msg extends Record<string, object>> {
     func: (p: Msg[M]) => Promise<void>
   ) {
     this.func[msg] = this.func[msg]?.filter(f => f !== func) || []
-  }
-
-  offRecord(
-    r: {
-      msg: string & keyof Msg
-      func: Func
-    }[]
-  ) {
-    r.forEach(({ msg, func }) => {
-      this.off(msg, func)
-    })
   }
 
   private getTran(param: any) {
