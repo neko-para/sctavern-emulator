@@ -34,9 +34,9 @@ export class CardInstance {
 
   occupy: CardKey[]
 
-  constructor(player: Player, cardt: Card, pos: number) {
+  constructor(player: Player, cardt: Card) {
     this.bus = new Emitter('', [])
-    this.pos = pos
+    this.pos = -1
     this.player = player
 
     this.data = {
@@ -183,15 +183,21 @@ export class CardInstance {
   }
 
   async add_desc(desc: DescriptorGenerator, text: [string, string]) {
-    // TODO: Implement
-    this.data.descs.push(desc(this, this.data.color !== 'normal', text))
-    await this.player.refresh()
+    const d = desc(this, this.data.color !== 'normal', text)
+    this.data.descs.push(d)
+    if (d.unique) {
+      await this.player.add_unique(this, d)
+    } else {
+      await this.player.refresh()
+    }
   }
 
   async clear_desc() {
-    // TODO: Implement
     for (const d of this.data.descs) {
       d.unbind()
+      if (d.unique) {
+        await this.player.del_unique(d)
+      }
     }
     this.data.descs = []
     await this.player.refresh()
@@ -200,7 +206,7 @@ export class CardInstance {
   async seize(
     target: CardInstance,
     option: {
-      real?: boolean
+      unreal?: boolean
       upgrade?: boolean // 是否夺取升级
     }
   ) {
@@ -210,7 +216,7 @@ export class CardInstance {
         await this.obtain_upgrade(u)
       }
     }
-    if (option.real) {
+    if (!option.unreal) {
       await this.post('seize', {
         ...refC(this),
         target,

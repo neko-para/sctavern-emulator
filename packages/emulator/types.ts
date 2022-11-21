@@ -148,7 +148,10 @@ interface OutputBusTemplate {
   refresh: {}
   'begin-insert': {}
   'end-insert': {}
-  'begin-discover': {}
+  'begin-discover': {
+    item: (CardKey | UpgradeKey)[]
+    cancel: boolean
+  }
   'end-discover': {}
 }
 
@@ -174,4 +177,8 @@ export type CardDescriptorTable = {
 export interface PlayerConfig {
   MaxUnitPerCard: number
   MaxUpgradePerCard: number
+  AlwaysInsert: boolean
+
+  StoreCount: number[]
+  UpgradeCost: number[]
 }
