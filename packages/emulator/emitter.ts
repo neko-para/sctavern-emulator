@@ -45,9 +45,11 @@ export class Emitter<Msg extends Record<string, object>> {
   }
 
   private getTran(param: any) {
-    const sub = this.tran in param ? (param[this.tran] as number) : null
-    if (sub !== null) {
+    const sub = param[this.tran] as number | Emitter<Msg> | undefined
+    if (typeof sub === 'number') {
       return this.child[sub] || null
+    } else if (sub instanceof Emitter<Msg>) {
+      return sub
     } else {
       return null
     }

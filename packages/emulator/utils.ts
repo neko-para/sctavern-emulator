@@ -1,3 +1,4 @@
+import { UnitKey } from 'data'
 import { Random, RNG } from 'random'
 import { CardInstance } from './card'
 import { Player } from './player'
@@ -20,10 +21,10 @@ export class Shuffler {
   }
 }
 
-export function refC(card: CardInstance) {
+export function refC(card: CardInstance, direct = false) {
   return {
     player: card.player.pos,
-    card: card.pos,
+    card: direct ? card.bus : card.pos,
   }
 }
 
@@ -83,4 +84,8 @@ export function autoBindPlayer<T extends keyof LogicBus>(
       },
     }
   }
+}
+
+export function us(u: UnitKey, n: number): UnitKey[] {
+  return Array(n).fill(u)
 }

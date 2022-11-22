@@ -171,6 +171,9 @@ export class Player {
   }
 
   async incubate(from: CardInstance, units: UnitKey[]) {
+    if (units.length === 0) {
+      return
+    }
     await this.post('incubate', {
       ...refP(this),
       from,
@@ -183,7 +186,10 @@ export class Player {
     }
   }
 
-  async inject(from: CardInstance | null, units: UnitKey[]) {
+  async inject(units: UnitKey[]) {
+    if (units.length === 0) {
+      return
+    }
     const eggs = this.find_name('虫卵')
     let egg_card: CardInstance | null = null
     if (eggs.length === 0) {
@@ -191,7 +197,15 @@ export class Player {
       if (hole === -1) {
         return
       }
-      egg_card = new CardInstance(this, getCard('虫卵'))
+      const egg_cardt = getCard('虫卵')
+      egg_card = new CardInstance(this, egg_cardt)
+      egg_card.data.color = 'gold'
+      const descs = Descriptors['虫卵']
+      if (descs) {
+        for (let i = 0; i < descs.length; i++) {
+          await egg_card.add_desc(descs[i], egg_cardt.desc[i])
+        }
+      }
       await this.put(egg_card, hole)
     } else {
       egg_card = eggs[0]
@@ -200,13 +214,15 @@ export class Player {
       await egg_card.obtain_unit(units)
       await this.post('inject', {
         ...refP(this),
-        from,
         units,
       })
     }
   }
 
   async wrap(units: UnitKey[]) {
+    if (units.length === 0) {
+      return
+    }
     const param = {
       ...refP(this),
       units,
@@ -280,8 +296,8 @@ export class Player {
     let p = this.present.indexOf(null, pos)
     if (p !== -1) {
       for (let i = p; i > pos; i--) {
-        this.present[p] = this.present[p - 1]
-        ;(this.present[p] as CardInstance).pos = p
+        this.present[i] = this.present[i - 1]
+        ;(this.present[i] as CardInstance).pos = i
       }
       this.present[pos] = card
       card.pos = pos
@@ -290,8 +306,8 @@ export class Player {
     p = this.present.lastIndexOf(null)
     if (p !== -1) {
       for (let i = p; i < pos; i++) {
-        this.present[p] = this.present[p + 1]
-        ;(this.present[p] as CardInstance).pos = p
+        this.present[i] = this.present[i + 1]
+        ;(this.present[i] as CardInstance).pos = i
       }
       this.present[pos] = card
       card.pos = pos
@@ -326,6 +342,7 @@ export class Player {
       pos = await this.queryInsert()
     }
     const card = new CardInstance(this, cardt)
+    card.occupy.push(cardt.name)
     this.put(card, pos)
 
     for (const k in cardt.unit) {
@@ -337,6 +354,8 @@ export class Player {
       for (let i = 0; i < descs.length; i++) {
         await card.add_desc(descs[i], cardt.desc[i])
       }
+    } else {
+      console.log('WARN: Card Not Implement Yet')
     }
 
     await this.post('card-entered', {
@@ -430,7 +449,7 @@ export class Player {
 
   async sell(card: CardInstance) {
     this.unput(card)
-    await this.post('post-sell', refC(card))
+    await this.post('post-sell', refC(card, true))
     await card.clear_desc()
     this.game.pool.drop(card.occupy.map(getCard))
     await this.post('card-selled', {
@@ -439,6 +458,16 @@ export class Player {
     })
     await this.obtain_resource({
       mineral: 1,
+    })
+  }
+
+  async destroy(card: CardInstance) {
+    this.unput(card)
+    await card.clear_desc()
+    this.game.pool.drop(card.occupy.map(getCard))
+    await this.post('card-destroyed', {
+      ...refP(this),
+      target: card,
     })
   }
 
@@ -578,8 +607,9 @@ export class Player {
       if (!this.hand[place] || !this.can_hand_enter()) {
         return
       }
-      await this.enter(getCard(this.hand[place] as CardKey))
+      const c = this.hand[place] as CardKey
       this.hand[place] = null
+      await this.enter(getCard(c))
       await this.refresh()
     })
     this.bus.on('$hand-combine', async ({ place }) => {
@@ -589,8 +619,9 @@ export class Player {
       ) {
         return
       }
-      await this.combine(getCard(this.hand[place] as CardKey))
+      const c = this.hand[place] as CardKey
       this.hand[place] = null
+      await this.combine(getCard(c))
       await this.refresh()
     })
     this.bus.on('$hand-sell', async ({ place }) => {

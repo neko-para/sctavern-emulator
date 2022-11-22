@@ -70,7 +70,7 @@ export class CardInstance {
       this.data.belong = 'void'
     }
 
-    this.occupy = [cardt.name]
+    this.occupy = []
 
     this.bind()
   }
@@ -302,8 +302,9 @@ export class CardInstance {
   find(u: UnitKey | ((unit: UnitKey) => boolean), maxi?: number) {
     const pred = typeof u === 'string' ? (unit: UnitKey) => unit === u : u
     return this.data.units
-      .filter(pred)
-      .map((u, i) => i)
+      .map((u, i) => [u, i] as [UnitKey, number])
+      .filter(([u]) => pred(u))
+      .map(([u, i]) => i)
       .slice(0, maxi)
   }
 

@@ -29,9 +29,15 @@ const player = game.player[0]
 
 const timeTick = ref(0)
 
+let timeout: number | null = null
+
 game.obus.on('refresh', async () => {
-  console.log('refreshed')
-  timeTick.value += 1
+  if (timeout) {
+    clearTimeout(timeout)
+  }
+  timeout = setTimeout(() => {
+    timeTick.value += 1
+  }, 1)
 })
 
 game.obus.on('begin-insert', async () => {

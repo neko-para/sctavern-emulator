@@ -47,7 +47,7 @@ export class Pool {
       const ck = k as CardKey
       const card = getCard(ck)
 
-      if (pred(card) && card.race === 'T') {
+      if (pred(card) && (card.race === 'T' || card.race === 'Z')) {
         if (unique) {
           f.push(card)
           mf.push(...Array((this.rheap[ck] || 1) - 1).fill(card))

@@ -4,7 +4,6 @@
   "description": "Emulator Core",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
   },
   "author": "nekosu",
   "license": "MIT",

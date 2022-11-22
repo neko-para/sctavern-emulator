@@ -1,5 +1,6 @@
 import { CardKey, UnitKey, UpgradeKey } from 'data'
 import { CardInstance } from './card'
+import { Emitter } from './emitter'
 
 type ApplyKey<T, I extends {}> = {
   [key in keyof T]: T[key] & I
@@ -92,7 +93,6 @@ type PlayerBusTemplate = {
   }
   inject: {
     // 注卵
-    from: CardInstance | null
     units: UnitKey[]
   }
   wrap: {
@@ -140,7 +140,10 @@ type CardBusTemplate = {
   }
 }
 
-type CardBus = ApplyKey<CardBusTemplate, { player: number; card: number }>
+type CardBus = ApplyKey<
+  CardBusTemplate,
+  { player: number; card: number | Emitter<LogicBus> }
+>
 
 export type LogicBus = GameBus & PlayerBus & CardBus & InputBus
 

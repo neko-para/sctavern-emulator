@@ -6,7 +6,14 @@ import {
   DescriptorGenerator,
   LogicBus,
 } from '../types'
-import { autoBind, autoBindPlayer, isCardInstance, refC, refP } from '../utils'
+import {
+  autoBind,
+  autoBindPlayer,
+  isCardInstance,
+  refC,
+  refP,
+  us,
+} from '../utils'
 
 enum RenewPolicy {
   never,
@@ -66,7 +73,7 @@ function 任务<T extends string & keyof LogicBus>(
 
 function 快速生产(unit: UnitKey, nc: number, gc: number): DescriptorGenerator {
   return autoBind('fast-prod', async (card, gold) => {
-    await card.obtain_unit(Array(gold ? gc : nc).fill(unit))
+    await card.obtain_unit(us(unit, gold ? gc : nc))
   })
 }
 
@@ -92,14 +99,14 @@ function 科挂(
   gc: number
 ): DescriptorGenerator {
   return 科挂X(count, async (card, gold) => {
-    await card.obtain_unit(Array(gold ? gc : nc).fill(unit))
+    await card.obtain_unit(us(unit, gold ? gc : nc))
   })
 }
 
 function 反应堆(unit: UnitKey): DescriptorGenerator {
   return autoBind('round-end', async (card, gold) => {
     if (card.infr()[0] === 'reactor') {
-      await card.obtain_unit(Array(gold ? 2 : 1).fill(unit))
+      await card.obtain_unit(us(unit, gold ? 2 : 1))
     }
   })
 }
@@ -154,7 +161,7 @@ const data: CardDescriptorTable = {
   ],
   空投地雷: [
     autoBind('card-entered', async (card, gold) => {
-      await card.obtain_unit(Array(gold ? 2 : 1).fill('寡妇雷'))
+      await card.obtain_unit(us('寡妇雷', gold ? 2 : 1))
     }),
     快速生产('寡妇雷', 2, 3),
   ],
@@ -176,7 +183,7 @@ const data: CardDescriptorTable = {
       'refreshed',
       2,
       async (card, gold) => {
-        await card.obtain_unit(Array(gold ? 2 : 1).fill('歌利亚'))
+        await card.obtain_unit(us('歌利亚', gold ? 2 : 1))
       },
       () => true,
       RenewPolicy.roundend
@@ -186,7 +193,7 @@ const data: CardDescriptorTable = {
   空军学院: [
     快速生产('维京战机', 3, 5),
     autoBindPlayer('task-done', async (card, gold) => {
-      await card.obtain_unit(Array(gold ? 2 : 1).fill('解放者'))
+      await card.obtain_unit(us('解放者', gold ? 2 : 1))
     }),
   ],
   交叉火力: [科挂(4, '攻城坦克', 1, 2), 快速生产('歌利亚', 3, 5)],
@@ -194,7 +201,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
         if (c.infr()[0] === 'reactor') {
-          await c.obtain_unit(Array(gold ? 4 : 2).fill('陆战队员'))
+          await c.obtain_unit(us('陆战队员', gold ? 4 : 2))
         }
       }
     }),
@@ -216,7 +223,7 @@ const data: CardDescriptorTable = {
   护航中队: [
     快速生产('黄昏之翼', 1, 2),
     autoBind('card-entered', async (card, gold) => {
-      await card.obtain_unit(Array(gold ? 2 : 1).fill('怨灵战机'))
+      await card.obtain_unit(us('怨灵战机', gold ? 2 : 1))
     }),
   ],
   泰凯斯: [
@@ -230,7 +237,7 @@ const data: CardDescriptorTable = {
       }
     }),
     autoBind('round-end', async (card, gold) => {
-      card.obtain_unit(Array(gold ? 2 : 1).fill('医疗运输机'))
+      card.obtain_unit(us('医疗运输机', gold ? 2 : 1))
     }),
   ],
   外籍军团: [
@@ -263,7 +270,7 @@ const data: CardDescriptorTable = {
           ...c.find('陆战队员(精英)', nProTran),
           ...c.find('陆战队员', nNorTran),
         ])
-        await c.obtain_unit(Array(cnt).fill('牛头人陆战队员'))
+        await c.obtain_unit(us('牛头人陆战队员', cnt))
       }
     }),
   ],
@@ -281,7 +288,7 @@ const data: CardDescriptorTable = {
   游骑兵: [
     autoBindPlayer('infr-changed', async (card, gold, { card: cp }) => {
       const c = card.player.present[cp] as CardInstance
-      await c.obtain_unit(Array(gold ? 2 : 1).fill('雷诺(狙击手)'))
+      await c.obtain_unit(us('雷诺(狙击手)', gold ? 2 : 1))
     }),
     反应堆('雷诺(狙击手)'),
   ],
@@ -351,19 +358,19 @@ const data: CardDescriptorTable = {
       'card-selled',
       3,
       async (card, gold) => {
-        await card.obtain_unit(Array(gold ? 2 : 1).fill('战列巡航舰'))
+        await card.obtain_unit(us('战列巡航舰', gold ? 2 : 1))
       },
       () => true,
       RenewPolicy.instant
     ),
     科挂X(4, async (card, gold) => {
-      await card.obtain_unit(Array(gold ? 4 : 2).fill('黄昏之翼'))
+      await card.obtain_unit(us('黄昏之翼', gold ? 4 : 2))
     }),
   ],
   黄昏之翼: [快速生产('黄昏之翼', 1, 2), 反应堆('女妖')],
   艾尔游骑兵: [
     autoBind('fast-prod', async (card, gold) => {
-      await card.left()?.obtain_unit(Array(gold ? 2 : 1).fill('水晶塔'))
+      await card.left()?.obtain_unit(us('水晶塔', gold ? 2 : 1))
     }),
     autoBind('round-end', async (card, gold) => {
       let n = 0
@@ -374,21 +381,21 @@ const data: CardDescriptorTable = {
           n += 1
         }
       }
-      await card.obtain_unit(Array(n * (gold ? 8 : 4)).fill('陆战队员'))
+      await card.obtain_unit(us('陆战队员', n * (gold ? 8 : 4)))
     }),
   ],
   帝国敢死队: [
     快速生产('诺娃', 2, 2),
     反应堆('诺娃'),
     autoBindPlayer('task-done', async (card, gold) => {
-      await card.obtain_unit(Array(gold ? 2 : 1).fill('诺娃'))
+      await card.obtain_unit(us('诺娃', gold ? 2 : 1))
     }),
   ],
   以火治火: [
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
         if (c.infr()[0] === 'reactor') {
-          await c.obtain_unit(Array(gold ? 2 : 1).fill('火蝠'))
+          await c.obtain_unit(us('火蝠', gold ? 2 : 1))
         }
       }
     }),
@@ -406,14 +413,14 @@ const data: CardDescriptorTable = {
         if (!c) {
           continue
         }
-        const us = getCard(c).unit
+        const units = getCard(c).unit
         const r: UnitKey[] = []
-        for (const k in us) {
+        for (const k in units) {
           const unit = k as UnitKey
           if (!isNormal(unit) || isHero(unit) || !isBiological(unit)) {
             continue
           }
-          r.push(...Array(us[unit]).fill(unit))
+          r.push(...us(unit, units[unit] || 0))
         }
         await card.obtain_unit(
           card.player.game.gen.shuffle(r).slice(0, gold ? 2 : 1)
