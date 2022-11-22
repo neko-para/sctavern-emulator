@@ -45,8 +45,8 @@ export class Emitter<Msg extends Record<string, object>> {
   }
 
   private getTran(param: any) {
-    const sub = param[this.tran] as number | undefined
-    if (sub) {
+    const sub = this.tran in param ? (param[this.tran] as number) : null
+    if (sub !== null) {
       return this.child[sub] || null
     } else {
       return null

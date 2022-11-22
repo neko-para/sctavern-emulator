@@ -1,4 +1,13 @@
-import { Card, CardKey, Race, Unit, UnitKey, UpgradeKey, Upgrades } from 'data'
+import {
+  Card,
+  CardKey,
+  getUnit,
+  Race,
+  Unit,
+  UnitKey,
+  UpgradeKey,
+  Upgrades,
+} from 'data'
 import { describe } from 'node:test'
 import { AttributeManager } from './attribute'
 import { Emitter } from './emitter'
@@ -20,6 +29,8 @@ export interface CardInstanceAttrib {
 
   units: UnitKey[]
   upgrades: UpgradeKey[]
+
+  belong: 'none' | 'origin' | 'void'
 
   descs: Descriptor[]
   attrib: AttributeManager
@@ -43,13 +54,20 @@ export class CardInstance {
       name: cardt.name,
       race: cardt.race,
       level: cardt.level,
-      color: cardt.attr.gold ? 'gold' : 'normal',
+      color: cardt.attr.gold ? 'darkgold' : 'normal',
       units: [],
       upgrades: [],
+      belong: 'none',
       descs: [],
       attrib: new AttributeManager(async () => {
         await this.player.refresh()
       }),
+    }
+
+    if (cardt.attr.origin) {
+      this.data.belong = 'origin'
+    } else if (cardt.attr.void) {
+      this.data.belong = 'void'
     }
 
     this.occupy = [cardt.name]
@@ -77,6 +95,36 @@ export class CardInstance {
     }
   }
 
+  value() {
+    return this.data.units
+      .map(getUnit)
+      .map(u => u.value)
+      .reduce((p, c) => p + c, 0)
+  }
+
+  private self_power(): number {
+    return this.find('水晶塔').length + this.find('虚空水晶塔').length
+  }
+
+  power(): number {
+    return (
+      this.self_power() +
+      (this.left()?.self_power() || 0) +
+      (this.right()?.self_power() || 0)
+    )
+  }
+
+  attribs(): string[] {
+    const result: string[] = Object.keys(this.data.attrib.attrib)
+      .map(a => this.data.attrib.attrib[a])
+      .map(a => a.show(a.value))
+      .filter(a => a)
+    if (this.data.race === 'P' || this.power() > 0) {
+      result.push(`能量强度: ${this.power()}`)
+    }
+    return result
+  }
+
   infr(): ['reactor' | 'scilab' | 'hightech' | 'none', number] {
     let idx = -1
     idx = this.data.units.indexOf('反应堆')
@@ -102,13 +150,15 @@ export class CardInstance {
     switch (type) {
       case 'reactor':
         this.replace_unit([pos], '科技实验室')
-        await this.fast_prod()
         break
       case 'scilab':
         await this.replace_unit([pos], '反应堆')
-        await this.fast_prod()
         break
+      default:
+        return
     }
+    await this.post('infr-changed', refC(this))
+    await this.fast_prod()
   }
 
   async upgrade_infr() {
@@ -120,6 +170,7 @@ export class CardInstance {
       case 'reactor':
       case 'scilab':
         this.replace_unit([pos], '高级科技实验室')
+        await this.post('infr-changed', refC(this))
         await this.fast_prod()
         break
     }
@@ -244,9 +295,12 @@ export class CardInstance {
     }
   }
 
-  find(u: UnitKey | ((unit: UnitKey) => boolean)) {
+  find(u: UnitKey | ((unit: UnitKey) => boolean), maxi?: number) {
     const pred = typeof u === 'string' ? (unit: UnitKey) => unit === u : u
-    return this.data.units.filter(pred).map((u, i) => i)
+    return this.data.units
+      .filter(pred)
+      .map((u, i) => i)
+      .slice(0, maxi)
   }
 
   bind() {

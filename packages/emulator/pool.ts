@@ -39,7 +39,7 @@ export class Pool {
     })
   }
 
-  discover(pred: (card: Card) => boolean, count: number, unique = false) {
+  discover(pred: (card: Card) => boolean, count: number, unique = true) {
     const nh: HeapType = {}
     const f: Card[] = []
     const mf: Card[] = []
@@ -47,7 +47,7 @@ export class Pool {
       const ck = k as CardKey
       const card = getCard(ck)
 
-      if (pred(card)) {
+      if (pred(card) && card.race === 'T') {
         if (unique) {
           f.push(card)
           mf.push(...Array((this.rheap[ck] || 1) - 1).fill(card))
@@ -74,6 +74,7 @@ export class Pool {
     return f.slice(0, count)
   }
 
+  // 这里存在破坏replay顺序的隐患, 如果在服务器端并发执行所有的input, 会导致pool内内容不确定
   drop(card: Card[]) {
     card.forEach(c => {
       let cnt = (this.rheap[c.name] || 0) + 1

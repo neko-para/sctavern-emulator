@@ -181,4 +181,7 @@ export interface PlayerConfig {
 
   StoreCount: number[]
   UpgradeCost: number[]
+
+  MaxMineral: number
+  MaxGas: number
 }

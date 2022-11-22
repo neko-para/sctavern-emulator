@@ -8,13 +8,13 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div id="root" class="d-flex align-center justify-center">
+  <div id="raceIconRoot" class="d-flex align-center justify-center">
     <img :src="racepng[race]" />
   </div>
 </template>
 
 <style scoped>
-#root {
+#raceIconRoot {
   width: 36px;
   height: 36px;
 }

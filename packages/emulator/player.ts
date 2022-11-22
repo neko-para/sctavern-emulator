@@ -6,8 +6,10 @@ import {
   getCard,
   getUpgrade,
   UnitKey,
+  Upgrade,
   UpgradeKey,
 } from 'data'
+import { AttributeManager } from './attribute'
 import { CardInstance } from './card'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
@@ -20,7 +22,13 @@ interface PlayerAttrib {
   upgrade_cost: number
 
   mineral: number
+  mineral_max: number
   gas: number
+
+  locked: boolean
+
+  attrib: AttributeManager
+  persisAttrib: AttributeManager
 }
 
 interface UniqueDescInfo {
@@ -54,7 +62,12 @@ export class Player {
       level: 1,
       upgrade_cost: 6,
       mineral: 0,
+      mineral_max: 2,
       gas: -1,
+      locked: false,
+
+      attrib: new AttributeManager(() => this.refresh()),
+      persisAttrib: new AttributeManager(() => this.refresh()),
     }
 
     this.store = Array(3).fill(null)
@@ -70,12 +83,16 @@ export class Player {
 
       StoreCount: [0, 3, 4, 4, 5, 5, 6],
       UpgradeCost: [0, 5, 7, 8, 9, 11, 0],
+
+      MaxMineral: 10,
+      MaxGas: 6,
     }
 
     this.insertResolve = null
     this.discoverResolve = null
 
     this.bind_inputs()
+    this.bind_default()
   }
 
   async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
@@ -94,8 +111,18 @@ export class Player {
       .filter(card => card.data.name === name)
   }
 
+  value(): number {
+    return this.present
+      .filter(isCardInstance)
+      .map(c => c.value())
+      .reduce((a, b) => a + b, 0)
+  }
+
   first_hole(): number {
-    const place = this.present.filter(isNotCardInstance).map((c, i) => i)
+    const place = this.present
+      .map((c, i) => [c, i] as [CardInstance, number])
+      .filter(([c]) => isNotCardInstance(c))
+      .map(([c, i]) => i)
     return place.length > 0 ? place[0] : -1
   }
 
@@ -137,6 +164,9 @@ export class Player {
         // TODO: 真的会三连吗
         await this.combine(cardt)
       }
+    } else {
+      this.hand[idx] = cardt.name
+      await this.refresh()
     }
   }
 
@@ -272,6 +302,9 @@ export class Player {
 
   async put(card: CardInstance, pos: number) {
     if (await this._put(card, pos)) {
+      for (let i = 0; i < 7; i++) {
+        this.bus.child[i] = this.present[i]?.bus || null
+      }
       await this.refresh()
       return true
     } else {
@@ -281,6 +314,7 @@ export class Player {
 
   async unput(card: CardInstance) {
     this.present[card.pos] = null
+    this.bus.child[card.pos] = null
   }
 
   async enter(cardt: Card) {
@@ -294,6 +328,10 @@ export class Player {
     const card = new CardInstance(this, cardt)
     this.put(card, pos)
 
+    for (const k in cardt.unit) {
+      card.data.units.push(...Array(cardt.unit[k as UnitKey]).fill(k))
+    }
+
     const descs = Descriptors[cardt.name]
     if (descs) {
       for (let i = 0; i < descs.length; i++) {
@@ -306,9 +344,7 @@ export class Player {
       target: card,
     })
 
-    await this.post('post-enter', {
-      ...refC(card),
-    })
+    await this.post('post-enter', refC(card))
 
     return true
   }
@@ -318,6 +354,8 @@ export class Player {
     if (cs.length < 2) {
       return false
     }
+
+    cs[0].data.color = 'gold'
 
     if (cardt.race === 'T') {
       const i1 = cs[0].infr()
@@ -394,11 +432,13 @@ export class Player {
     this.unput(card)
     await this.post('post-sell', refC(card))
     await card.clear_desc()
-    // 这里存在破坏replay顺序的隐患, 如果在服务器端并发执行所有的input, 会导致pool内内容不确定
     this.game.pool.drop(card.occupy.map(getCard))
     await this.post('card-selled', {
       ...refP(this),
       target: card,
+    })
+    await this.obtain_resource({
+      mineral: 1,
     })
   }
 
@@ -477,7 +517,21 @@ export class Player {
       this.game.pool.drop(
         (this.store.filter(x => x !== null) as CardKey[]).map(getCard)
       )
+      this.store.fill(null)
+      this.fill_store()
       await this.post('refreshed', refP(this))
+      await this.refresh()
+    })
+    this.bus.on('$done', async () => {
+      // TODO: wait all done
+      await this.game.next_round()
+    })
+    this.bus.on('$lock', async () => {
+      this.data.locked = true
+      await this.refresh()
+    })
+    this.bus.on('$unlock', async () => {
+      this.data.locked = false
       await this.refresh()
     })
     this.bus.on('$insert-choice', async ({ choice }) => {
@@ -485,11 +539,208 @@ export class Player {
         this.insertResolve(choice)
       }
     })
-
     this.bus.on('$discover-choice', async ({ choice }) => {
       if (this.discoverResolve) {
         this.discoverResolve(choice)
       }
     })
+    this.bus.on('$buy-enter', async ({ place }) => {
+      if (!this.store[place] || !this.can_buy_enter()) {
+        return
+      }
+      this.data.mineral -= 3
+      await this.enter(getCard(this.store[place] as CardKey))
+      this.store[place] = null
+      await this.refresh()
+    })
+    this.bus.on('$buy-cache', async ({ place }) => {
+      if (!this.store[place] || !this.can_buy_cache()) {
+        return
+      }
+      this.data.mineral -= 3
+      this.hand[this.hand.findIndex(v => v === null)] = this.store[place]
+      this.store[place] = null
+      await this.refresh()
+    })
+    this.bus.on('$buy-combine', async ({ place }) => {
+      if (
+        !this.store[place] ||
+        !this.can_buy_combine(this.store[place] as CardKey)
+      ) {
+        return
+      }
+      this.data.mineral -= 3
+      await this.combine(getCard(this.store[place] as CardKey))
+      this.store[place] = null
+      await this.refresh()
+    })
+    this.bus.on('$hand-enter', async ({ place }) => {
+      if (!this.hand[place] || !this.can_hand_enter()) {
+        return
+      }
+      await this.enter(getCard(this.hand[place] as CardKey))
+      this.hand[place] = null
+      await this.refresh()
+    })
+    this.bus.on('$hand-combine', async ({ place }) => {
+      if (
+        !this.hand[place] ||
+        !this.can_hand_combine(this.hand[place] as CardKey)
+      ) {
+        return
+      }
+      await this.combine(getCard(this.hand[place] as CardKey))
+      this.hand[place] = null
+      await this.refresh()
+    })
+    this.bus.on('$hand-sell', async ({ place }) => {
+      if (!this.hand[place]) {
+        return
+      }
+      this.hand[place] = null
+      await this.obtain_resource({
+        mineral: 1,
+      })
+    })
+    this.bus.on('$present-upgrade', async ({ place }) => {
+      if (
+        !this.present[place] &&
+        this.can_pres_upgrade(this.present[place] as CardInstance)
+      ) {
+        return
+      }
+
+      const c = this.present[place] as CardInstance
+      if (c.data.upgrades.length >= this.config.MaxUpgradePerCard) {
+        return
+      }
+      const comm: Upgrade[] = [],
+        spec: Upgrade[] = []
+      AllUpgrade.filter(u => !c.data.upgrades.includes(u))
+        .map(getUpgrade)
+        .forEach(u => {
+          switch (u.category) {
+            case 'O':
+              if (c.data.belong === 'origin') {
+                spec.push(u)
+              }
+              break
+            case 'V':
+              if (c.data.belong === 'void') {
+                spec.push(u)
+              }
+              break
+            case 'T':
+            case 'P':
+            case 'Z':
+              if (c.data.race === u.category) {
+                spec.push(u)
+              }
+              break
+            case 'C':
+              comm.push(u)
+              break
+          }
+        })
+      this.game.gen.shuffle(spec)
+      const firstUpgrade = c.data.upgrades.length === 0
+      const sp = spec.slice(
+        0,
+        firstUpgrade ? (c.data.belong === 'origin' ? 3 : 2) : 1
+      )
+      const item = this.game.gen
+        .shuffle(comm)
+        .slice(0, 4 - sp.length)
+        .concat(sp)
+      await this.obtain_resource({
+        gas: -2,
+      })
+      if (
+        !(await this.discover(
+          item.map(u => u.name),
+          {
+            target: c,
+            cancel: true,
+          }
+        ))
+      ) {
+        await this.obtain_resource({
+          gas: 1,
+        })
+      }
+    })
+    this.bus.on('$present-sell', async ({ place }) => {
+      if (!this.present[place]) {
+        return
+      }
+      await this.sell(this.present[place] as CardInstance)
+    })
+    this.bus.on('$obtain-card', async ({ card }) => {
+      if (!this.can_buy_cache()) {
+        return
+      }
+      this.hand[this.hand.findIndex(v => v === null)] = card
+      await this.refresh()
+    })
+  }
+
+  bind_default() {
+    this.bus.on('round-start', async () => {
+      this.data.attrib = new AttributeManager(() => this.refresh())
+      if (this.data.upgrade_cost > 0) {
+        this.data.upgrade_cost -= 1
+      }
+      if (this.data.mineral_max < this.config.MaxMineral) {
+        this.data.mineral_max += 1
+      }
+      this.data.mineral = this.data.mineral_max
+      if (this.data.gas < this.config.MaxGas) {
+        this.data.gas += 1
+      }
+      if (!this.data.locked) {
+        this.store.fill(null)
+      }
+      this.data.locked = false
+      this.fill_store()
+      await this.refresh()
+    })
+  }
+
+  can_buy_enter() {
+    return (
+      this.data.mineral >= 3 &&
+      this.present.filter(isNotCardInstance).length > 0
+    )
+  }
+
+  can_buy_cache() {
+    return this.data.mineral >= 3 && this.hand.filter(x => x).length < 6
+  }
+
+  can_buy_combine(ck: CardKey) {
+    return this.data.mineral >= 3 && this.find_name(ck).length >= 2
+  }
+
+  can_hand_enter() {
+    return this.present.filter(isNotCardInstance).length > 0
+  }
+
+  can_hand_combine(ck: CardKey) {
+    return this.find_name(ck).length >= 2
+  }
+
+  can_pres_upgrade(c: CardInstance) {
+    return (
+      c.data.upgrades.length < this.config.MaxUpgradePerCard &&
+      this.data.gas >= 2
+    )
+  }
+
+  can_tavern_upgrade() {
+    return this.data.level < 6 && this.data.mineral >= this.data.upgrade_cost
+  }
+
+  can_refresh() {
+    return this.data.mineral >= 1
   }
 }

@@ -6,9 +6,15 @@ import { Shuffler } from './utils'
 
 const PlayerCount = 1
 
+interface GameAttrib {
+  round: number
+}
+
 export class Game {
   bus: Emitter<LogicBus>
   obus: Emitter<OutputBus>
+
+  data: GameAttrib
 
   gen: Shuffler
   pool: Pool
@@ -27,6 +33,10 @@ export class Game {
     )
     this.obus = new Emitter('client', Array(PlayerCount).fill(null))
 
+    this.data = {
+      round: 0,
+    }
+
     this.gen = gen
     this.pool = new Pool(pack, this.gen)
   }
@@ -40,5 +50,22 @@ export class Game {
     param: OutputBus[T]
   ) {
     await this.obus.emit(msg, param)
+  }
+
+  async start() {
+    this.data.round = 1
+    await this.post('round-start', {
+      round: 1,
+    })
+  }
+
+  async next_round() {
+    await this.post('round-end', {
+      round: this.data.round,
+    })
+    this.data.round += 1
+    await this.post('round-start', {
+      round: this.data.round,
+    })
   }
 }

@@ -15,17 +15,18 @@ export class AttributeManager {
     this.refresh = refresh
   }
 
-  async registerAttribute(
+  registerAttribute(
     name: string,
     show: (value: CardAttribType) => string,
     init: CardAttribType
   ) {
-    this.attrib[name] = {
-      name,
-      show,
-      value: init,
+    if (!(name in this.attrib)) {
+      this.attrib[name] = {
+        name,
+        show,
+        value: init,
+      }
     }
-    await this.refresh()
   }
 
   getAttribute(name: string): CardAttribType | null {

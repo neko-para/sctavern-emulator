@@ -1,6 +1,7 @@
 import { Random, RNG } from 'random'
 import { CardInstance } from './card'
 import { Player } from './player'
+import { DescriptorGenerator, LogicBus } from './types'
 
 export class Shuffler {
   gen: Random
@@ -40,4 +41,25 @@ export function isCardInstance(
 
 export function isNotCardInstance(card: CardInstance | null): card is null {
   return !card
+}
+
+export function autoBind<T extends keyof LogicBus>(
+  msg: T,
+  func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
+): DescriptorGenerator {
+  return (card, gold, text) => {
+    card.bus.begin()
+    card.bus.on(msg, async param => {
+      await func(card, gold, param)
+    })
+    const cleaner = card.bus.end()
+    return {
+      text,
+      gold,
+
+      unbind() {
+        cleaner()
+      },
+    }
+  }
 }

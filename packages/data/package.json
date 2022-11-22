@@ -2,8 +2,7 @@
     "name": "data",
     "main": "index.ts",
     "scripts": {
-        "gen": "node generate.js pubdata.ts",
-        "build": "npm run gen && tsc"
+        "build": "node generate.js pubdata.ts"
     },
     "devDependencies": {
         "@types/node": "^18.11.9",
