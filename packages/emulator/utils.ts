@@ -63,3 +63,24 @@ export function autoBind<T extends keyof LogicBus>(
     }
   }
 }
+
+export function autoBindPlayer<T extends keyof LogicBus>(
+  msg: T,
+  func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
+): DescriptorGenerator {
+  return (card, gold, text) => {
+    card.player.bus.begin()
+    card.player.bus.on(msg, async param => {
+      await func(card, gold, param)
+    })
+    const cleaner = card.player.bus.end()
+    return {
+      text,
+      gold,
+
+      unbind() {
+        cleaner()
+      },
+    }
+  }
+}

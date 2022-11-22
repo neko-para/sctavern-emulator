@@ -1,4 +1,4 @@
-import { elited, getCard, isNormal, UnitKey } from 'data'
+import { elited, getCard, isBiological, isHero, isNormal, UnitKey } from 'data'
 import { CardInstance } from '../card'
 import {
   CardDescriptorTable,
@@ -6,7 +6,7 @@ import {
   DescriptorGenerator,
   LogicBus,
 } from '../types'
-import { autoBind, isCardInstance, refC, refP } from '../utils'
+import { autoBind, autoBindPlayer, isCardInstance, refC, refP } from '../utils'
 
 enum RenewPolicy {
   never,
@@ -185,21 +185,9 @@ const data: CardDescriptorTable = {
   陆军学院: [科挂(3, '战狼', 1, 2), 快速生产('维京战机', 3, 5)],
   空军学院: [
     快速生产('维京战机', 3, 5),
-    (card, gold, text) => {
-      card.player.bus.begin()
-      card.player.bus.on('task-done', async () => {
-        await card.obtain_unit(Array(gold ? 2 : 1).fill('解放者'))
-      })
-      const cleaner = card.player.bus.end()
-      return {
-        text,
-        gold,
-
-        unbind() {
-          cleaner()
-        },
-      }
-    },
+    autoBindPlayer('task-done', async (card, gold) => {
+      await card.obtain_unit(Array(gold ? 2 : 1).fill('解放者'))
+    }),
   ],
   交叉火力: [科挂(4, '攻城坦克', 1, 2), 快速生产('歌利亚', 3, 5)],
   枪兵坦克: [
@@ -271,10 +259,10 @@ const data: CardDescriptorTable = {
         const nNorRest = nNor % 6
         cnt += (nNor - nNorRest) / 6
         nNorTran += nNor - nNorRest
-        const takes = c
-          .find('陆战队员(精英)', nProTran)
-          .concat(c.find('陆战队员', nNorTran))
-        await c.filter((u, p) => takes.includes(p))
+        await c.remove_unit([
+          ...c.find('陆战队员(精英)', nProTran),
+          ...c.find('陆战队员', nNorTran),
+        ])
         await c.obtain_unit(Array(cnt).fill('牛头人陆战队员'))
       }
     }),
@@ -291,22 +279,10 @@ const data: CardDescriptorTable = {
     }),
   ],
   游骑兵: [
-    (card, gold, text) => {
-      card.player.bus.begin()
-      card.player.bus.on('infr-changed', async ({ card: cp }) => {
-        const c = card.player.present[cp] as CardInstance
-        await c.obtain_unit(Array(gold ? 2 : 1).fill('雷诺(狙击手)'))
-      })
-      const cleaner = card.player.bus.end()
-      return {
-        text,
-        gold,
-
-        unbind() {
-          cleaner()
-        },
-      }
-    },
+    autoBindPlayer('infr-changed', async (card, gold, { card: cp }) => {
+      const c = card.player.present[cp] as CardInstance
+      await c.obtain_unit(Array(gold ? 2 : 1).fill('雷诺(狙击手)'))
+    }),
     反应堆('雷诺(狙击手)'),
   ],
   沃菲尔德: [
@@ -382,6 +358,74 @@ const data: CardDescriptorTable = {
     ),
     科挂X(4, async (card, gold) => {
       await card.obtain_unit(Array(gold ? 4 : 2).fill('黄昏之翼'))
+    }),
+  ],
+  黄昏之翼: [快速生产('黄昏之翼', 1, 2), 反应堆('女妖')],
+  艾尔游骑兵: [
+    autoBind('fast-prod', async (card, gold) => {
+      await card.left()?.obtain_unit(Array(gold ? 2 : 1).fill('水晶塔'))
+    }),
+    autoBind('round-end', async (card, gold) => {
+      let n = 0
+      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+        const idx = c.find('水晶塔', 1)
+        if (idx.length > 0) {
+          c.remove_unit(idx)
+          n += 1
+        }
+      }
+      await card.obtain_unit(Array(n * (gold ? 8 : 4)).fill('陆战队员'))
+    }),
+  ],
+  帝国敢死队: [
+    快速生产('诺娃', 2, 2),
+    反应堆('诺娃'),
+    autoBindPlayer('task-done', async (card, gold) => {
+      await card.obtain_unit(Array(gold ? 2 : 1).fill('诺娃'))
+    }),
+  ],
+  以火治火: [
+    autoBind('round-end', async (card, gold) => {
+      for (const c of card.player.present.filter(isCardInstance)) {
+        if (c.infr()[0] === 'reactor') {
+          await c.obtain_unit(Array(gold ? 2 : 1).fill('火蝠'))
+        }
+      }
+    }),
+    autoBind('fast-prod', async (card, gold) => {
+      for (const c of card.player.present.filter(isCardInstance)) {
+        if (c.data.race === 'T') {
+          await c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
+        }
+      }
+    }),
+  ],
+  复制中心: [
+    autoBind('fast-prod', async (card, gold) => {
+      for (const c of card.player.hand) {
+        if (!c) {
+          continue
+        }
+        const us = getCard(c).unit
+        const r: UnitKey[] = []
+        for (const k in us) {
+          const unit = k as UnitKey
+          if (!isNormal(unit) || isHero(unit) || !isBiological(unit)) {
+            continue
+          }
+          r.push(...Array(us[unit]).fill(unit))
+        }
+        await card.obtain_unit(
+          card.player.game.gen.shuffle(r).slice(0, gold ? 2 : 1)
+        )
+      }
+    }),
+  ],
+  黑色行动: [
+    快速生产('恶蝠游骑兵', 1, 2),
+    反应堆('修理无人机'),
+    autoBind('round-end', async card => {
+      await card.replace_unit(card.find('陆战队员'), elited)
     }),
   ],
 }

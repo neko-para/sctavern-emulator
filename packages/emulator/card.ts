@@ -198,6 +198,10 @@ export class CardInstance {
     await this.player.refresh()
   }
 
+  async remove_unit(index: number[]) {
+    return this.filter((u, i) => index.includes(i))
+  }
+
   async obtain_upgrade(upgrade: UpgradeKey) {
     if (this.data.upgrades.length < this.player.config.MaxUpgradePerCard) {
       this.data.upgrades.push(upgrade)
