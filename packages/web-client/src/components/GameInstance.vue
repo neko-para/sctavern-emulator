@@ -11,6 +11,7 @@ import {
   type Card,
   type CardKey,
   type UpgradeKey,
+  order,
 } from 'data'
 
 const props = defineProps<{
@@ -18,19 +19,47 @@ const props = defineProps<{
   seed: string
 }>()
 
+const seed = ref(props.seed)
+const packDlg = ref(false)
+
 const model = ref(false)
 const insert = ref(false)
 const discover = ref(false)
 const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
 
-const packConfig: Record<string, boolean> = {}
+const packConfig = ref<Record<string, boolean>>({})
 
 props.pack.forEach(s => {
-  packConfig[s] = true
+  packConfig.value[s] = true
 })
 
-const game = new Game(packConfig, new Shuffler(props.seed))
+function applyPackChange() {
+  const param = new URLSearchParams({
+    pack: Object.keys(packConfig.value).join(','),
+    seed: seed.value,
+  })
+  window.location.href = '/sctavern-emulator/?' + param.toString()
+}
+
+function genPackConfig() {
+  const res: Record<string, boolean> = {
+    核心: true,
+  }
+  new Shuffler(Math.random().toString())
+    .shuffle(order.pack.slice(1))
+    .slice(0, 2)
+    .forEach(p => {
+      res[p] = true
+    })
+  packConfig.value = res
+}
+
+function genSeed() {
+  seed.value = Math.floor(Math.random() * 1000000).toString()
+}
+
+const game = new Game(packConfig.value, new Shuffler(props.seed))
 const player = game.player[0]
 
 const timeTick = ref(0)
@@ -257,9 +286,37 @@ function requestResource() {
           <v-btn :disabled="model" @click="requestNext">下一回合</v-btn>
         </div>
         <div class="d-flex mt-1">
+          <v-dialog v-model="packDlg" class="w-25">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props">配置</v-btn>
+            </template>
+            <v-card>
+              <v-card-title>配置</v-card-title>
+              <v-card-text>
+                <v-text-field v-model="seed" label="种子"></v-text-field>
+                <v-checkbox
+                  hide-details
+                  :disabled="i === 0"
+                  v-for="(p, i) in order.pack"
+                  :key="`pack-${i}`"
+                  v-model="packConfig[p]"
+                  :label="p"
+                ></v-checkbox>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn @click="applyPackChange()" color="red"
+                  >确认(会刷新当前游戏)</v-btn
+                >
+                <v-btn @click="genPackConfig()">随机两个扩展包</v-btn>
+                <v-btn @click="genSeed()">随机种子</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
           <v-dialog v-model="obtainCardDlg" class="w-25">
             <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" :disabled="model">获取卡牌</v-btn>
+              <v-btn class="ml-1" v-bind="props" :disabled="model"
+                >获取卡牌</v-btn
+              >
             </template>
             <v-card>
               <v-card-text>
