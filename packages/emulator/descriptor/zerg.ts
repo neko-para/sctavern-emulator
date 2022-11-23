@@ -133,8 +133,8 @@ const data: CardDescriptorTable = {
           return
         }
         await card.obtain_unit(
-          us(units[units.length - 1], gold ? 3 : 2),
-          'incubate'
+          us(units[units.length - 1], gold ? 3 : 2)
+          // 'incubate'
         )
       })
       cleaner = card.bus.end()
@@ -186,11 +186,7 @@ const data: CardDescriptorTable = {
   ],
   虫群大军: [
     autoBind('round-end', async (card, gold) => {
-      if (
-        card.player.present
-          .filter(isCardInstance)
-          .filter(c => c.data.race === 'Z').length >= 4
-      ) {
+      if (card.player.count_present().Z >= 4) {
         await card.player.inject(us('雷兽', gold ? 2 : 1))
       }
     }),
@@ -209,9 +205,7 @@ const data: CardDescriptorTable = {
   ],
   凶猛巨兽: [
     autoBind('post-enter', async (card, gold) => {
-      for (const c of card.player.present
-        .filter(isCardInstance)
-        .filter(c => c.data.race === 'Z')) {
+      for (const c of card.player.all_of('Z')) {
         await c.obtain_unit(us('腐化者', gold ? 4 : 2))
       }
     }),

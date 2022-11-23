@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Game, Shuffler } from 'emulator'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
 import DiscoverItem from './DiscoverItem.vue'
-import type { CardKey, UpgradeKey } from 'data'
+import {
+  AllCard,
+  getCard,
+  type Card,
+  type CardKey,
+  type UpgradeKey,
+} from 'data'
 
 const props = defineProps<{
   pack: string[]
@@ -15,7 +21,7 @@ const props = defineProps<{
 const model = ref(false)
 const insert = ref(false)
 const discover = ref(false)
-const discoverItems = ref<(CardKey | UpgradeKey)[]>([])
+const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
 
 const packConfig: Record<string, boolean> = {}
@@ -190,14 +196,27 @@ function discoverChoose({ pos }: { pos: number }) {
   })
 }
 
-// game.post('$obtain-card', {
-//   card: '沃菲尔德',
-//   player: player.pos,
-// })
-// game.post('$obtain-card', {
-//   card: '游骑兵',
-//   player: player.pos,
-// })
+const obtainCardDlg = ref(false)
+const obtainCardKey = ref('')
+
+const obtainCardChoice = computed(() => {
+  return AllCard.map(getCard)
+    .filter(c => c.pinyin.indexOf(obtainCardKey.value) !== -1)
+    .slice(0, 10)
+})
+
+function requestObtainCard(card: CardKey) {
+  game.post('$obtain-card', {
+    card,
+    player: player.pos,
+  })
+}
+
+function requestResource() {
+  game.post('$imr', {
+    player: player.pos,
+  })
+}
 </script>
 
 <template>
@@ -236,6 +255,31 @@ function discoverChoose({ pos }: { pos: number }) {
             >锁定</v-btn
           >
           <v-btn :disabled="model" @click="requestNext">下一回合</v-btn>
+        </div>
+        <div class="d-flex mt-1">
+          <v-dialog v-model="obtainCardDlg" class="w-25">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" :disabled="model">获取卡牌</v-btn>
+            </template>
+            <v-card>
+              <v-card-text>
+                <v-text-field v-model="obtainCardKey"></v-text-field>
+                <div class="d-flex flex-column">
+                  <v-btn
+                    variant="text"
+                    v-for="(c, i) in obtainCardChoice"
+                    :key="`OCChoice-${i}`"
+                    @click="requestObtainCard(c.name)"
+                    >{{ c.pinyin }}-{{ c.name }}</v-btn
+                  >
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
+
+          <v-btn class="ml-1" :disabled="model" @click="requestResource"
+            >获得资源</v-btn
+          >
         </div>
         <div id="HandRegion">
           <hand-item

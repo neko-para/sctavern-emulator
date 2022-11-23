@@ -148,9 +148,7 @@ const data: CardDescriptorTable = {
   ],
   重回战场: [
     autoBind('post-enter', async (card, gold) => {
-      for (const c of card.player.present
-        .filter(isCardInstance)
-        .filter(c => c.data.race === 'P')) {
+      for (const c of card.player.all_of('P')) {
         await c.replace_unit(c.find(isBiological, gold ? 2 : 1), u =>
           isHero(u) ? '英雄不朽者' : '不朽者'
         )
@@ -168,9 +166,7 @@ const data: CardDescriptorTable = {
   净化者军团: [
     集结X(5, async (card, gold) => {
       const unit: UnitKey[] = []
-      for (const c of card.player.present
-        .filter(isCardInstance)
-        .filter(c => c.data.race === 'P')) {
+      for (const c of card.player.all_of('P')) {
         const us = c.find(u => canElite(u) && !isHeavy(u))
         card.player.game.gen.shuffle(us)
         const ts = us.slice(0, gold ? 2 : 1)
@@ -251,13 +247,18 @@ const data: CardDescriptorTable = {
         1
       )
       card.bus.begin()
-      card.bus.on('card-selled', async ({ target }) => {
+      card.bus.on('card-selled', async param => {
         if (ret.disabled) {
           return
         }
+        if (param.flag) {
+          return
+        }
+        const { target } = param
         if (target.data.race !== 'P') {
           return
         }
+        param.flag = true
         await card.obtain_unit(
           target.data.units
             .filter(u => isNormal(u) || u === '水晶塔')
@@ -331,11 +332,7 @@ const data: CardDescriptorTable = {
         if (ret.disabled) {
           return
         }
-        if (
-          card.player.present
-            .filter(isCardInstance)
-            .filter(c => c.data.race === 'P').length >= 5
-        ) {
+        if (card.player.count_present().P >= 5) {
           await card.obtain_unit(us('英雄不朽者', gold ? 2 : 1))
         }
       })

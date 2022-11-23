@@ -1,4 +1,5 @@
 const { parse } = require('@ltd/j-toml')
+const { pinyin } = require('pinyin')
 const fs = require('fs/promises')
 
 async function searchDataRecursive(res, path) {
@@ -44,11 +45,16 @@ function splitDesc(str) {
 
 async function main() {
   const result = await readAll('.')
-  ;['card', 'unit', 'term', 'upgrade'].forEach(k =>
+  ;['card', 'unit', 'term', 'upgrade'].forEach(k => {
     result[k].forEach(obj => {
       obj.type = k
+      if (k === 'card') {
+        obj.pinyin = pinyin(obj.name, { style: 'first_letter', segment: true })
+          .map(([s]) => s[0])
+          .reduce((a, b) => a + b, '')
+      }
     })
-  )
+  })
   result.card.forEach(c => {
     c.desc = c.desc.map(splitDesc)
   })

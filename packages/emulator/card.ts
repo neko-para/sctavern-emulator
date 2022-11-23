@@ -1,7 +1,10 @@
 import {
   Card,
   CardKey,
+  getCard,
   getUnit,
+  getUpgrade,
+  isNormal,
   Race,
   Unit,
   UnitKey,
@@ -10,6 +13,7 @@ import {
 } from 'data'
 import { describe } from 'node:test'
 import { AttributeManager } from './attribute'
+import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Player } from './player'
 import {
@@ -18,7 +22,7 @@ import {
   DescriptorGenerator,
   ObtainUnitWay,
 } from './types'
-import { refC, refP } from './utils'
+import { refC, refP, us } from './utils'
 
 export interface CardInstanceAttrib {
   name: CardKey
@@ -68,6 +72,11 @@ export class CardInstance {
       this.data.belong = 'origin'
     } else if (cardt.attr.void) {
       this.data.belong = 'void'
+      this.set_void()
+    }
+
+    if (cardt.attr.dark) {
+      this.data.attrib.registerAttribute('dark', v => `黑暗值: ${v}`, 0)
     }
 
     this.occupy = []
@@ -112,6 +121,12 @@ export class CardInstance {
       (this.left()?.self_power() || 0) +
       (this.right()?.self_power() || 0)
     )
+  }
+
+  set_void() {
+    this.data.attrib.registerAttribute('void', () => `虚空投影`, 1, {
+      combine_policy: 'max',
+    })
   }
 
   attribs(): string[] {
@@ -204,8 +219,97 @@ export class CardInstance {
 
   async obtain_upgrade(upgrade: UpgradeKey) {
     if (this.data.upgrades.length < this.player.config.MaxUpgradePerCard) {
+      const u = getUpgrade(upgrade)
+      if (!u.override && this.data.upgrades.includes(upgrade)) {
+        return
+      }
       this.data.upgrades.push(upgrade)
-      // TODO: Apply upgrade effect
+      switch (upgrade) {
+        case '折跃援军':
+          await this.obtain_unit([
+            ...us('水晶塔', 2),
+            ...us('狂热者', 2),
+            ...us('激励者', 2),
+          ])
+          break
+        case '修理无人机':
+          await this.obtain_unit([
+            ...us('修理无人机', this.player.data.level + 3),
+          ])
+          break
+        case '黄金矿工':
+          await this.clear_desc()
+          const descs = Descriptors.黄金矿工
+          this.data.name = '黄金矿工'
+          this.data.color = 'gold'
+          if (descs) {
+            for (let i = 0; i < descs.length; i++) {
+              await this.add_desc(descs[i], getCard('黄金矿工').desc[i])
+            }
+          } else {
+            console.log('WARN: Card Not Implement Yet')
+          }
+          break
+        case '献祭': {
+          const vo = (unit: Unit) => {
+            if (unit.name === '莎拉·凯瑞甘' || unit.name === '刀锋女王') {
+              return 10000
+            } else {
+              return unit.value
+            }
+          }
+          const [_, idx] = this.data.units
+            .filter(isNormal)
+            .map(getUnit)
+            .map((u, i) => [vo(u), i] as [number, number])
+            .sort(([ua, ia], [ub, ib]) => {
+              if (ua === ub) {
+                return ia - ib
+              } else {
+                return ub - ua
+              }
+            })
+            .slice(0, 1)[0] // 总是应该有单位的吧
+
+          const sum =
+            this.data.units
+              .filter((u, i) => idx !== i)
+              .map(getUnit)
+              .map(u => u.health + (u.shield || 0))
+              .reduce((a, b) => a + b, 0) * 1.5
+
+          this.data.units = [this.data.units[idx]]
+          this.data.attrib.registerAttribute(
+            '献祭',
+            v => `献祭的生命值: ${v}`,
+            sum
+          )
+          this.add_desc(
+            (card, gold, text) => {
+              card.bus.begin()
+              card.bus.on('obtain-unit-prev', async param => {
+                await card.data.attrib.setAttribute(
+                  '献祭',
+                  (card.data.attrib.getAttribute('献祭') || 0) +
+                    param.units
+                      .map(getUnit)
+                      .map(u => u.health + (u.shield || 0))
+                      .reduce((a, b) => a + b, 0) *
+                      1.5
+                )
+                param.units = []
+              })
+              return {
+                text,
+                gold,
+
+                unbind() {},
+              }
+            },
+            ['新添加的单位也会被献祭', '新添加的单位也会被献祭']
+          )
+        }
+      }
       await this.post('obtain-upgrade', {
         ...refC(this),
         upgrade,
@@ -271,7 +375,7 @@ export class CardInstance {
   ) {
     await this.obtain_unit(target.data.units)
     if (option.upgrade) {
-      for (const u of this.data.upgrades) {
+      for (const u of target.data.upgrades) {
         await this.obtain_upgrade(u)
       }
     }
@@ -281,6 +385,7 @@ export class CardInstance {
         target,
       })
     }
+    await this.player.destroy(target)
   }
 
   async regroup(id: number = 0) {
@@ -291,6 +396,9 @@ export class CardInstance {
   }
 
   async gain_darkness(dark: number) {
+    if (!('dark' in this.data.attrib.attrib)) {
+      return
+    }
     this.data.attrib.setAttribute(
       'dark',
       (this.data.attrib.getAttribute('dark') || 0) + dark
@@ -324,7 +432,7 @@ export class CardInstance {
       if (n > 0) {
         for (const c of [this.left(), this.right()]) {
           if (c?.data.race === 'P') {
-            this.obtain_unit(Array<UnitKey>(n).fill('虚空水晶塔'))
+            await c.obtain_unit(us('虚空水晶塔', n))
             break
           }
         }

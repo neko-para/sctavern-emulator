@@ -5,6 +5,7 @@ import {
   CardKey,
   getCard,
   getUpgrade,
+  Race,
   UnitKey,
   Upgrade,
   UpgradeKey,
@@ -15,7 +16,7 @@ import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { Descriptor, LogicBus, PlayerConfig } from './types'
-import { isCardInstance, isNotCardInstance, refC, refP } from './utils'
+import { isCardInstance, isNotCardInstance, refC, refP, us } from './utils'
 
 interface PlayerAttrib {
   level: number
@@ -126,8 +127,28 @@ export class Player {
     return place.length > 0 ? place[0] : -1
   }
 
+  all_of(race: Race): CardInstance[] {
+    return this.present.filter(isCardInstance).filter(c => c.data.race === race)
+  }
+
+  count_present(): {
+    [key in Race]: number
+  } {
+    const res = {
+      T: 0,
+      P: 0,
+      Z: 0,
+      N: 0,
+      G: 0,
+    }
+    this.present.filter(isCardInstance).forEach(c => {
+      res[c.data.race] += 1
+    })
+    return res
+  }
+
   async discover(
-    item: (CardKey | UpgradeKey)[],
+    item: (Card | UpgradeKey)[],
     option?: {
       target?: CardInstance
       cancel?: boolean
@@ -138,11 +159,13 @@ export class Player {
       return false
     }
     const cho = item[choice]
-    if (AllCard.includes(cho as CardKey)) {
-      await this.obtain_card(getCard(cho as CardKey))
+    if (typeof cho === 'string') {
+      await option?.target?.obtain_upgrade(cho)
     } else {
-      await option?.target?.obtain_upgrade(cho as UpgradeKey)
+      await this.obtain_card(cho)
+      item.splice(choice, 1)
     }
+    this.game.pool.drop(item.filter(i => typeof i !== 'string') as Card[])
     return true
   }
 
@@ -415,21 +438,27 @@ export class Player {
       this.config.MaxUpgradePerCard
     )
 
-    for (const ak in cs[1].data.attrib.attrib) {
-      if (ak in cs[0].data.attrib.attrib) {
-        await cs[0].data.attrib.setAttribute(
-          ak,
-          (cs[0].data.attrib.getAttribute(ak) || 0) +
-            (cs[1].data.attrib.getAttribute(ak) || 0)
-        )
-      } else {
-        cs[0].data.attrib.registerAttribute(
-          ak,
-          cs[1].data.attrib.attrib[ak].show,
-          cs[1].data.attrib.getAttribute(ak) || 0
-        )
+    for (const ak of new Set([
+      ...Object.keys(cs[0].data.attrib.attrib),
+      ...Object.keys(cs[1].data.attrib.attrib),
+    ])) {
+      const desc0 = cs[0].data.attrib.attrib[ak]
+      const desc1 = cs[1].data.attrib.attrib[ak]
+      const desc = desc0 || desc1
+      switch (desc.policy) {
+        case 'add':
+          desc.value = (desc0?.value || 0) + (desc1?.value || 0)
+          break
+        case 'max':
+          desc.value = Math.max(desc0?.value || 0, desc1?.value || 0)
+          break
+        case 'discard':
+          desc.value = 0
+          break
       }
+      cs[0].data.attrib.attrib[ak] = desc
     }
+
     // TODO: 解决献祭的问题, 比如高建国夺取女王
 
     cs[0].occupy.push(...cs[1].occupy, cardt.name)
@@ -459,9 +488,11 @@ export class Player {
       ...refC(cs[0]),
     })
 
-    const reward: (CardKey | UpgradeKey)[] = this.game.pool
-      .discover(c => c.level === Math.min(6, this.data.level + 1), 3, true)
-      .map(c => c.name)
+    const reward: (Card | UpgradeKey)[] = this.game.pool.discover(
+      c => c.level === Math.min(6, this.data.level + 1),
+      3,
+      true
+    )
     if (cs[0].data.upgrades.length < this.config.MaxUpgradePerCard) {
       reward.push(
         this.game.gen.shuffle(
@@ -478,6 +509,8 @@ export class Player {
   }
 
   async sell(card: CardInstance) {
+    const around = [card.left(), card.right()].filter(isCardInstance)
+    const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
     await this.post('post-sell', refC(card, true))
     await card.clear_desc()
@@ -485,13 +518,19 @@ export class Player {
     await this.post('card-selled', {
       ...refP(this),
       target: card,
+      flag: false,
     })
     await this.obtain_resource({
       mineral: 1,
     })
+    for (const c of around) {
+      await c.gain_darkness(dark)
+    }
   }
 
   async destroy(card: CardInstance) {
+    const around = [card.left(), card.right()].filter(isCardInstance)
+    const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
     await card.clear_desc()
     this.game.pool.drop(card.occupy.map(getCard))
@@ -499,6 +538,9 @@ export class Player {
       ...refP(this),
       target: card,
     })
+    for (const c of around) {
+      await c.gain_darkness(dark)
+    }
   }
 
   async queryInsert() {
@@ -519,7 +561,7 @@ export class Player {
     })
   }
 
-  async queryDiscover(item: (CardKey | UpgradeKey)[], cancel: boolean) {
+  async queryDiscover(item: (Card | UpgradeKey)[], cancel: boolean) {
     const client = this.pos
     return new Promise<number>(resolve => {
       this.discoverResolve = (v: number) => {
@@ -743,6 +785,12 @@ export class Player {
       this.hand[this.hand.findIndex(v => v === null)] = card
       await this.refresh()
     })
+    this.bus.on('$imr', async () => {
+      await this.obtain_resource({
+        mineral: 100,
+        gas: 100,
+      })
+    })
   }
 
   bind_default() {
@@ -764,6 +812,16 @@ export class Player {
       this.data.locked = false
       this.fill_store()
       await this.refresh()
+    })
+    this.bus.on('card-selled', async ({ target }) => {
+      if (target.data.race === 'N') {
+        // 检查尖塔
+        for (const c of this.present.filter(isCardInstance)) {
+          await c.obtain_unit(
+            us('原始异龙', c.data.upgrades.filter(u => u === '原始尖塔').length)
+          )
+        }
+      }
     })
   }
 

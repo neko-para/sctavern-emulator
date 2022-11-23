@@ -40,6 +40,7 @@ export type SplitResult = SplitResultNode[]
 
 export interface Card {
   name: CardKey
+  pinyin: string
   type: 'card'
   race: Race
   level: number

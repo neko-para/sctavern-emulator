@@ -30,7 +30,7 @@ const cardInfo = props.card ? getCard(props.card) : null
         <v-btn
           :disabled="model || !player.can_buy_combine(card)"
           variant="flat"
-          v-if="player.find_name(card).length >= 2"
+          v-if="player.can_hand_combine(card)"
           @click="$emit('request', { pos, act: 'combine' })"
           color="yellow"
           >三连</v-btn

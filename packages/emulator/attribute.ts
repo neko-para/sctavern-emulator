@@ -1,9 +1,12 @@
 type CardAttribType = number
 
+type AttributeCombinePolicy = 'add' | 'max' | 'discard'
+
 interface CardAttribItem {
   name: string
   value: CardAttribType
   show: (value: CardAttribType) => string
+  policy: AttributeCombinePolicy
 }
 
 export class AttributeManager {
@@ -18,13 +21,18 @@ export class AttributeManager {
   registerAttribute(
     name: string,
     show: (value: CardAttribType) => string,
-    init: CardAttribType
+    init: CardAttribType,
+    option: {
+      override?: boolean
+      combine_policy?: AttributeCombinePolicy
+    } = {}
   ) {
-    if (!(name in this.attrib)) {
+    if (!(name in this.attrib) || option.override) {
       this.attrib[name] = {
         name,
         show,
         value: init,
+        policy: option?.combine_policy || 'add',
       }
     }
   }

@@ -32,7 +32,10 @@ function 任务<T extends string & keyof LogicBus>(
     card.data.attrib.registerAttribute(
       'task',
       n => `任务进度: ${n} / ${count}`,
-      0
+      0,
+      {
+        combine_policy: 'discard',
+      }
     )
     let n = 0
     const bus = card.bus
@@ -134,9 +137,10 @@ const data: CardDescriptorTable = {
       5,
       async card => {
         await card.player.discover(
-          card.player.game.pool
-            .discover(c => c.level === card.player.data.level, 3)
-            .map(c => c.name)
+          card.player.game.pool.discover(
+            c => c.level === card.player.data.level,
+            3
+          )
         )
       },
       () => true
@@ -199,7 +203,7 @@ const data: CardDescriptorTable = {
   交叉火力: [科挂(4, '攻城坦克', 1, 2), 快速生产('歌利亚', 3, 5)],
   枪兵坦克: [
     autoBind('round-end', async (card, gold) => {
-      for (const c of card.player.present.filter(isCardInstance)) {
+      for (const c of card.player.all_of('T')) {
         if (c.infr()[0] === 'reactor') {
           await c.obtain_unit(us('陆战队员', gold ? 4 : 2))
         }
@@ -229,11 +233,9 @@ const data: CardDescriptorTable = {
   泰凯斯: [
     反应堆('陆战队员(精英)'),
     autoBind('round-end', async (card, gold) => {
-      for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.data.race === 'T') {
-          await c.replace_unit(c.find('陆战队员', gold ? 5 : 3), elited)
-          await c.replace_unit(c.find('劫掠者', gold ? 5 : 3), elited)
-        }
+      for (const c of card.player.all_of('T')) {
+        await c.replace_unit(c.find('陆战队员', gold ? 5 : 3), elited)
+        await c.replace_unit(c.find('劫掠者', gold ? 5 : 3), elited)
       }
     }),
     autoBind('round-end', async (card, gold) => {
@@ -277,17 +279,15 @@ const data: CardDescriptorTable = {
   钢铁洪流: [
     快速生产('雷神', 1, 2),
     科挂X(5, async (card, gold) => {
-      for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.data.race === 'T') {
-          await c.replace_unit(c.find('攻城坦克', gold ? 2 : 1), elited)
-          await c.replace_unit(c.find('战狼', gold ? 2 : 1), elited)
-        }
+      for (const c of card.player.all_of('T')) {
+        await c.replace_unit(c.find('攻城坦克', gold ? 2 : 1), elited)
+        await c.replace_unit(c.find('战狼', gold ? 2 : 1), elited)
       }
     }),
   ],
   游骑兵: [
     autoBindPlayer('infr-changed', async (card, gold, { card: cp }) => {
-      const c = card.player.present[cp] as CardInstance
+      const c = card.player.present[cp as number] as CardInstance
       await c.obtain_unit(us('雷诺(狙击手)', gold ? 2 : 1))
     }),
     反应堆('雷诺(狙击手)'),
@@ -323,12 +323,15 @@ const data: CardDescriptorTable = {
           }
           const v = card.player.data.attrib.getAttribute('沃菲尔德')
           if (v === null || v < (gold ? 2 : 1)) {
-            return '启用'
+            return `启用 ${v || 0}`
           } else {
-            return '停用'
+            return `停用 ${v}`
           }
         },
-        0
+        0,
+        {
+          override: true,
+        }
       )
       card.bus.on('card-selled', async ({ target }) => {
         if (ret.disabled) {
@@ -393,17 +396,15 @@ const data: CardDescriptorTable = {
   ],
   以火治火: [
     autoBind('round-end', async (card, gold) => {
-      for (const c of card.player.present.filter(isCardInstance)) {
+      for (const c of card.player.all_of('T')) {
         if (c.infr()[0] === 'reactor') {
           await c.obtain_unit(us('火蝠', gold ? 2 : 1))
         }
       }
     }),
     autoBind('fast-prod', async (card, gold) => {
-      for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.data.race === 'T') {
-          await c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
-        }
+      for (const c of card.player.all_of('T')) {
+        await c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
       }
     }),
   ],

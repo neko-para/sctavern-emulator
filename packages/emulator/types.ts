@@ -1,4 +1,4 @@
-import { CardKey, UnitKey, UpgradeKey } from 'data'
+import { Card, CardKey, UnitKey, UpgradeKey } from 'data'
 import { CardInstance } from './card'
 import { Emitter } from './emitter'
 
@@ -84,6 +84,7 @@ type PlayerBusTemplate = {
   'card-selled': {
     // 出售卡牌
     target: CardInstance
+    flag: boolean // 仅用于光复艾尔, 防止重复回收, 考虑换其它方法
   }
 
   incubate: {
@@ -155,7 +156,7 @@ interface OutputBusTemplate {
   'begin-insert': {}
   'end-insert': {}
   'begin-discover': {
-    item: (CardKey | UpgradeKey)[]
+    item: (Card | UpgradeKey)[]
     cancel: boolean
   }
   'end-discover': {}
