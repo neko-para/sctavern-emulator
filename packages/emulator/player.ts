@@ -241,6 +241,28 @@ export class Player {
     }
   }
 
+  async resort_unique(name: string) {
+    const data = this.unique[name]
+    if (data.length === 0) {
+      return
+    }
+    const desc = data[0].desc
+    data.sort((a, b) => {
+      if (!!a.desc.manualDisable !== !!b.desc.manualDisable) {
+        return a.desc.manualDisable ? 1 : -1
+      } else if (desc.uniqueNoGold || a.desc.gold === b.desc.gold) {
+        return a.card.pos - b.card.pos
+      } else {
+        return a.desc.gold ? -1 : 1
+      }
+    })
+    data[0].desc.disabled = false
+    data.slice(1).forEach(({ desc: d }) => {
+      d.disabled = true
+    })
+    await this.refresh()
+  }
+
   async add_unique(card: CardInstance, desc: Descriptor) {
     const key = desc.unique
     if (!key) {
@@ -252,18 +274,7 @@ export class Player {
       card,
       desc,
     })
-    data.sort((a, b) => {
-      if (a.desc.gold === b.desc.gold) {
-        return a.card.pos - b.card.pos
-      } else {
-        return a.desc.gold ? -1 : 1
-      }
-    })
-    data[0].desc.disabled = false
-    data.slice(1).forEach(({ desc }) => {
-      desc.disabled = true
-    })
-    await this.refresh()
+    await this.resort_unique(key)
   }
 
   async del_unique(desc: Descriptor) {
@@ -400,6 +411,22 @@ export class Player {
       0,
       this.config.MaxUpgradePerCard
     )
+
+    for (const ak in cs[1].data.attrib.attrib) {
+      if (ak in cs[0].data.attrib.attrib) {
+        await cs[0].data.attrib.setAttribute(
+          ak,
+          (cs[0].data.attrib.getAttribute(ak) || 0) +
+            (cs[1].data.attrib.getAttribute(ak) || 0)
+        )
+      } else {
+        cs[0].data.attrib.registerAttribute(
+          ak,
+          cs[1].data.attrib.attrib[ak].show,
+          cs[1].data.attrib.getAttribute(ak) || 0
+        )
+      }
+    }
     // TODO: 解决献祭的问题, 比如高建国夺取女王
 
     cs[0].occupy.push(...cs[1].occupy, cardt.name)
@@ -749,7 +776,7 @@ export class Player {
   }
 
   can_buy_combine(ck: CardKey) {
-    return this.data.mineral >= 3 && this.find_name(ck).length >= 2
+    return this.data.mineral >= 3 && this.can_hand_combine(ck)
   }
 
   can_hand_enter() {
@@ -757,7 +784,7 @@ export class Player {
   }
 
   can_hand_combine(ck: CardKey) {
-    return this.find_name(ck).length >= 2
+    return this.find_name(ck).filter(c => c.data.color === 'normal').length >= 2
   }
 
   can_pres_upgrade(c: CardInstance) {

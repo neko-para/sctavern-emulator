@@ -58,7 +58,7 @@ const Color = {
             {{ a }}
           </span>
         </div>
-        <div class="d-flex ml-auto mr-1">
+        <div class="d-flex flex-column ml-auto mr-1">
           <span v-for="(u, i) in card.data.upgrades" :key="`Upgrade-${i}`">{{
             u
           }}</span>

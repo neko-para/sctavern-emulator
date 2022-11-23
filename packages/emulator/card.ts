@@ -206,6 +206,10 @@ export class CardInstance {
     if (this.data.upgrades.length < this.player.config.MaxUpgradePerCard) {
       this.data.upgrades.push(upgrade)
       // TODO: Apply upgrade effect
+      await this.post('obtain-upgrade', {
+        ...refC(this),
+        upgrade,
+      })
       await this.player.refresh()
     }
   }

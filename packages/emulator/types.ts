@@ -117,6 +117,9 @@ type CardBusTemplate = {
     units: UnitKey[]
     way: ObtainUnitWay
   }
+  'obtain-upgrade': {
+    upgrade: UpgradeKey
+  }
 
   'task-done': {}
   'infr-changed': {} // 挂件切换
@@ -168,6 +171,8 @@ export interface Descriptor {
   text: [string, string]
   gold: boolean
   unique?: string
+  uniqueNoGold?: boolean // 用于信标, 光复等提示, 无视金色的覆盖效果
+  manualDisable?: boolean // 是否启用, 用于光复
   disabled?: boolean
 
   unbind(): void

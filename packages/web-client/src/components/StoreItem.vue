@@ -31,6 +31,7 @@ const cardInfo = props.card ? getCard(props.card) : null
           variant="text"
           v-if="player.find_name(card).length >= 2"
           @click="$emit('request', { pos, act: 'combine' })"
+          color="yellow"
           >三连</v-btn
         >
         <v-btn
