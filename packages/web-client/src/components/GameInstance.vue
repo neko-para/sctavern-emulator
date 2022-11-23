@@ -13,10 +13,14 @@ import {
   type UpgradeKey,
   order,
 } from 'data'
+import type { LogItem } from 'emulator/game'
+import { decodeSave, encodeSave } from './replay'
+import type { LogicBus } from 'emulator/types'
 
 const props = defineProps<{
   pack: string[]
   seed: string
+  replay: string | null
 }>()
 
 const seed = ref(props.seed)
@@ -99,7 +103,18 @@ game.obus.on('end-discover', async () => {
   model.value = false
 })
 
-game.start()
+async function main() {
+  await game.start()
+  if (props.replay) {
+    const obj = decodeSave(props.replay)
+    for (const l of obj.log) {
+      await game.postItem(l)
+      await new Promise(resolve => {
+        setTimeout(resolve, 0)
+      })
+    }
+  }
+}
 
 function requestHand({
   pos,
@@ -246,6 +261,34 @@ function requestResource() {
     player: player.pos,
   })
 }
+
+const expDlg = ref(false)
+const expData = ref('')
+
+function doExport() {
+  expData.value = encodeSave({
+    pack: Object.keys(packConfig.value).filter(k => packConfig.value[k]),
+    seed: seed.value,
+    log: game.log,
+  })
+  expDlg.value = true
+}
+
+const impDlg = ref(false)
+const impData = ref('')
+
+function doImport() {
+  const obj = decodeSave(impData.value)
+  console.log(obj)
+  const param = new URLSearchParams({
+    pack: obj.pack.join(','),
+    seed: seed.value,
+    replay: impData.value,
+  })
+  window.location.href = '/sctavern-emulator/?' + param.toString()
+}
+
+main()
 </script>
 
 <template>
@@ -348,6 +391,35 @@ function requestResource() {
           <v-btn class="ml-1" :disabled="model" @click="requestResource"
             >获得资源</v-btn
           >
+        </div>
+        <div class="d-flex mt-1">
+          <v-dialog v-model="expDlg" class="w-50">
+            <v-card>
+              <v-card-title>导出</v-card-title>
+              <v-card-text>
+                <v-textarea
+                  readonly
+                  hide-details
+                  v-model="expData"
+                ></v-textarea>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
+          <v-btn :disabled="model" @click="doExport()">导出</v-btn>
+          <v-dialog v-model="impDlg" class="w-50">
+            <template v-slot:activator="{ props }">
+              <v-btn class="ml-1" v-bind="props" :disabled="model">导入</v-btn>
+            </template>
+            <v-card>
+              <v-card-title>导入</v-card-title>
+              <v-card-text>
+                <v-textarea hide-details v-model="impData"></v-textarea>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn @click="doImport()">导入</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </div>
         <div id="HandRegion">
           <hand-item

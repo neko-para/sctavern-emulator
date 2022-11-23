@@ -10,6 +10,11 @@ interface GameAttrib {
   round: number
 }
 
+export interface LogItem {
+  msg: string
+  param: {}
+}
+
 export class Game {
   bus: Emitter<LogicBus>
   obus: Emitter<OutputBus>
@@ -19,6 +24,8 @@ export class Game {
   gen: Shuffler
   pool: Pool
   player: Player[]
+
+  log: LogItem[]
 
   constructor(pack: Record<string, boolean> = { 核心: true }, gen: Shuffler) {
     this.player = Array(PlayerCount)
@@ -39,10 +46,22 @@ export class Game {
 
     this.gen = gen
     this.pool = new Pool(pack, this.gen)
+
+    this.log = []
   }
 
   async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
+    if (msg[0] === '$') {
+      this.log.push({
+        msg,
+        param,
+      })
+    }
     await this.bus.emit(msg, param)
+  }
+
+  async postItem(item: LogItem) {
+    await this.post(item.msg, item.param)
   }
 
   async postOutput<T extends string & keyof OutputBus>(
