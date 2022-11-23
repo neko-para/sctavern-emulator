@@ -223,7 +223,7 @@ export class Player {
     if (units.length === 0) {
       return
     }
-    const param = {
+    const param: LogicBus['wrap'] = {
       ...refP(this),
       units,
       into: null,
@@ -237,7 +237,10 @@ export class Player {
         return
       }
       this.game.gen.shuffle(targets)
-      targets[0].obtain_unit(units, 'wrap')
+      param.into = targets[0]
+    }
+    if (param.into) {
+      param.into.obtain_unit(units, 'wrap')
     }
   }
 
