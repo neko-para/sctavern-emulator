@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CardInstance, Player } from 'emulator'
-import RaceIcon from './RaceIcon.vue'
 import type { UnitKey } from 'data'
+import TemplateRefer from './TemplateRefer.vue'
+import InstanceRefer from './InstanceRefer.vue'
+import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
   player: Player
@@ -38,15 +40,13 @@ const Color = {
     <template v-if="card">
       <div class="d-flex">
         <race-icon class="mt-1" :race="card.data.race"></race-icon>
-        <span class="text-h5 mt-2">{{ card.data.name }}</span>
-        <span class="text-h5 ml-auto mt-2 mr-2">{{ card.data.level }}</span>
+        <template-refer :card="card.data.name"></template-refer>
+        <div class="ml-auto"></div>
+        <instance-refer :card="card"></instance-refer>
+        <span class="text-h5 ml-1 mt-2 mr-2">{{ card.data.level }}</span>
       </div>
       <div class="d-flex ma-1">
         <span class="text-h5">{{ card.value() }}</span>
-        <span class="text-h5 ml-auto"
-          >{{ card.data.units.length }} /
-          {{ player.config.MaxUnitPerCard }}</span
-        >
       </div>
       <div class="d-flex">
         <div class="d-flex flex-column">
@@ -66,20 +66,18 @@ const Color = {
       </div>
       <div class="d-flex mt-auto ml-1">
         <div class="d-flex flex-column align-self-end">
-          <template v-if="allUnit.length <= 6">
-            <span v-for="(s, i) in allUnit" :key="`Unit-${i}`">{{ s }}</span>
-          </template>
-          <template v-else>
-            <span v-for="(s, i) in allUnit.slice(0, 5)" :key="`Unit-${i}`">{{
-              s
-            }}</span>
-            <v-tooltip location="top">
-              <template v-slot:activator="{ props: p }">
-                <span v-bind="p">...</span>
-              </template>
-              <pre>{{ allUnit.join('\n') }}</pre>
-            </v-tooltip>
-          </template>
+          <span v-for="(s, i) in allUnit.slice(0, 5)" :key="`Unit-${i}`">{{
+            s
+          }}</span>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props: p }">
+              <span style="cursor: pointer" v-bind="p"
+                >{{ card.data.units.length }} /
+                {{ player.config.MaxUnitPerCard }}</span
+              >
+            </template>
+            <pre>{{ allUnit.join('\n') }}</pre>
+          </v-tooltip>
         </div>
       </div>
       <div class="d-flex">

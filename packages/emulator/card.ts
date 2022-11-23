@@ -21,7 +21,7 @@ import {
 import { refC, refP } from './utils'
 
 export interface CardInstanceAttrib {
-  name: string
+  name: CardKey
   race: Race
   level: number
 
