@@ -263,14 +263,25 @@ function requestResource() {
             </template>
             <v-card>
               <v-card-text>
-                <v-text-field v-model="obtainCardKey"></v-text-field>
+                <v-text-field
+                  hide-details
+                  autofocus
+                  v-model="obtainCardKey"
+                  @keyup.enter="
+                    obtainCardChoice.length > 0 &&
+                      requestObtainCard(obtainCardChoice[0].name)
+                  "
+                ></v-text-field>
                 <div class="d-flex flex-column">
                   <v-btn
-                    variant="text"
+                    variant="flat"
                     v-for="(c, i) in obtainCardChoice"
+                    :class="{
+                      enterSelect: i === 0,
+                    }"
                     :key="`OCChoice-${i}`"
                     @click="requestObtainCard(c.name)"
-                    >{{ c.pinyin }}-{{ c.name }}</v-btn
+                    >{{ c.pinyin }} {{ c.name }}</v-btn
                   >
                 </div>
               </v-card-text>
@@ -353,5 +364,8 @@ function requestResource() {
   display: grid;
   grid-template-rows: repeat(3, 1fr);
   grid-template-columns: repeat(2, 1fr);
+}
+.enterSelect {
+  font-weight: 600;
 }
 </style>

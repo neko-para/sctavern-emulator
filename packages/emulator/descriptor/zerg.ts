@@ -1,6 +1,7 @@
-import { elited, isBiological, isHero, isNormal } from 'data'
+import { elited, getUnit, isBiological, isHero, isNormal, Unit } from 'data'
 import { CardDescriptorTable } from '../types'
 import { autoBind, isCardInstance, us } from '../utils'
+import { 科挂X } from './terran'
 
 const data: CardDescriptorTable = {
   虫卵: [
@@ -193,7 +194,7 @@ const data: CardDescriptorTable = {
   ],
   终极进化: [
     autoBind('post-enter', async (card, gold) => {
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         await c.replace_unit(
           [...c.find('蟑螂', 2), ...c.find('蟑螂(精英)', 2)]
             .sort()
@@ -284,6 +285,116 @@ const data: CardDescriptorTable = {
       cleaner = card.bus.end()
       return ret
     },
+  ],
+  守卫巢穴: [
+    autoBind('round-end', async (card, gold) => {
+      await card.player.inject(us('守卫', gold ? 2 : 1))
+    }),
+    autoBind('round-end', async (card, gold) => {
+      for (const c of card.player.present.filter(isCardInstance)) {
+        await c.replace_unit(
+          c.find(u => ['异龙', '异龙(精英)'].includes(u), gold ? 2 : 1),
+          '守卫'
+        )
+      }
+    }),
+  ],
+  生化危机: [
+    科挂X(2, async (card, gold) => {
+      await card.player.inject([
+        ...us('牛头人陆战队员', gold ? 2 : 1),
+        ...us('科技实验室', gold ? 4 : 2),
+      ])
+    }),
+  ],
+  雷兽窟: [
+    autoBind('round-start', async (card, gold) => {
+      await card.replace_unit(card.find('幼雷兽', gold ? 2 : 1), '雷兽')
+    }),
+    autoBind('round-end', async (card, gold) => {
+      await card.player.incubate(card, us('幼雷兽', gold ? 2 : 1))
+    }),
+  ],
+  优质基因: [
+    autoBind('round-end', async (card, gold) => {
+      const es = card.player.find_name('虫卵')
+      if (es.length === 0) {
+        return
+      }
+      const us = es
+        .map(c => c.data.units)
+        .reduce((a, b) => a.concat(b), [])
+        .filter(u => gold || !isHero(u))
+        .map((u, i) => [getUnit(u), i] as [Unit, number])
+        .sort(([ua, ia], [ub, ib]) => {
+          if (ua.value === ub.value) {
+            return ia - ib
+          } else {
+            return ub.value - ua.value
+          }
+        })
+        .slice(0, 1)
+      if (us.length === 0) {
+        return
+      }
+      for (const c of card.player.all_of('Z')) {
+        await c.obtain_unit([us[0][0].name])
+      }
+    }),
+  ],
+  基因突变: [
+    (card, gold, text) => {
+      async function proc() {
+        for (const c of card
+          .around()
+          .filter(c => c.data.race === 'Z')
+          .filter(c => c.data.units.length > 0)) {
+          const us = c.data.units
+            .map((u, i) => [getUnit(u), i] as [Unit, number])
+            .sort(([ua, ia], [ub, ib]) => {
+              if (ua.value === ub.value) {
+                return ia - ib
+              } else {
+                return ub.value - ua.value
+              }
+            })
+          const tos = us.filter(([u]) => !isHero(u.name))
+          if (tos.length === 0) {
+            return
+          }
+          await c.replace_unit(
+            us
+              .slice(us.length - (gold ? 2 : 1))
+              .filter(([u]) => u.value < tos[0][0].value)
+              .map(([u, i]) => i),
+            tos[0][0].name
+          )
+        }
+      }
+
+      card.bus.begin()
+      card.bus.on('post-enter', proc)
+      card.bus.on('post-sell', proc)
+      const cleaner = card.bus.end()
+      return {
+        text,
+        gold,
+
+        unbind() {
+          cleaner()
+        },
+      }
+    },
+  ],
+  机械感染: [
+    autoBind('round-start', async card => {
+      if (card.find(u => ['雷兽', '雷兽(精英)'].includes(u)).length >= 4) {
+        await card.clear_desc()
+      }
+    }),
+    autoBind('round-end', async card => {
+      await card.player.incubate(card, ['被感染的女妖'])
+    }),
   ],
 }
 

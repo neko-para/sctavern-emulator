@@ -1,10 +1,12 @@
 import {
   AllUpgrade,
   canElite,
+  CardKey,
   elited,
   getCard,
   getUnit,
   isBiological,
+  isHero,
   isNormal,
   Race,
   Unit,
@@ -12,7 +14,7 @@ import {
 } from 'data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
-import { autoBind, isCardInstance, us } from '../utils'
+import { autoBind, autoBindPlayer, isCardInstance, us } from '../utils'
 
 function 供养(n: number, unit: UnitKey): DescriptorGenerator {
   return autoBind('post-sell', async card => {
@@ -163,7 +165,7 @@ const data: CardDescriptorTable = {
   ],
   马拉什: [
     autoBind('round-end', async card => {
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         c.set_void()
       }
       await card.player.refresh()
@@ -377,6 +379,177 @@ const data: CardDescriptorTable = {
         mineral: 2,
       })
     }),
+  ],
+  死亡舰队: [黑暗容器_获得('毁灭者', 1, 2), 黑暗容器_复活(10)],
+  虚空裂痕: [
+    黑暗容器_获得('百夫长', 1, 2),
+    黑暗容器_复活(5),
+    autoBind('round-end', async (card, gold) => {
+      if (card.player.data.mineral >= 1) {
+        await card.obtain_unit(us('百夫长', gold ? 4 : 2))
+      }
+    }),
+  ],
+  死亡之翼: [
+    autoBindPlayer('seize', async (card, gold, { target }) => {
+      if (target === card) {
+        await card.obtain_unit(us('天霸', gold ? 2 : 1))
+      }
+    }),
+    autoBind('card-combined', async (card, gold, { target }) => {
+      if (target !== card) {
+        await target.seize(card)
+      }
+    }),
+  ],
+  虚空援军: [
+    autoBind('post-enter', async card => {
+      if (card.player.data.gas < 1) {
+        return
+      }
+      await card.obtain_upgrade(
+        card.player.game.gen.shuffle(AllUpgrade.map(u => u))[0]
+      )
+    }),
+    autoBind('round-end', async card => {
+      let maxi = 0
+      let exp: CardInstance | null = null
+      for (const c of card.player.present.filter(isCardInstance)) {
+        if (c.value() > maxi) {
+          maxi = c.value()
+          exp = c
+        }
+      }
+      if (card === exp || !exp) {
+        return
+      }
+      await exp.seize(card, {
+        upgrade: true,
+      })
+    }),
+  ],
+  深渊行者: [
+    autoBindPlayer('seize', async (card, gold) => {
+      await card.obtain_unit(us('先锋', gold ? 2 : 1))
+    }),
+  ],
+  黑暗祭坛: [
+    黑暗容器_获得('凤凰', 1, 2),
+    autoBind('round-end', async (card, gold) => {
+      let mini = 9999999
+      let exp: CardInstance | null = null
+      for (const c of card.player.present.filter(isCardInstance)) {
+        if (c.value() < mini) {
+          mini = c.value()
+          exp = c
+        }
+      }
+      if (card === exp || !exp) {
+        return
+      }
+      await card.seize(exp)
+    }),
+  ],
+  混合体巨兽: [
+    autoBind('round-end', async (card, gold) => {
+      const pc = card.player.count_present()
+      if (pc.T && pc.Z && pc.P && pc.N) {
+        await card.obtain_unit(us('混合体巨兽', gold ? 2 : 1))
+      }
+    }),
+  ],
+  埃蒙仆从: [
+    autoBind('round-end', async (card, gold) => {
+      const zs = card.player.all_of('Z').filter(c => c !== card)
+      const ps = card.player.all_of('P').filter(c => c !== card)
+      if (zs.length > 0 && ps.length > 0) {
+        await card.player.destroy(zs[0])
+        await card.player.destroy(ps[0])
+        for (const c of card.player.present
+          .filter(isCardInstance)
+          .filter(c => c.data.attrib.getAttribute('void'))) {
+          await c.obtain_unit(us('混合体毁灭者', gold ? 3 : 2))
+        }
+      }
+    }),
+  ],
+  风暴英雄: [
+    autoBind('obtain-upgrade', async card => {
+      await card.obtain_unit([
+        card.player.game.gen.shuffle([
+          '马拉什',
+          '阿拉纳克',
+          '利维坦',
+          '虚空构造体',
+          '科罗拉里昂',
+        ] as UnitKey[])[0],
+      ])
+    }),
+  ],
+  死亡之握: [
+    (card, gold, text) => {
+      let cleaner = () => {}
+      const ret = {
+        text,
+        gold,
+        disabled: false,
+        unique: '死亡之握-结束',
+
+        unbind() {
+          cleaner()
+        },
+      }
+      card.bus.begin()
+      card.bus.on('round-end', async () => {
+        if (ret.disabled) {
+          return
+        }
+        for (const c of card.player.store.filter(
+          c => c !== null
+        ) as CardKey[]) {
+          const units = getCard(c).unit
+          const r: UnitKey[] = []
+          for (const k in units) {
+            const unit = k as UnitKey
+            if (!isNormal(unit) || isHero(unit)) {
+              continue
+            }
+            r.push(...us(unit, units[unit] || 0))
+          }
+          await card.obtain_unit(
+            card.player.game.gen.shuffle(r).slice(0, gold ? 2 : 1)
+          )
+        }
+      })
+      cleaner = card.bus.end()
+      return ret
+    },
+    (card, gold, text) => {
+      let cleaner = () => {}
+      const ret = {
+        text,
+        gold,
+        disabled: false,
+        unique: '死亡之握-刷新',
+
+        unbind() {
+          cleaner()
+        },
+      }
+      card.bus.begin()
+      card.bus.on('refreshed', async () => {
+        if (ret.disabled) {
+          return
+        }
+        await card.obtain_unit(
+          card.player.game.gen
+            .shuffle(card.data.units.filter(u => !isHero(u)))
+            .slice(0, gold ? 2 : 1) // TODO: 可能要修改随机策略
+        )
+      })
+      cleaner = card.bus.end()
+      return ret
+    },
   ],
 }
 

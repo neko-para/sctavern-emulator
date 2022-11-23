@@ -80,7 +80,7 @@ function 快速生产(unit: UnitKey, nc: number, gc: number): DescriptorGenerato
   })
 }
 
-function 科挂X(
+export function 科挂X(
   count: number,
   func: (card: CardInstance, gold: boolean) => Promise<void>
 ): DescriptorGenerator {
@@ -212,7 +212,7 @@ const data: CardDescriptorTable = {
   ],
   斯台特曼: [
     autoBind('fast-prod', async (card, gold) => {
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         await c.replace_unit(c.find('歌利亚', gold ? 2 : 1), elited)
         await c.replace_unit(c.find('维京战机', gold ? 2 : 1), elited)
       }
@@ -245,7 +245,7 @@ const data: CardDescriptorTable = {
   外籍军团: [
     反应堆('牛头人陆战队员'),
     autoBind('post-enter', async card => {
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         let nPro = 0,
           nNor = 0
         c.data.units.forEach(u => {
@@ -377,7 +377,7 @@ const data: CardDescriptorTable = {
     }),
     autoBind('round-end', async (card, gold) => {
       let n = 0
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         const idx = c.find('水晶塔', 1)
         if (idx.length > 0) {
           c.remove_unit(idx)

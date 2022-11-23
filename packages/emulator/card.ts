@@ -22,7 +22,7 @@ import {
   DescriptorGenerator,
   ObtainUnitWay,
 } from './types'
-import { refC, refP, us } from './utils'
+import { isCardInstance, refC, refP, us } from './utils'
 
 export interface CardInstanceAttrib {
   name: CardKey
@@ -102,6 +102,10 @@ export class CardInstance {
     } else {
       return null
     }
+  }
+
+  around(): CardInstance[] {
+    return [this.left(), this.right()].filter(isCardInstance)
   }
 
   value() {
@@ -368,18 +372,18 @@ export class CardInstance {
 
   async seize(
     target: CardInstance,
-    option: {
+    option?: {
       unreal?: boolean
       upgrade?: boolean // 是否夺取升级
     }
   ) {
     await this.obtain_unit(target.data.units)
-    if (option.upgrade) {
+    if (option?.upgrade) {
       for (const u of target.data.upgrades) {
         await this.obtain_upgrade(u)
       }
     }
-    if (!option.unreal) {
+    if (!option?.unreal) {
       await this.post('seize', {
         ...refC(this),
         target,

@@ -279,7 +279,7 @@ const data: CardDescriptorTable = {
   ],
   菲尼克斯: [
     autoBind('post-enter', async card => {
-      for (const c of [card.left(), card.right()].filter(isCardInstance)) {
+      for (const c of card.around()) {
         await c.replace_unit(
           [...c.find('狂热者'), ...c.find('使徒')],
           '旋风狂热者'
@@ -347,13 +347,79 @@ const data: CardDescriptorTable = {
         ...us('阿塔尼斯', gold ? 2 : 0),
       ])
     }),
-    autoBind('round-end', async card => {
-      for (const c of card.player.present.filter(isCardInstance)) {
-        await card.post('regroup', {
-          ...refC(c),
-          id: -1,
-        })
+
+    (card, gold, text) => {
+      let cleaner = () => {}
+      const ret = {
+        text,
+        gold,
+        disabled: false,
+        unique: '阿塔尼斯',
+
+        unbind() {
+          cleaner()
+        },
       }
+      card.bus.begin()
+      card.bus.on('round-end', async () => {
+        if (ret.disabled) {
+          return
+        }
+        for (const c of card.player.present.filter(isCardInstance)) {
+          await card.post('regroup', {
+            ...refC(c),
+            id: -1,
+          })
+        }
+      })
+      cleaner = card.bus.end()
+      return ret
+    },
+  ],
+  净化之光: [
+    autoBind('round-end', async (card, gold) => {
+      card.obtain_unit(us('虚空辉光舰', gold ? 2 : 1))
+    }),
+    集结X(4, async (card, gold) => {
+      for (const c of card.player.present.filter(isCardInstance)) {
+        await c.replace_unit(c.find('虚空辉光舰', gold ? 2 : 1), elited)
+      }
+    }),
+  ],
+  生物质发电: [
+    autoBind('card-selled', async (card, gold, { target }) => {
+      if (target.data.race === 'Z' && target.data.level >= 3) {
+        await card.obtain_unit(us('水晶塔', gold ? 2 : 1))
+      }
+    }),
+  ],
+  黑暗教长: [
+    autoBind('post-enter', async card => {
+      await card.obtain_upgrade('暗影战士')
+    }),
+    集结(5, '黑暗圣堂武士(精英)', 1, 2),
+  ],
+  六脉神剑: [
+    autoBind('card-entered', async (card, gold) => {
+      if (card.find('先知').length < card.power()) {
+        card.player.wrap(us('先知', gold ? 2 : 1))
+      }
+    }),
+  ],
+  晋升仪式: [
+    集结X(4, async (card, gold) => {
+      await card.replace_unit(card.find('不朽者', gold ? 2 : 1), '英雄不朽者')
+      await card.replace_unit(
+        card.find(u => isBiological(u) && u !== '高阶圣堂武士', gold ? 2 : 1),
+        '高阶圣堂武士'
+      )
+    }),
+  ],
+  英雄叉: [
+    autoBind('obtain-unit-prev', async (card, gold, param) => {
+      param.units = param.units.map(u =>
+        u === '狂热者(精英)' ? '卡尔达利斯' : u
+      )
     }),
   ],
 }

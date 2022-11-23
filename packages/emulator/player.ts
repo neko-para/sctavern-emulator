@@ -509,7 +509,7 @@ export class Player {
   }
 
   async sell(card: CardInstance) {
-    const around = [card.left(), card.right()].filter(isCardInstance)
+    const around = card.around()
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
     await this.post('post-sell', refC(card, true))
@@ -529,7 +529,7 @@ export class Player {
   }
 
   async destroy(card: CardInstance) {
-    const around = [card.left(), card.right()].filter(isCardInstance)
+    const around = card.around()
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
     await card.clear_desc()
