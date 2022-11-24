@@ -460,6 +460,29 @@ name = "星灵等离子护盾"
 defense = 0
 
 [[unit]]
+name = "尤尔兰"
+race = "P"
+value = 400
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 150
+shield = 150
+[[unit.weapon]]
+name = "能量光束"
+damage = 15
+range = 6
+speed = 0.79
+target = "A"
+multiple = 2
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 5.95
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
 name = "莫汗达尔"
 race = "P"
 value = 600

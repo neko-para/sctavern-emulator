@@ -308,7 +308,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   雷兽窟: [
-    autoBind('round-start', async (card, gold) => {
+    autoBind('inject', async (card, gold) => {
       await card.replace_unit(card.find('幼雷兽', gold ? 2 : 1), '雷兽')
     }),
     autoBind('round-end', async (card, gold) => {
@@ -387,14 +387,37 @@ const data: CardDescriptorTable = {
     },
   ],
   机械感染: [
-    autoBind('round-start', async card => {
-      if (card.find(u => ['雷兽', '雷兽(精英)'].includes(u)).length >= 4) {
-        await card.clear_desc()
+    autoBind('round-end', async (card, gold) => {
+      await card.player.incubate(card, us('被感染的女妖', gold ? 2 : 1))
+    }),
+    (card, gold, text) => {
+      let cleaner = () => {}
+      const ret = {
+        text,
+        gold,
+        disabled: false,
+        unique: '机械感染',
+
+        unbind() {
+          cleaner()
+        },
       }
-    }),
-    autoBind('round-end', async card => {
-      await card.player.incubate(card, ['被感染的女妖'])
-    }),
+      card.bus.begin()
+      card.bus.on('card-selled', async ({ target }) => {
+        if (ret.disabled) {
+          return
+        }
+        if (
+          target.value() >= 4000 &&
+          target.data.name !== '虫卵' &&
+          target.data.race === 'Z'
+        ) {
+          await card.obtain_unit(us('末日巨兽', 1))
+        }
+      })
+      cleaner = card.bus.end()
+      return ret
+    },
   ],
 }
 

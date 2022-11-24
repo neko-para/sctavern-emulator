@@ -116,7 +116,11 @@ export class CardInstance {
   }
 
   private self_power(): number {
-    return this.find('水晶塔').length + this.find('虚空水晶塔').length
+    return (
+      this.find('水晶塔').length +
+      this.find('虚空水晶塔').length +
+      (this.data.attrib.getAttribute('供能') || 0)
+    )
   }
 
   power(): number {

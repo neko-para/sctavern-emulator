@@ -108,6 +108,25 @@ defense = 3
 speed = 3.15
 
 [[unit]]
+name = "劫掠者(皇家卫队)"
+race = "N"
+value = 800
+utype = "normal"
+tag = ["重甲", "生物单位", "英雄单位"]
+health = 400
+[[unit.weapon]]
+name = "调停者"
+damage = "24, vs 重甲 48"
+range = 7
+speed = 0.86
+target = "G"
+multiple = 1
+[unit.armor]
+name = "人类步兵护甲"
+defense = 1
+speed = 3.15
+
+[[unit]]
 name = "反应堆"
 race = "T"
 value = 0

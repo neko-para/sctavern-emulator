@@ -152,7 +152,7 @@ const data: CardDescriptorTable = {
       for (const c of [card.left(), card.right()]) {
         if (c?.data.race === 'T') {
           await card.obtain_unit(
-            await c.filter((u, i) => i % 3 === 0 && isNormal(u))
+            await c.filter((u, i) => i % 3 !== 0 && isNormal(u))
           )
         }
       }
@@ -429,11 +429,20 @@ const data: CardDescriptorTable = {
       }
     }),
   ],
-  黑色行动: [
+  帝国精锐: [
     快速生产('恶蝠游骑兵', 1, 2),
-    反应堆('修理无人机'),
-    autoBind('round-end', async card => {
-      await card.replace_unit(card.find('陆战队员'), elited)
+    autoBind('round-end', async (card, gold) => {
+      await card.obtain_unit(
+        us(
+          '劫掠者(皇家卫队)',
+          Math.floor(
+            card.player.present
+              .filter(isCardInstance)
+              .map(c => c.find('反应堆').length)
+              .reduce((a, b) => a + b, 0) / (gold ? 2 : 3)
+          )
+        )
+      )
     }),
   ],
 }

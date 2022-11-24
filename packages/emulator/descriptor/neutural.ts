@@ -276,12 +276,17 @@ const data: CardDescriptorTable = {
   我叫小明: [
     autoBind('post-enter', async card => {
       const left = card.left()
-      if (left && left.occupy.length > 0) {
-        await card.player.obtain_card(getCard(left.occupy[0]))
+      if (left) {
+        if (
+          left.data.level >= 1 &&
+          left.data.level <= 6 &&
+          left.occupy.length > 0
+        ) {
+          await card.player.obtain_card(getCard(left.occupy[0]))
+        }
+        await left.seize(card)
+        await left.obtain_upgrade('星空加速')
       }
-    }),
-    autoBind('post-sell', async card => {
-      await card.left()?.obtain_upgrade('星空加速')
     }),
   ],
   豆浆油条KT1: [
@@ -515,7 +520,7 @@ const data: CardDescriptorTable = {
             if (!isNormal(unit) || isHero(unit)) {
               continue
             }
-            r.push(...us(unit, units[unit] || 0))
+            r.push(unit)
           }
           await card.obtain_unit(
             card.player.game.gen.shuffle(r).slice(0, gold ? 2 : 1)

@@ -4,6 +4,7 @@ import {
   isBiological,
   isHeavy,
   isHero,
+  isMachine,
   isNormal,
   UnitKey,
 } from 'data'
@@ -202,29 +203,31 @@ const data: CardDescriptorTable = {
     }),
   ],
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
-  莫汗达尔: [
+  尤尔兰: [
     (card, gold, text) => {
-      let cleaner = () => {}
-      const ret = {
+      card.data.attrib.registerAttribute('供能', () => '', gold ? 8 : 5, {
+        override: true,
+      })
+      return {
         text,
         gold,
-        disabled: false,
-        unique: '莫汗达尔',
 
         unbind() {
-          cleaner()
+          card.data.attrib.removeAttribute('供能')
         },
       }
-      card.bus.begin()
-      card.bus.on('wrap', async ({ units }) => {
-        if (ret.disabled) {
-          return
-        }
-        await card.obtain_unit(units.slice(units.length - (gold ? 2 : 1)))
-      })
-      cleaner = card.bus.end()
-      return ret
     },
+    autoBind('obtain-unit-post', async (card, gold, { units }) => {
+      if (units.includes('水晶塔') || units.includes('虚空水晶塔')) {
+        await card.obtain_unit(us('莫汗达尔', gold ? 2 : 1))
+      }
+    }),
+    autoBind('obtain-unit-prev', async (card, gold, param) => {
+      if (param.way !== 'wrap') {
+        return
+      }
+      param.units = param.units.map(u => (isMachine(u) ? '尤尔兰' : u))
+    }),
   ],
   光复艾尔: [
     (card, gold, text) => {
@@ -309,9 +312,12 @@ const data: CardDescriptorTable = {
   净化一切: [
     集结(4, '狂热者(精英)', 1, 2, 'wrap'),
     autoBind('round-end', async (card, gold) => {
-      if (card.power() >= 7) {
-        await card.player.wrap(us('巨像(精英)', gold ? 2 : 1))
-      }
+      await card.player.wrap(
+        us(
+          '巨像(精英)',
+          (gold ? 2 : 1) * Math.min(2, Math.floor(card.power() / 7))
+        )
+      )
     }),
   ],
   阿尔达瑞斯: [

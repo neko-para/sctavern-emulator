@@ -644,27 +644,22 @@ defense = 1
 speed = 4.76
 
 [[unit]]
-name = "尤尔兰"
+name = "征召兵"
 race = "N"
-value = 400
+value = 40
 utype = "normal"
-tag = ["重甲", "机械单位", "英雄单位"]
-health = 150
-shield = 150
+tag = ["轻甲", "生物单位"]
+health = 35
 [[unit.weapon]]
-name = "能量光束"
-damage = 15
-range = 6
-speed = 0.79
-target = "A"
-multiple = 2
+name = "C-13型电磁枪"
+damage = 5
+range = 5
+speed = 0.61
+target = "GA"
 [unit.armor]
-name = "星灵护板"
-defense = 2
-speed = 5.95
-[unit.sarmor]
-name = "星灵等离子护盾"
+name = "人类步兵护甲"
 defense = 0
+speed = 3.15
 
 [[unit]]
 name = "武装机器人"

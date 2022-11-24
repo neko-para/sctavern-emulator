@@ -37,6 +37,12 @@ export class AttributeManager {
     }
   }
 
+  removeAttribute(name: string) {
+    if (name in this.attrib) {
+      delete this.attrib[name]
+    }
+  }
+
   getAttribute(name: string): CardAttribType | null {
     return this.attrib[name]?.value || null
   }
