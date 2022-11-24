@@ -1,4 +1,11 @@
-import { CardKey, TermKey, UnitKey, UpgradeKey, PossibleKey } from './pubdata'
+import {
+  CardKey,
+  TermKey,
+  UnitKey,
+  UpgradeKey,
+  RoleKey,
+  PossibleKey,
+} from './pubdata'
 
 export type Race = 'T' | 'P' | 'Z' | 'N' | 'G'
 export type Pack =
@@ -118,11 +125,19 @@ export interface Upgrade {
   rmrk: string
 }
 
+export interface Role {
+  name: RoleKey
+  type: 'role'
+  ability: string
+  desc: string
+}
+
 export interface Data {
   card: Card[]
   term: Term[]
   unit: Unit[]
   upgrade: Upgrade[]
+  role: Role[]
   tr: Record<string, string>
   attr: Record<string, string>
   order: Record<string, string[]>

@@ -10,6 +10,7 @@ import {
   Upgrade,
   UpgradeKey,
 } from 'data'
+import { RoleKey } from 'data/pubdata'
 import { AttributeManager } from './attribute'
 import { CardInstance } from './card'
 import { Descriptors } from './descriptor'
@@ -40,6 +41,7 @@ interface UniqueDescInfo {
 export class Player {
   bus: Emitter<LogicBus>
   game: Game
+  role: RoleKey
   pos: number
 
   data: PlayerAttrib
@@ -54,10 +56,12 @@ export class Player {
 
   insertResolve: ((v: number) => void) | null
   discoverResolve: ((v: number) => void) | null
+  selectResolve: ((v: number) => void) | null
 
-  constructor(game: Game, pos: number) {
+  constructor(game: Game, pos: number, role: RoleKey) {
     this.bus = new Emitter('card', [])
     this.game = game
+    this.role = role
     this.pos = pos
     this.data = {
       level: 1,
@@ -80,7 +84,7 @@ export class Player {
     this.config = {
       MaxUnitPerCard: 200,
       MaxUpgradePerCard: 5,
-      AlwaysInsert: false,
+      AlwaysInsert: role === '收割者',
 
       StoreCount: [0, 3, 4, 4, 5, 5, 6],
       UpgradeCost: [0, 5, 7, 8, 9, 11, 0],
@@ -91,6 +95,7 @@ export class Player {
 
     this.insertResolve = null
     this.discoverResolve = null
+    this.selectResolve = null
 
     this.bind_inputs()
     this.bind_default()
@@ -581,6 +586,24 @@ export class Player {
     })
   }
 
+  async querySelect() {
+    const client = this.pos
+    return new Promise<number>(resolve => {
+      this.selectResolve = (v: number) => {
+        this.game
+          .postOutput('end-select', {
+            client,
+          })
+          .then(() => {
+            resolve(v)
+          })
+      }
+      this.game.postOutput('begin-select', {
+        client,
+      })
+    })
+  }
+
   private fill_store() {
     const nf = this.store.filter(c => !c).length
     const nc = this.game.pool.discover(
@@ -627,6 +650,39 @@ export class Player {
       // TODO: wait all done
       await this.game.next_round()
     })
+    this.bus.on('$ability', async () => {
+      switch (this.role) {
+        case '执政官': {
+          const choice = await this.querySelect()
+          if (choice === -1) {
+            break
+          }
+          const left = this.present[choice]
+          const right = left?.right()
+          if (
+            !left ||
+            !right ||
+            left.data.race === right.data.race ||
+            left.data.color !== 'normal' ||
+            right.data.color !== 'normal'
+          ) {
+            break
+          }
+          const leftBinds = left.desc_binder
+          const new_name = `${right.data.name}x${left.data.name}`
+          right.data.name = new_name
+          await right.seize(left, {
+            unreal: true,
+            upgrade: true,
+          })
+          right.data.color = 'darkgold'
+          for (const b of leftBinds) {
+            await right.bind_desc(b)
+          }
+          break
+        }
+      }
+    })
     this.bus.on('$lock', async () => {
       this.data.locked = true
       await this.refresh()
@@ -645,21 +701,28 @@ export class Player {
         this.discoverResolve(choice)
       }
     })
+    this.bus.on('$select-choice', async ({ choice }) => {
+      if (this.selectResolve) {
+        this.selectResolve(choice)
+      }
+    })
     this.bus.on('$buy-enter', async ({ place }) => {
-      if (!this.store[place] || !this.can_buy_enter()) {
+      const ck = this.store[place]
+      if (!ck || !this.can_buy_enter(ck)) {
         return
       }
-      this.data.mineral -= 3
-      await this.enter(getCard(this.store[place] as CardKey))
+      this.data.mineral -= this.cost_of(ck)
+      await this.enter(getCard(ck))
       this.store[place] = null
       await this.refresh()
     })
     this.bus.on('$buy-cache', async ({ place }) => {
-      if (!this.store[place] || !this.can_buy_cache()) {
+      const ck = this.store[place]
+      if (!ck || !this.can_buy_cache(ck)) {
         return
       }
-      this.data.mineral -= 3
-      this.hand[this.hand.findIndex(v => v === null)] = this.store[place]
+      this.data.mineral -= this.cost_of(ck)
+      this.hand[this.hand.findIndex(v => v === null)] = ck
       this.store[place] = null
       await this.refresh()
     })
@@ -779,7 +842,7 @@ export class Player {
       await this.sell(this.present[place] as CardInstance)
     })
     this.bus.on('$obtain-card', async ({ card }) => {
-      if (!this.can_buy_cache()) {
+      if (this.hand.filter(x => x).length === 6) {
         return
       }
       this.hand[this.hand.findIndex(v => v === null)] = card
@@ -825,15 +888,30 @@ export class Player {
     })
   }
 
-  can_buy_enter() {
+  cost_of(ck: CardKey) {
+    switch (this.role) {
+      case '收割者':
+        console.log(ck)
+        if (getCard(ck).attr.insert) {
+          return 2
+        }
+        break
+    }
+    return 3
+  }
+
+  can_buy_enter(ck: CardKey) {
     return (
-      this.data.mineral >= 3 &&
+      this.data.mineral >= this.cost_of(ck) &&
       this.present.filter(isNotCardInstance).length > 0
     )
   }
 
-  can_buy_cache() {
-    return this.data.mineral >= 3 && this.hand.filter(x => x).length < 6
+  can_buy_cache(ck: CardKey) {
+    return (
+      this.data.mineral >= this.cost_of(ck) &&
+      this.hand.filter(x => x).length < 6
+    )
   }
 
   can_buy_combine(ck: CardKey) {

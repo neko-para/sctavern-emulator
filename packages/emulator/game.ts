@@ -1,10 +1,9 @@
+import { RoleKey } from 'data'
 import { Emitter } from './emitter'
 import { Player } from './player'
 import { Pool } from './pool'
 import { LogicBus, OutputBus } from './types'
 import { Shuffler } from './utils'
-
-const PlayerCount = 1
 
 interface GameAttrib {
   round: number
@@ -18,6 +17,7 @@ export interface LogItem {
 export interface GameReplay {
   pack: string[]
   seed: string
+  role: RoleKey
   log: LogItem[]
 }
 
@@ -33,18 +33,23 @@ export class Game {
 
   log: LogItem[]
 
-  constructor(pack: Record<string, boolean> = { 核心: true }, gen: Shuffler) {
-    this.player = Array(PlayerCount)
+  constructor(
+    pack: Record<string, boolean> = { 核心: true },
+    gen: Shuffler,
+    roles: RoleKey[]
+  ) {
+    const count = roles.length
+    this.player = Array(count)
       .fill(null)
       .map((_, i) => {
-        return new Player(this, i)
+        return new Player(this, i, roles[i])
       })
 
     this.bus = new Emitter(
       'player',
       this.player.map(p => p.bus)
     )
-    this.obus = new Emitter('client', Array(PlayerCount).fill(null))
+    this.obus = new Emitter('client', Array(count).fill(null))
 
     this.data = {
       round: 0,

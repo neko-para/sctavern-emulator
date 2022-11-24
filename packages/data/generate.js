@@ -45,7 +45,7 @@ function splitDesc(str) {
 
 async function main() {
   const result = await readAll('.')
-  ;['card', 'unit', 'term', 'upgrade'].forEach(k => {
+  ;['card', 'unit', 'term', 'upgrade', 'role'].forEach(k => {
     result[k].forEach(obj => {
       obj.type = k
       if (k === 'card') {
@@ -77,7 +77,11 @@ export type UpgradeKey = "${result.upgrade.map(x => x.name).join('"|"')}"
 export const AllUpgrade: UpgradeKey[] = ["${result.upgrade
       .map(x => x.name)
       .join('","')}"]
-export type PossibleKey = UnitKey | CardKey | TermKey | UpgradeKey
+export type RoleKey = "${result.role.map(x => x.name).join('"|"')}"
+export const AllRole: RoleKey[] = ["${result.role
+      .map(x => x.name)
+      .join('","')}"]
+export type PossibleKey = UnitKey | CardKey | TermKey | UpgradeKey | RoleKey
 const data: Data = ${JSON.stringify(result, null, 2)}
 export { data }\n`
   )

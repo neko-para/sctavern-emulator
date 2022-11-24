@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { Client, Game, LocalGame, Shuffler, type GameReplay } from 'emulator'
 import StoreItem from './StoreItem.vue'
+import { AllRole } from 'data'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
 import DiscoverItem from './DiscoverItem.vue'
@@ -11,6 +12,7 @@ import {
   type Card,
   type CardKey,
   type UpgradeKey,
+  type RoleKey,
   order,
 } from 'data'
 import { compress, decompress } from './compress'
@@ -18,29 +20,36 @@ import { compress, decompress } from './compress'
 const props = defineProps<{
   pack: string[]
   seed: string
+  role: RoleKey
   replay: string | null
 }>()
 
-const seed = ref(props.seed)
+const packConfig = ref<Record<string, boolean>>({})
+const seedConfig = ref(props.seed)
+const roleConfig = ref<RoleKey>(props.role)
+
 const packDlg = ref(false)
 
 const model = ref(false)
-const insert = ref(false)
 const discover = ref(false)
+const insert = ref(false)
+const select = ref(false)
 const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
-
-const packConfig = ref<Record<string, boolean>>({})
 
 props.pack.forEach(s => {
   packConfig.value[s] = true
 })
 
-function applyPackChange() {
+function applyConfigChange(replay?: string) {
   const param = new URLSearchParams({
     pack: Object.keys(packConfig.value).join(','),
-    seed: seed.value,
+    seed: seedConfig.value,
+    role: roleConfig.value,
   })
+  if (replay) {
+    param.set('replay', replay)
+  }
   window.location.href = '/sctavern-emulator/?' + param.toString()
 }
 
@@ -58,10 +67,10 @@ function genPackConfig() {
 }
 
 function genSeed() {
-  seed.value = Math.floor(Math.random() * 1000000).toString()
+  seedConfig.value = Math.floor(Math.random() * 1000000).toString()
 }
 
-const game = new Game(packConfig.value, new Shuffler(props.seed))
+const game = new Game(packConfig.value, new Shuffler(props.seed), [props.role])
 
 const localGame = new LocalGame(game)
 
@@ -106,6 +115,17 @@ class LocalClient extends Client {
     discover.value = false
     discoverItems.value = []
     discoverCancel.value = false
+    model.value = false
+  }
+
+  async begin_select() {
+    select.value = true
+    model.value = true
+    await super.replay_select()
+  }
+
+  async end_select() {
+    select.value = false
     model.value = false
   }
 }
@@ -240,6 +260,12 @@ function requestNext() {
   })
 }
 
+function requestAbility() {
+  localClient.post('$ability', {
+    player: player.pos,
+  })
+}
+
 function insertChoose({ pos }: { pos: number }) {
   localClient.post('$insert-choice', {
     choice: pos,
@@ -249,6 +275,13 @@ function insertChoose({ pos }: { pos: number }) {
 
 function discoverChoose({ pos }: { pos: number }) {
   localClient.post('$discover-choice', {
+    choice: pos,
+    player: player.pos,
+  })
+}
+
+function selectChoose({ pos }: { pos: number }) {
+  localClient.post('$select-choice', {
     choice: pos,
     player: player.pos,
   })
@@ -282,7 +315,8 @@ const expData = ref('')
 function doExport() {
   expData.value = compress({
     pack: Object.keys(packConfig.value).filter(k => packConfig.value[k]),
-    seed: seed.value,
+    seed: props.seed,
+    role: props.role,
     log: game.log,
   })
   expDlg.value = true
@@ -293,12 +327,14 @@ const impData = ref('')
 
 function doImport() {
   const obj = decompress(impData.value) as GameReplay
-  const param = new URLSearchParams({
-    pack: obj.pack.join(','),
-    seed: seed.value,
-    replay: impData.value,
+  const pack: Record<string, boolean> = {}
+  obj.pack.forEach(p => {
+    pack[p] = true
   })
-  window.location.href = '/sctavern-emulator/?' + param.toString()
+  packConfig.value = pack
+  seedConfig.value = obj.seed
+  roleConfig.value = obj.role
+  applyConfigChange(impData.value)
 }
 
 main()
@@ -339,7 +375,11 @@ main()
           <v-btn v-else class="mr-1" :disabled="model" @click="requestLock"
             >锁定</v-btn
           >
-          <v-btn :disabled="model" @click="requestNext">下一回合</v-btn>
+          <v-btn class="mr-1" :disabled="model" @click="requestNext"
+            >下一回合</v-btn
+          >
+          <v-btn v-if="!model" @click="requestAbility">{{ role }}</v-btn>
+          <v-btn v-else @click="selectChoose({ pos: -1 })">取消</v-btn>
         </div>
         <div class="d-flex mt-1">
           <v-dialog v-model="packDlg" class="w-25">
@@ -349,7 +389,8 @@ main()
             <v-card>
               <v-card-title>配置</v-card-title>
               <v-card-text>
-                <v-text-field v-model="seed" label="种子"></v-text-field>
+                <v-text-field v-model="seedConfig" label="种子"></v-text-field>
+                <v-select v-model="roleConfig" :items="AllRole"></v-select>
                 <v-checkbox
                   hide-details
                   :disabled="i === 0"
@@ -360,7 +401,7 @@ main()
                 ></v-checkbox>
               </v-card-text>
               <v-card-actions>
-                <v-btn @click="applyPackChange()" color="red"
+                <v-btn @click="applyConfigChange()" color="red"
                   >确认(会刷新当前游戏)</v-btn
                 >
                 <v-btn @click="genPackConfig()">随机两个扩展包</v-btn>
@@ -494,8 +535,10 @@ main()
           :model="model"
           :pos="i"
           :insert="insert"
+          :select="select"
           @request="requestPresent"
-          @choose="insertChoose"
+          @ichoose="insertChoose"
+          @schoose="selectChoose"
         ></present-item>
       </div>
     </div>

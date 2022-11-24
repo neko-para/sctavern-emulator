@@ -10,6 +10,7 @@ interface InputBusTemplate {
   $upgrade: {}
   $refresh: {}
   $done: {}
+  $ability: {}
   $lock: {}
   $unlock: {}
 
@@ -17,6 +18,9 @@ interface InputBusTemplate {
     choice: number
   }
   '$discover-choice': {
+    choice: number
+  }
+  '$select-choice': {
     choice: number
   }
 
@@ -160,6 +164,8 @@ interface OutputBusTemplate {
     cancel: boolean
   }
   'end-discover': {}
+  'begin-select': {} // 用于角色技能等需要选择有效卡牌
+  'end-select': {}
 }
 
 export type OutputBus = ApplyKey<OutputBusTemplate, { client: number }>

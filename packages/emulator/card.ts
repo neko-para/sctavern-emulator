@@ -25,7 +25,7 @@ import {
 import { isCardInstance, refC, refP, us } from './utils'
 
 export interface CardInstanceAttrib {
-  name: CardKey
+  name: string
   race: Race
   level: number
 
@@ -47,6 +47,7 @@ export class CardInstance {
 
   data: CardInstanceAttrib
 
+  desc_binder: ((card: CardInstance) => Descriptor)[]
   occupy: CardKey[]
 
   constructor(player: Player, cardt: Card) {
@@ -79,6 +80,7 @@ export class CardInstance {
       this.data.attrib.registerAttribute('dark', v => `黑暗值: ${v}`, 0)
     }
 
+    this.desc_binder = []
     this.occupy = []
 
     this.bind()
@@ -353,14 +355,23 @@ export class CardInstance {
     return taked
   }
 
-  async add_desc(desc: DescriptorGenerator, text: [string, string]) {
-    const d = desc(this, this.data.color !== 'normal', text)
+  async bind_desc(binder: (card: CardInstance) => Descriptor) {
+    const d = binder(this)
     this.data.descs.push(d)
+    this.desc_binder.push(binder)
     if (d.unique) {
       await this.player.add_unique(this, d)
     } else {
       await this.player.refresh()
     }
+  }
+
+  async add_desc(desc: DescriptorGenerator, text: [string, string]) {
+    const gold = this.data.color !== 'normal'
+    const binder = (card: CardInstance) => {
+      return desc(card, gold, text)
+    }
+    await this.bind_desc(binder)
   }
 
   async clear_desc() {

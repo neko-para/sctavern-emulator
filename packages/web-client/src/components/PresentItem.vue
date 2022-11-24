@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CardInstance, Player } from 'emulator'
+import { AllCard, type CardKey } from 'data'
 import type { UnitKey } from 'data'
 import TemplateRefer from './TemplateRefer.vue'
 import InstanceRefer from './InstanceRefer.vue'
@@ -12,6 +13,7 @@ const props = defineProps<{
   model: boolean
   pos: number
   insert: boolean
+  select: boolean
 }>()
 
 const allUnit = computed(() => {
@@ -40,7 +42,11 @@ const Color = {
     <template v-if="card">
       <div class="d-flex">
         <race-icon class="mt-1" :race="card.data.race"></race-icon>
-        <template-refer :card="card.data.name"></template-refer>
+        <template-refer
+          v-if="AllCard.includes(card.data.name as CardKey)"
+          :card="card.data.name as CardKey"
+        ></template-refer>
+        <span v-else class="text-h5 mt-2">{{ card.data.name }}</span>
         <div class="ml-auto"></div>
         <instance-refer :card="card"></instance-refer>
         <span class="text-h5 ml-1 mt-2 mr-2">{{ card.data.level }}</span>
@@ -97,7 +103,14 @@ const Color = {
           class="ml-auto"
           v-if="insert"
           variant="text"
-          @click="$emit('choose', { pos })"
+          @click="$emit('ichoose', { pos })"
+          >这里</v-btn
+        >
+        <v-btn
+          class="ml-auto"
+          v-if="select"
+          variant="text"
+          @click="$emit('schoose', { pos })"
           >这里</v-btn
         >
       </div>
@@ -107,7 +120,7 @@ const Color = {
         class="mt-auto ml-auto"
         v-if="insert"
         variant="text"
-        @click="$emit('choose', { pos })"
+        @click="$emit('ichoose', { pos })"
         >这里</v-btn
       >
     </template>

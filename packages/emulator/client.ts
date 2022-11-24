@@ -12,6 +12,8 @@ interface ClientRespond {
   end_discover(): Promise<void>
   begin_insert(): Promise<void>
   end_insert(): Promise<void>
+  begin_select(): Promise<void>
+  end_select(): Promise<void>
 }
 
 interface GameWrapperBase {
@@ -39,6 +41,8 @@ export class LocalGame implements GameWrapperBase {
     bus.on('end-discover', () => client.end_discover())
     bus.on('begin-insert', () => client.begin_insert())
     bus.on('end-insert', () => client.end_insert())
+    bus.on('begin-select', () => client.begin_select())
+    bus.on('end-select', () => client.end_select())
   }
 
   async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
@@ -97,6 +101,13 @@ export class Client implements ClientRespond {
     }
   }
 
+  async replay_select() {
+    if (this.peekNextReplayItem()?.msg === '$select-choice') {
+      await this.step()
+      await this.postItem(this.nextReplayItem())
+    }
+  }
+
   async refresh() {}
 
   async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {}
@@ -106,6 +117,10 @@ export class Client implements ClientRespond {
   async begin_insert() {}
 
   async end_insert() {}
+
+  async begin_select() {}
+
+  async end_select() {}
 
   async replay(
     replay: GameReplay,

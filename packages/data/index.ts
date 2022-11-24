@@ -6,18 +6,27 @@ import type {
   Term,
   Unit,
   Upgrade,
+  Role,
   Weapon,
   Armor,
   SArmor,
   SplitResult,
   SplitResultRefer,
 } from './types'
-import { data as raw, AllCard, AllUnit, AllTerm, AllUpgrade } from './pubdata'
+import {
+  data as raw,
+  AllCard,
+  AllUnit,
+  AllTerm,
+  AllUpgrade,
+  AllRole,
+} from './pubdata'
 import type {
   CardKey,
   TermKey,
   UnitKey,
   UpgradeKey,
+  RoleKey,
   PossibleKey,
 } from './pubdata'
 const { card, term, unit, upgrade, attr, tr, order } = raw
@@ -26,10 +35,11 @@ export const Cards: Map<CardKey, Card> = new Map()
 export const Terms: Map<TermKey, Term> = new Map()
 export const Units: Map<UnitKey, Unit> = new Map()
 export const Upgrades: Map<UpgradeKey, Upgrade> = new Map()
+export const Roles: Map<RoleKey, Role> = new Map()
 
 export { attr, tr, order }
-export { AllCard, AllUnit, AllTerm, AllUpgrade }
-export { CardKey, TermKey, UnitKey, UpgradeKey, PossibleKey }
+export { AllCard, AllUnit, AllTerm, AllUpgrade, AllRole }
+export { CardKey, TermKey, UnitKey, UpgradeKey, RoleKey, PossibleKey }
 export { Race, Card, Term, Unit, Upgrade, Weapon, Armor, SArmor }
 export { SplitResult, SplitResultRefer }
 
@@ -49,6 +59,9 @@ export function getUnit(key: UnitKey) {
 }
 export function getUpgrade(key: UpgradeKey) {
   return Upgrades.get(key) as Upgrade
+}
+export function getRole(key: RoleKey) {
+  return Roles.get(key) as Role
 }
 export function canElite(key: UnitKey) {
   return AllUnit.includes((key + '(精英)') as UnitKey)

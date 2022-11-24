@@ -1,5 +1,4 @@
-import { type Card, getCard } from '../data'
-import { AllCard, type CardKey } from '../data/pubdata'
+import { type Card, type CardKey, getCard, AllCard } from 'data'
 import { Shuffler } from './utils'
 
 type PossibleLevel = 1 | 2 | 3 | 4 | 5 | 6

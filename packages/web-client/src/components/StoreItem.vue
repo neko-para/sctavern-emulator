@@ -36,14 +36,14 @@ const cardInfo = props.card ? getCard(props.card) : null
           >三连</v-btn
         >
         <v-btn
-          :disabled="model || !player.can_buy_enter()"
+          :disabled="model || !player.can_buy_enter(card)"
           variant="text"
           v-else
           @click="$emit('request', { pos, act: 'enter' })"
           >购买</v-btn
         >
         <v-btn
-          :disabled="model || !player.can_buy_cache()"
+          :disabled="model || !player.can_buy_cache(card)"
           variant="text"
           @click="$emit('request', { pos, act: 'cache' })"
           >暂存</v-btn
