@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Game, Shuffler } from 'emulator'
+import { Client, Game, LocalGame, Shuffler, type GameReplay } from 'emulator'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
@@ -13,9 +13,7 @@ import {
   type UpgradeKey,
   order,
 } from 'data'
-import type { LogItem } from 'emulator/game'
-import { decodeSave, encodeSave } from './replay'
-import type { LogicBus } from 'emulator/types'
+import { compress, decompress } from './compress'
 
 const props = defineProps<{
   pack: string[]
@@ -64,55 +62,70 @@ function genSeed() {
 }
 
 const game = new Game(packConfig.value, new Shuffler(props.seed))
-const player = game.player[0]
+
+const localGame = new LocalGame(game)
+
+class LocalClient extends Client {
+  timeout: number | null
+
+  constructor() {
+    super(localGame, 0)
+    this.timeout = null
+  }
+
+  async refresh() {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+    }
+    this.timeout = setTimeout(() => {
+      timeTick.value += 1
+      this.timeout = null
+    }, 1)
+  }
+
+  async begin_insert() {
+    insert.value = true
+    model.value = true
+    await super.replay_insert()
+  }
+
+  async end_insert() {
+    insert.value = false
+    model.value = false
+  }
+
+  async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {
+    discover.value = true
+    discoverItems.value = item
+    discoverCancel.value = cancel
+    model.value = true
+    await super.replay_discover()
+  }
+
+  async end_discover() {
+    discover.value = false
+    discoverItems.value = []
+    discoverCancel.value = false
+    model.value = false
+  }
+}
+
+const localClient = new LocalClient()
+
+const player = localClient.player
 
 const timeTick = ref(0)
-
-let timeout: number | null = null
-
-game.obus.on('refresh', async () => {
-  if (timeout) {
-    clearTimeout(timeout)
-  }
-  timeout = setTimeout(() => {
-    timeTick.value += 1
-  }, 1)
-})
-
-game.obus.on('begin-insert', async () => {
-  insert.value = true
-  model.value = true
-})
-
-game.obus.on('end-insert', async () => {
-  insert.value = false
-  model.value = false
-})
-
-game.obus.on('begin-discover', async ({ item, cancel }) => {
-  discover.value = true
-  discoverItems.value = item
-  discoverCancel.value = cancel
-  model.value = true
-})
-
-game.obus.on('end-discover', async () => {
-  discover.value = false
-  discoverItems.value = []
-  discoverCancel.value = false
-  model.value = false
-})
 
 async function main() {
   await game.start()
   if (props.replay) {
-    const obj = decodeSave(props.replay)
-    for (const l of obj.log) {
-      await game.postItem(l)
+    const obj = decompress(props.replay) as GameReplay
+    await localClient.replay(obj, async () => {
       await new Promise(resolve => {
-        setTimeout(resolve, 0)
+        setTimeout(resolve, 100)
       })
-    }
+      return false
+    })
   }
 }
 
@@ -125,19 +138,19 @@ function requestHand({
 }) {
   switch (act) {
     case 'enter':
-      game.post('$hand-enter', {
+      localClient.post('$hand-enter', {
         place: pos,
         player: player.pos,
       })
       break
     case 'combine':
-      game.post('$hand-combine', {
+      localClient.post('$hand-combine', {
         place: pos,
         player: player.pos,
       })
       break
     case 'sell':
-      game.post('$hand-sell', {
+      localClient.post('$hand-sell', {
         place: pos,
         player: player.pos,
       })
@@ -154,19 +167,19 @@ function requestStore({
 }) {
   switch (act) {
     case 'enter':
-      game.post('$buy-enter', {
+      localClient.post('$buy-enter', {
         place: pos,
         player: player.pos,
       })
       break
     case 'combine':
-      game.post('$buy-combine', {
+      localClient.post('$buy-combine', {
         place: pos,
         player: player.pos,
       })
       break
     case 'cache':
-      game.post('$buy-cache', {
+      localClient.post('$buy-cache', {
         place: pos,
         player: player.pos,
       })
@@ -183,13 +196,13 @@ function requestPresent({
 }) {
   switch (act) {
     case 'upgrade':
-      game.post('$present-upgrade', {
+      localClient.post('$present-upgrade', {
         place: pos,
         player: player.pos,
       })
       break
     case 'sell':
-      game.post('$present-sell', {
+      localClient.post('$present-sell', {
         place: pos,
         player: player.pos,
       })
@@ -198,43 +211,44 @@ function requestPresent({
 }
 
 function requestUpgrade() {
-  game.post('$upgrade', {
+  localClient.post('$upgrade', {
     player: player.pos,
   })
 }
 
 function requestRefresh() {
-  game.post('$refresh', {
+  localClient.post('$refresh', {
     player: player.pos,
   })
 }
 
 function requestUnlock() {
-  game.post('$unlock', {
+  localClient.post('$unlock', {
     player: player.pos,
   })
 }
 
 function requestLock() {
-  game.post('$lock', {
+  localClient.post('$lock', {
     player: player.pos,
   })
 }
 
 function requestNext() {
-  game.post('$done', {
+  localClient.post('$done', {
     player: player.pos,
   })
 }
 
 function insertChoose({ pos }: { pos: number }) {
-  game.post('$insert-choice', {
+  localClient.post('$insert-choice', {
     choice: pos,
     player: player.pos,
   })
 }
+
 function discoverChoose({ pos }: { pos: number }) {
-  game.post('$discover-choice', {
+  localClient.post('$discover-choice', {
     choice: pos,
     player: player.pos,
   })
@@ -250,14 +264,14 @@ const obtainCardChoice = computed(() => {
 })
 
 function requestObtainCard(card: CardKey) {
-  game.post('$obtain-card', {
+  localClient.post('$obtain-card', {
     card,
     player: player.pos,
   })
 }
 
 function requestResource() {
-  game.post('$imr', {
+  localClient.post('$imr', {
     player: player.pos,
   })
 }
@@ -266,7 +280,7 @@ const expDlg = ref(false)
 const expData = ref('')
 
 function doExport() {
-  expData.value = encodeSave({
+  expData.value = compress({
     pack: Object.keys(packConfig.value).filter(k => packConfig.value[k]),
     seed: seed.value,
     log: game.log,
@@ -278,8 +292,7 @@ const impDlg = ref(false)
 const impData = ref('')
 
 function doImport() {
-  const obj = decodeSave(impData.value)
-  console.log(obj)
+  const obj = decompress(impData.value) as GameReplay
   const param = new URLSearchParams({
     pack: obj.pack.join(','),
     seed: seed.value,
@@ -447,7 +460,8 @@ main()
             @request="requestStore"
           ></store-item>
         </div>
-        <div class="d-flex mt-4">
+        <div class="d-flex mt-4" v-if="discover">
+          {{ discover }}
           <discover-item
             v-for="(it, i) in discoverItems"
             :key="`Discover-Item-${i}-${timeTick}`"

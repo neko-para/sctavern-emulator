@@ -15,6 +15,12 @@ export interface LogItem {
   param: {}
 }
 
+export interface GameReplay {
+  pack: string[]
+  seed: string
+  log: LogItem[]
+}
+
 export class Game {
   bus: Emitter<LogicBus>
   obus: Emitter<OutputBus>
@@ -51,6 +57,7 @@ export class Game {
   }
 
   async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
+    console.log(msg)
     if (msg[0] === '$') {
       this.log.push({
         msg,
@@ -58,10 +65,6 @@ export class Game {
       })
     }
     await this.bus.emit(msg, param)
-  }
-
-  async postItem(item: LogItem) {
-    await this.post(item.msg, item.param)
   }
 
   async postOutput<T extends string & keyof OutputBus>(

@@ -148,7 +148,8 @@ const data: CardDescriptorTable = {
           '原始点火虫',
           Math.max(
             0,
-            card.find('精华').length * 2 - card.find('原始点火虫').length
+            Math.min(10, card.find('精华').length) * 2 -
+              card.find('原始点火虫').length
           )
         )
       )
