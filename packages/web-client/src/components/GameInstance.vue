@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { Client, Game, LocalGame, Shuffler, type GameReplay } from 'emulator'
 import StoreItem from './StoreItem.vue'
-import { AllRole } from 'data'
+import { AllRole, getRole } from 'data'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
 import DiscoverItem from './DiscoverItem.vue'
@@ -378,7 +378,12 @@ main()
           <v-btn class="mr-1" :disabled="model" @click="requestNext"
             >下一回合</v-btn
           >
-          <v-btn v-if="!model" @click="requestAbility">{{ role }}</v-btn>
+          <v-btn
+            v-if="!model"
+            :disabled="!player.can_use_ability()"
+            @click="requestAbility"
+            >{{ getRole(role).ability }}</v-btn
+          >
           <v-btn v-else @click="selectChoose({ pos: -1 })">取消</v-btn>
         </div>
         <div class="d-flex mt-1">
@@ -502,7 +507,6 @@ main()
           ></store-item>
         </div>
         <div class="d-flex mt-4" v-if="discover">
-          {{ discover }}
           <discover-item
             v-for="(it, i) in discoverItems"
             :key="`Discover-Item-${i}-${timeTick}`"

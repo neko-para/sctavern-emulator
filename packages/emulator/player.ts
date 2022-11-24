@@ -5,6 +5,7 @@ import {
   CardKey,
   getCard,
   getUpgrade,
+  isNormal,
   Race,
   UnitKey,
   Upgrade,
@@ -17,7 +18,14 @@ import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { Descriptor, LogicBus, PlayerConfig } from './types'
-import { isCardInstance, isNotCardInstance, refC, refP, us } from './utils'
+import {
+  autoBind,
+  isCardInstance,
+  isNotCardInstance,
+  refC,
+  refP,
+  us,
+} from './utils'
 
 interface PlayerAttrib {
   level: number
@@ -651,6 +659,9 @@ export class Player {
       await this.game.next_round()
     })
     this.bus.on('$ability', async () => {
+      if (!this.can_use_ability()) {
+        return
+      }
       switch (this.role) {
         case '执政官': {
           const choice = await this.querySelect()
@@ -669,8 +680,8 @@ export class Player {
             break
           }
           const leftBinds = left.desc_binder
-          const new_name = `${right.data.name}x${left.data.name}`
-          right.data.name = new_name
+          right.data.name = `${right.data.name}x${left.data.name}`
+          right.occupy.push(...left.occupy)
           await right.seize(left, {
             unreal: true,
             upgrade: true,
@@ -679,6 +690,71 @@ export class Player {
           for (const b of leftBinds) {
             await right.bind_desc(b)
           }
+          this.data.attrib.registerAttribute('角色:执政官', () => '', 1)
+          break
+        }
+        case '陆战队员': {
+          if (this.data.mineral < 2) {
+            break
+          }
+          const tl = Math.max(1, this.data.level - 1)
+          await this.obtain_resource({
+            mineral: -2,
+          })
+          await this.discover(this.game.pool.discover(c => c.level === tl, 3))
+          this.data.attrib.registerAttribute('角色:陆战队员', () => '', 1)
+          break
+        }
+        case '感染虫': {
+          const choice = await this.querySelect()
+          if (choice === -1) {
+            break
+          }
+          const card = this.present[choice] as CardInstance
+          if (card.data.race !== 'T') {
+            break
+          }
+          card.data.color = 'darkgold'
+          card.data.name = `被感染的${card.data.name}`
+          await card.clear_desc()
+          await card.add_desc(
+            autoBind('round-end', async card => {
+              await this.inject(card.data.units.filter(isNormal).slice(0, 1))
+            }),
+            ['每回合结束时注卵随机一个单位', '每回合结束时注卵随机一个单位']
+          )
+          this.data.attrib.registerAttribute('角色:感染虫', () => '', 1)
+          break
+        }
+        case 'SCV': {
+          const choice = await this.querySelect()
+          if (choice === -1) {
+            break
+          }
+          const card = this.present[choice] as CardInstance
+          if (card.data.race !== 'T' || card.infr()[0] === 'hightech') {
+            break
+          }
+          await card.switch_infr()
+          this.data.attrib.registerAttribute('角色:SCV', () => '', 1)
+          break
+        }
+        case '阿巴瑟': {
+          if (this.data.mineral < 2) {
+            break
+          }
+          const choice = await this.querySelect()
+          if (choice === -1) {
+            break
+          }
+          const card = this.present[choice] as CardInstance
+          const tl = Math.min(6, card.data.level + 1)
+          await this.obtain_resource({
+            mineral: -2,
+          })
+          await this.destroy(card)
+          await this.discover(this.game.pool.discover(c => c.level === tl, 3))
+          this.data.attrib.registerAttribute('角色:阿巴瑟', () => '', 1)
           break
         }
       }
@@ -857,7 +933,7 @@ export class Player {
   }
 
   bind_default() {
-    this.bus.on('round-start', async () => {
+    this.bus.on('round-start', async ({ round }) => {
       this.data.attrib = new AttributeManager(() => this.refresh())
       if (this.data.upgrade_cost > 0) {
         this.data.upgrade_cost -= 1
@@ -874,6 +950,21 @@ export class Player {
       }
       this.data.locked = false
       this.fill_store()
+
+      switch (this.role) {
+        case '工蜂':
+          if (round % 2 === 1) {
+            await this.obtain_resource({
+              gas: 1,
+            })
+          } else {
+            await this.obtain_resource({
+              mineral: 1,
+            })
+          }
+          break
+      }
+
       await this.refresh()
     })
     this.bus.on('card-selled', async ({ target }) => {
@@ -898,6 +989,21 @@ export class Player {
         break
     }
     return 3
+  }
+
+  can_use_ability(): boolean {
+    switch (this.role) {
+      case '陆战队员':
+      case '阿巴瑟':
+        if (this.data.mineral < 2) {
+          return false
+        }
+      case '执政官':
+      case '感染虫':
+      case 'SCV':
+        return (this.data.attrib.getAttribute(`角色:${this.role}`) || 0) === 0
+    }
+    return false
   }
 
   can_buy_enter(ck: CardKey) {

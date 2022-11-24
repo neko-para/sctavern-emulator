@@ -29,7 +29,7 @@ import type {
   RoleKey,
   PossibleKey,
 } from './pubdata'
-const { card, term, unit, upgrade, attr, tr, order } = raw
+const { card, term, unit, upgrade, role, attr, tr, order } = raw
 
 export const Cards: Map<CardKey, Card> = new Map()
 export const Terms: Map<TermKey, Term> = new Map()
@@ -47,6 +47,7 @@ card.forEach(c => Cards.set(c.name, c))
 term.forEach(t => Terms.set(t.name, t))
 unit.forEach(u => Units.set(u.name, u))
 upgrade.forEach(u => Upgrades.set(u.name, u))
+role.forEach(r => Roles.set(r.name, r))
 
 export function getCard(key: CardKey) {
   return Cards.get(key) as Card
