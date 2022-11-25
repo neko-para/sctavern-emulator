@@ -22,6 +22,8 @@ const props = defineProps<{
   seed: string
   role: RoleKey
   replay: string | null
+
+  mobile: boolean
 }>()
 
 const packConfig = ref<Record<string, boolean>>({})
@@ -77,8 +79,8 @@ const localGame = new LocalGame(game)
 class LocalClient extends Client {
   timeout: number | null
 
-  constructor() {
-    super(localGame, 0)
+  constructor(pos: number) {
+    super(localGame, pos)
     this.timeout = null
   }
 
@@ -90,6 +92,10 @@ class LocalClient extends Client {
       timeTick.value += 1
       this.timeout = null
     }, 1)
+  }
+
+  async selected(choice: string) {
+    selected.value = choice
   }
 
   async begin_insert() {
@@ -119,7 +125,7 @@ class LocalClient extends Client {
   }
 }
 
-const localClient = new LocalClient()
+const localClient = new LocalClient(0)
 
 const player = localClient.player
 
@@ -138,145 +144,6 @@ async function main() {
   }
 }
 
-function requestHand({
-  pos,
-  act,
-}: {
-  pos: number
-  act: 'enter' | 'combine' | 'sell'
-}) {
-  switch (act) {
-    case 'enter':
-      localClient.post('$hand-enter', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-    case 'combine':
-      localClient.post('$hand-combine', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-    case 'sell':
-      localClient.post('$hand-sell', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-  }
-}
-
-function requestStore({
-  pos,
-  act,
-}: {
-  pos: number
-  act: 'enter' | 'combine' | 'cache'
-}) {
-  switch (act) {
-    case 'enter':
-      localClient.post('$buy-enter', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-    case 'combine':
-      localClient.post('$buy-combine', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-    case 'cache':
-      localClient.post('$buy-cache', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-  }
-}
-
-function requestPresent({
-  pos,
-  act,
-}: {
-  pos: number
-  act: 'upgrade' | 'sell'
-}) {
-  switch (act) {
-    case 'upgrade':
-      localClient.post('$present-upgrade', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-    case 'sell':
-      localClient.post('$present-sell', {
-        place: pos,
-        player: player.pos,
-      })
-      break
-  }
-}
-
-function requestUpgrade() {
-  localClient.post('$upgrade', {
-    player: player.pos,
-  })
-}
-
-function requestRefresh() {
-  localClient.post('$refresh', {
-    player: player.pos,
-  })
-}
-
-function requestUnlock() {
-  localClient.post('$unlock', {
-    player: player.pos,
-  })
-}
-
-function requestLock() {
-  localClient.post('$lock', {
-    player: player.pos,
-  })
-}
-
-function requestNext() {
-  localClient.post('$done', {
-    player: player.pos,
-  })
-}
-
-function requestAbility() {
-  localClient.post('$ability', {
-    player: player.pos,
-  })
-}
-
-function insertChoose({ pos }: { pos: number }) {
-  localClient.post('$insert-choice', {
-    choice: pos,
-    player: player.pos,
-  })
-}
-
-function discoverChoose({ pos }: { pos: number }) {
-  localClient.post('$discover-choice', {
-    choice: pos,
-    player: player.pos,
-  })
-}
-
-function selectChoose(s: string) {
-  selected.value = s
-  localClient.post('$select', {
-    choice: selected.value,
-    player: player.pos,
-  })
-}
-
 const obtainCardDlg = ref(false)
 const obtainCardKey = ref('')
 
@@ -286,39 +153,26 @@ const obtainCardChoice = computed(() => {
     .slice(0, 10)
 })
 
-function requestObtainCard(card: CardKey) {
-  localClient.post('$obtain-card', {
-    card,
-    player: player.pos,
-  })
-}
-
-function requestResource() {
-  localClient.post('$imr', {
-    player: player.pos,
-  })
-}
-
 function handleKey(ev: KeyboardEvent) {
   if (model.value || expDlg.value || impDlg.value || obtainCardDlg.value) {
     return
   }
   switch (ev.key) {
     case 'w':
-      requestUpgrade()
+      localClient.requestUpgrade()
       return
     case 'c':
       if (player.data.locked) {
-        requestUnlock()
+        localClient.requestUnlock()
       } else {
-        requestLock()
+        localClient.requestLock()
       }
       return
     case 'z':
-      requestNext()
+      localClient.requestNext()
       return
     case 'r':
-      requestRefresh()
+      localClient.requestRefresh()
       return
   }
   const m = /^[HSP](\d)$/.exec(selected.value)
@@ -333,7 +187,7 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'e':
-          requestHand({
+          localClient.requestHand({
             pos,
             act: player.can_hand_combine(player.hand[pos] as CardKey)
               ? 'combine'
@@ -341,7 +195,7 @@ function handleKey(ev: KeyboardEvent) {
           })
           return
         case 's':
-          requestHand({
+          localClient.requestHand({
             pos,
             act: 'sell',
           })
@@ -354,7 +208,7 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'e':
-          requestStore({
+          localClient.requestStore({
             pos,
             act: player.can_buy_combine(player.store[pos] as CardKey)
               ? 'combine'
@@ -362,7 +216,7 @@ function handleKey(ev: KeyboardEvent) {
           })
           return
         case 'v':
-          requestStore({
+          localClient.requestStore({
             pos,
             act: 'cache',
           })
@@ -375,13 +229,13 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'u':
-          requestPresent({
+          localClient.requestPresent({
             pos,
             act: 'upgrade',
           })
           return
         case 's':
-          requestPresent({
+          localClient.requestPresent({
             pos,
             act: 'sell',
           })
@@ -440,35 +294,41 @@ main()
           <v-btn
             class="mr-1"
             :disabled="model || !player.can_tavern_upgrade()"
-            @click="requestUpgrade"
+            @click="localClient.requestUpgrade()"
             >升级</v-btn
           >
           <v-btn
             class="mr-1"
             :disabled="model || !player.can_refresh()"
-            @click="requestRefresh"
+            @click="localClient.requestRefresh()"
             >刷新</v-btn
           >
           <v-btn
             v-if="player.data.locked"
             class="mr-1"
             :disabled="model"
-            @click="requestUnlock"
+            @click="localClient.requestUnlock()"
             >解锁</v-btn
           >
-          <v-btn v-else class="mr-1" :disabled="model" @click="requestLock"
+          <v-btn
+            v-else
+            class="mr-1"
+            :disabled="model"
+            @click="localClient.requestLock()"
             >锁定</v-btn
           >
-          <v-btn class="mr-1" :disabled="model" @click="requestNext"
+          <v-btn
+            class="mr-1"
+            :disabled="model"
+            @click="localClient.requestNext()"
             >下一回合</v-btn
           >
           <v-btn
             v-if="!model"
             :disabled="!player.can_use_ability()"
-            @click="requestAbility"
+            @click="localClient.requestAbility()"
             >{{ getRole(role).ability }}</v-btn
           >
-          <!-- <v-btn v-else @click="selectChoose({ pos: -1 })">取消</v-btn> -->
         </div>
         <div class="d-flex mt-1">
           <v-dialog v-model="packDlg" class="w-25">
@@ -512,7 +372,7 @@ main()
                   v-model="obtainCardKey"
                   @keyup.enter="
                     obtainCardChoice.length > 0 &&
-                      requestObtainCard(obtainCardChoice[0].name)
+                      localClient.requestObtainCard(obtainCardChoice[0].name)
                   "
                 ></v-text-field>
                 <div class="d-flex flex-column">
@@ -523,7 +383,7 @@ main()
                       enterSelect: i === 0,
                     }"
                     :key="`OCChoice-${i}`"
-                    @click="requestObtainCard(c.name)"
+                    @click="localClient.requestObtainCard(c.name)"
                     >{{ c.pinyin }} {{ c.name }}</v-btn
                   >
                 </div>
@@ -531,7 +391,10 @@ main()
             </v-card>
           </v-dialog>
 
-          <v-btn class="ml-1" :disabled="model" @click="requestResource"
+          <v-btn
+            class="ml-1"
+            :disabled="model"
+            @click="localClient.requestResource()"
             >获得资源</v-btn
           >
         </div>
@@ -569,14 +432,11 @@ main()
             class="mt-2 mr-2"
             v-for="(h, i) in player.hand"
             :key="`Hand-Item-${i}-${timeTick}`"
-            :player="player"
             :card="h"
             :model="model"
             :pos="i"
             :selected="selected === `H${i}`"
-            @request="requestHand"
-            @select="selectChoose(`H${i}`)"
-            @unselect="selectChoose(`none`)"
+            :client="localClient"
           ></hand-item>
         </div>
       </div>
@@ -586,14 +446,11 @@ main()
             v-for="(s, i) in player.store"
             :key="`Store-Item-${i}-${timeTick}`"
             class="mr-2"
-            :player="player"
             :card="s"
             :model="model"
             :pos="i"
             :selected="selected === `S${i}`"
-            @request="requestStore"
-            @select="selectChoose(`S${i}`)"
-            @unselect="selectChoose(`none`)"
+            :client="localClient"
           ></store-item>
         </div>
         <div class="d-flex mt-4" v-if="discover">
@@ -601,16 +458,15 @@ main()
             v-for="(it, i) in discoverItems"
             :key="`Discover-Item-${i}-${timeTick}`"
             class="mr-2"
-            :player="player"
             :item="it"
             :model="model"
             :pos="i"
-            @choose="discoverChoose"
+            :client="localClient"
           ></discover-item>
           <v-btn
             v-if="discoverCancel"
             variant="text"
-            @click="discoverChoose({ pos: -1 })"
+            @click="localClient.discoverChoose({ pos: -1 })"
             color="red"
             >放弃</v-btn
           >
@@ -624,16 +480,12 @@ main()
       >
         <present-item
           class="mr-2"
-          :player="player"
           :card="p"
           :model="model"
           :pos="i"
           :insert="insert"
           :selected="selected === `P${i}`"
-          @request="requestPresent"
-          @ichoose="insertChoose"
-          @select="selectChoose(`P${i}`)"
-          @unselect="selectChoose(`none`)"
+          :client="localClient"
         ></present-item>
       </div>
     </div>

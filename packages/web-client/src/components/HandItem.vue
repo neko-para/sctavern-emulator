@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getCard, type CardKey } from 'data'
-import type { Player } from 'emulator'
+import type { Client } from 'emulator'
 import TemplateRefer from './TemplateRefer.vue'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  player: Player
   card: CardKey | null
   model: boolean
   pos: number
   selected: boolean
+  client: Client
 }>()
 
 const cardInfo = props.card ? getCard(props.card) : null
@@ -27,7 +27,7 @@ const elv = ref(5)
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="$emit(card ? 'select' : 'unselect')"
+    @click="client.selectChoose(card ? `H${pos}` : 'none')"
   >
     <template v-if="card && cardInfo">
       <div class="d-flex">
@@ -37,24 +37,39 @@ const elv = ref(5)
       </div>
       <div class="d-flex mt-auto">
         <v-btn
-          :disabled="model || !player.can_hand_combine(card)"
+          :disabled="model || !client.player.can_hand_combine(card)"
           variant="flat"
-          v-if="player.can_hand_combine(card)"
-          @click="$emit('request', { pos, act: 'combine' })"
+          v-if="client.player.can_hand_combine(card)"
+          @click="
+            client.requestHand({
+              act: 'combine',
+              pos,
+            })
+          "
           color="yellow"
           >三连</v-btn
         >
         <v-btn
-          :disabled="model || !player.can_hand_enter()"
+          :disabled="model || !client.player.can_hand_enter()"
           variant="text"
           v-else
-          @click="$emit('request', { pos, act: 'enter' })"
+          @click="
+            client.requestHand({
+              act: 'enter',
+              pos,
+            })
+          "
           >进场</v-btn
         >
         <v-btn
           :disabled="model"
           variant="text"
-          @click="$emit('request', { pos, act: 'sell' })"
+          @click="
+            client.requestHand({
+              act: 'sell',
+              pos,
+            })
+          "
           >出售</v-btn
         >
       </div>

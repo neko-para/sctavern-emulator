@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CardInstance, Player } from 'emulator'
+import type { CardInstance, Client } from 'emulator'
 import { AllCard, type CardKey } from 'data'
 import type { UnitKey } from 'data'
 import TemplateRefer from './TemplateRefer.vue'
@@ -8,12 +8,12 @@ import InstanceRefer from './InstanceRefer.vue'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  player: Player
   card: CardInstance | null
   model: boolean
   pos: number
   insert: boolean
   selected: boolean
+  client: Client
 }>()
 
 const allUnit = computed(() => {
@@ -46,7 +46,7 @@ const elv = ref(5)
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="$emit(card ? 'select' : 'unselect')"
+    @click="client.selectChoose(card ? `P${pos}` : 'none')"
   >
     <template v-if="card">
       <div class="d-flex">
@@ -88,7 +88,7 @@ const elv = ref(5)
             <template v-slot:activator="{ props: p }">
               <span style="cursor: pointer" v-bind="p"
                 >{{ card.data.units.length }} /
-                {{ player.config.MaxUnitPerCard }}</span
+                {{ client.player.config.MaxUnitPerCard }}</span
               >
             </template>
             <pre>{{ allUnit.join('\n') }}</pre>
@@ -97,22 +97,36 @@ const elv = ref(5)
       </div>
       <div class="d-flex">
         <v-btn
-          :disabled="model || !player.can_pres_upgrade(card)"
+          :disabled="model || !client.player.can_pres_upgrade(card)"
           variant="text"
-          @click="$emit('request', { pos, act: 'upgrade' })"
+          @click="
+            client.requestPresent({
+              act: 'upgrade',
+              pos,
+            })
+          "
           >升级</v-btn
         >
         <v-btn
           :disabled="model"
           variant="text"
-          @click="$emit('request', { pos, act: 'sell' })"
+          @click="
+            client.requestPresent({
+              act: 'sell',
+              pos,
+            })
+          "
           >出售</v-btn
         >
         <v-btn
           class="ml-auto"
           v-if="insert"
           variant="text"
-          @click="$emit('ichoose', { pos })"
+          @click="
+            client.insertChoose({
+              pos,
+            })
+          "
           >这里</v-btn
         >
       </div>
@@ -122,7 +136,11 @@ const elv = ref(5)
         class="mt-auto ml-auto"
         v-if="insert"
         variant="text"
-        @click="$emit('ichoose', { pos })"
+        @click="
+          client.insertChoose({
+            pos,
+          })
+        "
         >这里</v-btn
       >
     </template>

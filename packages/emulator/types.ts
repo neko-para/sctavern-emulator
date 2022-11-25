@@ -160,6 +160,9 @@ export type LogicBus = GameBus & PlayerBus & CardBus & InputBus
 
 interface OutputBusTemplate {
   refresh: {}
+  selected: {
+    choice: string
+  }
   'begin-insert': {}
   'end-insert': {}
   'begin-discover': {

@@ -779,7 +779,10 @@ export class Player {
     })
     this.bus.on('$select', async ({ choice }) => {
       this.data.selected = choice
-      await this.refresh()
+      await this.game.postOutput('selected', {
+        choice,
+        client: this.pos,
+      })
     })
     this.bus.on('$insert-choice', async ({ choice }) => {
       if (this.insertResolve) {

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Card, UpgradeKey } from 'data'
-import type { Player } from 'emulator'
+import type { Client } from 'emulator'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  player: Player
   item: Card | UpgradeKey
   model: boolean
   pos: number
+  client: Client
 }>()
 
 const elv = ref(5)
@@ -21,7 +21,11 @@ const elv = ref(5)
     :elevation="elv"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="$emit('choose', { pos })"
+    @click="
+      client.discoverChoose({
+        pos,
+      })
+    "
   >
     <template v-if="typeof item !== 'string'">
       <div class="d-flex">

@@ -1,4 +1,4 @@
-import { Card, UpgradeKey } from 'data'
+import { Card, CardKey, UpgradeKey } from 'data'
 import { Emitter } from './emitter'
 import { Game, GameReplay, LogItem } from './game'
 import { Player } from './player'
@@ -8,6 +8,7 @@ interface ClientRespond {
   pos: number
 
   refresh(): Promise<void>
+  selected(choice: string): Promise<void>
   begin_discover(item: (Card | UpgradeKey)[], cancel: boolean): Promise<void>
   end_discover(): Promise<void>
   begin_insert(): Promise<void>
@@ -33,6 +34,7 @@ export class LocalGame implements GameWrapperBase {
     this.game.obus.child[client.pos] = bus
 
     bus.on('refresh', () => client.refresh())
+    bus.on('selected', ({ choice }) => client.selected(choice))
     bus.on('begin-discover', ({ item, cancel }) =>
       client.begin_discover(item, cancel)
     )
@@ -105,6 +107,8 @@ export class Client implements ClientRespond {
 
   async refresh() {}
 
+  async selected(choice: string) {}
+
   async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {}
 
   async end_discover() {}
@@ -141,5 +145,150 @@ export class Client implements ClientRespond {
   async postItem(item: LogItem) {
     // @ts-ignore
     await this.post(item.msg, item.param)
+  }
+
+  async requestHand({
+    pos,
+    act,
+  }: {
+    pos: number
+    act: 'enter' | 'combine' | 'sell'
+  }) {
+    switch (act) {
+      case 'enter':
+        await this.post('$hand-enter', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+      case 'combine':
+        await this.post('$hand-combine', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+      case 'sell':
+        await this.post('$hand-sell', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+    }
+  }
+
+  async requestStore({
+    pos,
+    act,
+  }: {
+    pos: number
+    act: 'enter' | 'combine' | 'cache'
+  }) {
+    switch (act) {
+      case 'enter':
+        await this.post('$buy-enter', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+      case 'combine':
+        await this.post('$buy-combine', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+      case 'cache':
+        await this.post('$buy-cache', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+    }
+  }
+
+  async requestPresent({ pos, act }: { pos: number; act: 'upgrade' | 'sell' }) {
+    switch (act) {
+      case 'upgrade':
+        await this.post('$present-upgrade', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+      case 'sell':
+        await this.post('$present-sell', {
+          place: pos,
+          player: this.pos,
+        })
+        break
+    }
+  }
+
+  async requestUpgrade() {
+    await this.post('$upgrade', {
+      player: this.pos,
+    })
+  }
+
+  async requestRefresh() {
+    await this.post('$refresh', {
+      player: this.pos,
+    })
+  }
+
+  async requestUnlock() {
+    await this.post('$unlock', {
+      player: this.pos,
+    })
+  }
+
+  async requestLock() {
+    await this.post('$lock', {
+      player: this.pos,
+    })
+  }
+
+  async requestNext() {
+    await this.post('$done', {
+      player: this.pos,
+    })
+  }
+
+  async requestAbility() {
+    await this.post('$ability', {
+      player: this.pos,
+    })
+  }
+
+  async insertChoose({ pos }: { pos: number }) {
+    await this.post('$insert-choice', {
+      choice: pos,
+      player: this.pos,
+    })
+  }
+
+  async discoverChoose({ pos }: { pos: number }) {
+    await this.post('$discover-choice', {
+      choice: pos,
+      player: this.pos,
+    })
+  }
+
+  async selectChoose(s: string) {
+    await this.post('$select', {
+      choice: s,
+      player: this.pos,
+    })
+  }
+
+  async requestObtainCard(card: CardKey) {
+    await this.post('$obtain-card', {
+      card,
+      player: this.pos,
+    })
+  }
+
+  async requestResource() {
+    await this.post('$imr', {
+      player: this.pos,
+    })
   }
 }
