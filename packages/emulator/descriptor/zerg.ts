@@ -263,6 +263,22 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
+      card.data.attrib.registerAttribute(
+        '斯托科夫',
+        () => {
+          if (ret.disabled) {
+            return '禁用'
+          } else if (
+            gold ||
+            card.player.data.persisAttrib.getAttribute('斯托科夫')
+          ) {
+            return '注卵'
+          } else {
+            return '非注卵'
+          }
+        },
+        0
+      )
       card.bus.begin()
       card.bus.on('card-entered', async ({ target }) => {
         if (ret.disabled) {

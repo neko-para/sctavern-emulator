@@ -207,19 +207,16 @@ export class CardInstance {
   }
 
   async obtain_unit(units: UnitKey[], way: ObtainUnitWay = 'normal') {
-    await this.post('obtain-unit-prev', {
+    const p = {
       ...refC(this),
       units,
       way,
-    })
+    }
+    await this.post('obtain-unit-prev', p)
     this.data.units = this.data.units
-      .concat(units)
+      .concat(p.units)
       .slice(0, this.player.config.MaxUnitPerCard)
-    await this.post('obtain-unit-post', {
-      ...refC(this),
-      units,
-      way,
-    })
+    await this.post('obtain-unit-post', p)
     await this.player.refresh()
   }
 

@@ -300,7 +300,7 @@ function requestResource() {
 }
 
 function handleKey(ev: KeyboardEvent) {
-  if (model.value) {
+  if (model.value || expDlg.value || impDlg.value || obtainCardDlg.value) {
     return
   }
   switch (ev.key) {
@@ -327,7 +327,7 @@ function handleKey(ev: KeyboardEvent) {
   }
   const pos = Number(m[1])
   switch (selected.value[0]) {
-    case 'h':
+    case 'H':
       if (!player.hand[pos]) {
         return
       }
