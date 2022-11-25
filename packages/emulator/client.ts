@@ -2,7 +2,7 @@ import { Card, CardKey, UpgradeKey } from 'data'
 import { Emitter } from './emitter'
 import { Game, GameReplay, LogItem } from './game'
 import { Player } from './player'
-import { LogicBus, OutputBus } from './types'
+import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
 
 interface ClientRespond {
   pos: number
@@ -15,18 +15,63 @@ interface ClientRespond {
   end_insert(): Promise<void>
 }
 
-interface GameWrapperBase {
-  game: Game
+class LogQueue {
+  items: LogItem[]
+  resolve: ((item: LogItem) => void) | null
 
-  bind(client: ClientRespond): void
-  post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]): Promise<void>
+  constructor() {
+    this.items = []
+    this.resolve = null
+  }
+
+  push(item: LogItem) {
+    if (this.resolve) {
+      const r = this.resolve
+      this.resolve = null
+      r(item)
+    } else {
+      this.items.push(item)
+    }
+  }
+
+  async pop(): Promise<LogItem> {
+    if (this.items.length > 0) {
+      return this.items.shift() as LogItem
+    } else {
+      return new Promise<LogItem>(resolve => {
+        this.resolve = resolve
+      })
+    }
+  }
 }
 
-export class LocalGame implements GameWrapperBase {
-  game: Game
+interface Adapter {
+  onPosted: (item: LogItem) => void
 
-  constructor(game: Game) {
-    this.game = game
+  post<T extends keyof InputBus>(msg: T, param: InputBus[T]): Promise<void>
+}
+
+export class SlaveGame {
+  game: Game
+  adapter: Adapter
+  queue: LogQueue
+
+  constructor(config: GameConfig, adapter: Adapter) {
+    this.game = new Game(config)
+    this.adapter = adapter
+    this.queue = new LogQueue()
+
+    this.adapter.onPosted = item => {
+      this.queue.push(item)
+    }
+  }
+
+  async poll() {
+    while (true) {
+      const item = await this.queue.pop()
+      // @ts-ignore
+      await this.game.postInput(item.msg, item.param)
+    }
   }
 
   bind(client: ClientRespond): void {
@@ -43,24 +88,87 @@ export class LocalGame implements GameWrapperBase {
     bus.on('end-insert', () => client.end_insert())
   }
 
-  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
-    await this.game.post(msg, param)
+  async post<T extends keyof InputBus>(msg: T, param: LogicBus[T]) {
+    await this.adapter.post(msg, param)
+  }
+}
+
+class MasterGame {
+  adapter: Adapter[]
+  queue: LogQueue
+
+  constructor(adapter: Adapter[]) {
+    this.adapter = adapter
+    this.queue = new LogQueue()
+
+    this.adapter.forEach(ad => {
+      ad.onPosted = item => {
+        this.queue.push(item)
+      }
+    })
+  }
+
+  async poll() {
+    while (true) {
+      const item = await this.queue.pop()
+      const pros: Promise<void>[] = []
+      for (const ad of this.adapter) {
+        // @ts-ignore
+        pros.push(ad.post(item.msg, item.param))
+      }
+      await Promise.all(pros)
+    }
+  }
+}
+
+class LocalLinkAdapter implements Adapter {
+  onPosted: (item: LogItem) => void
+  to: LocalLinkAdapter | null
+
+  constructor() {
+    this.onPosted = () => {}
+    this.to = null
+  }
+
+  async post<T extends keyof InputBus>(msg: T, param: InputBus[T]) {
+    this.to?.onPosted({
+      msg,
+      param,
+    })
+  }
+
+  bind(to: LocalLinkAdapter) {
+    this.to = to
+  }
+}
+
+export class LocalGame {
+  master: MasterGame
+  slave: SlaveGame
+
+  constructor(config: GameConfig) {
+    const ml = new LocalLinkAdapter()
+    const sl = new LocalLinkAdapter()
+    ml.bind(sl)
+    sl.bind(ml)
+    this.master = new MasterGame([ml])
+    this.slave = new SlaveGame(config, sl)
   }
 }
 
 export class Client implements ClientRespond {
+  game: SlaveGame
   pos: number
   player: Player
-  wrapper: GameWrapperBase
   replayLog: LogItem[]
   replayPos: number
   step: () => Promise<void>
   stop: boolean
 
-  constructor(wrapper: GameWrapperBase, pos: number) {
+  constructor(game: SlaveGame, pos: number) {
+    this.game = game
     this.pos = pos
-    this.player = wrapper.game.player[pos]
-    this.wrapper = wrapper
+    this.player = game.game.player[pos]
 
     this.replayLog = []
     this.replayPos = 0
@@ -68,11 +176,11 @@ export class Client implements ClientRespond {
     this.step = async () => {}
     this.stop = false
 
-    wrapper.bind(this)
+    game.bind(this)
   }
 
-  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
-    await this.wrapper.post(msg, param)
+  async post<T extends keyof InputBus>(msg: T, param: LogicBus[T]) {
+    await this.game.post(msg, param)
   }
 
   peekNextReplayItem(): LogItem | null {

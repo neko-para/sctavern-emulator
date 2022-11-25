@@ -16,6 +16,7 @@ import {
   order,
 } from 'data'
 import { compress, decompress } from './compress'
+import type { SlaveGame } from 'emulator/client'
 
 const props = defineProps<{
   pack: string[]
@@ -72,15 +73,17 @@ function genSeed() {
   seedConfig.value = Math.floor(Math.random() * 1000000).toString()
 }
 
-const game = new Game(packConfig.value, new Shuffler(props.seed), [props.role])
-
-const localGame = new LocalGame(game)
+const game = new LocalGame({
+  pack: props.pack,
+  seed: props.seed,
+  role: [props.role],
+})
 
 class LocalClient extends Client {
   timeout: number | null
 
-  constructor(pos: number) {
-    super(localGame, pos)
+  constructor(game: SlaveGame, pos: number) {
+    super(game, pos)
     this.timeout = null
   }
 
@@ -125,17 +128,19 @@ class LocalClient extends Client {
   }
 }
 
-const localClient = new LocalClient(0)
+const client = new LocalClient(game.slave, 0)
 
-const player = localClient.player
+const player = client.player
 
 const timeTick = ref(0)
 
 async function main() {
-  await game.start()
+  game.master.poll()
+  game.slave.poll()
+  await game.slave.game.start()
   if (props.replay) {
     const obj = decompress(props.replay) as GameReplay
-    await localClient.replay(obj, async () => {
+    await client.replay(obj, async () => {
       await new Promise(resolve => {
         setTimeout(resolve, 100)
       })
@@ -159,20 +164,20 @@ function handleKey(ev: KeyboardEvent) {
   }
   switch (ev.key) {
     case 'w':
-      localClient.requestUpgrade()
+      client.requestUpgrade()
       return
     case 'c':
       if (player.data.locked) {
-        localClient.requestUnlock()
+        client.requestUnlock()
       } else {
-        localClient.requestLock()
+        client.requestLock()
       }
       return
     case 'z':
-      localClient.requestNext()
+      client.requestNext()
       return
     case 'r':
-      localClient.requestRefresh()
+      client.requestRefresh()
       return
   }
   const m = /^[HSP](\d)$/.exec(selected.value)
@@ -187,7 +192,7 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'e':
-          localClient.requestHand({
+          client.requestHand({
             pos,
             act: player.can_hand_combine(player.hand[pos] as CardKey)
               ? 'combine'
@@ -195,7 +200,7 @@ function handleKey(ev: KeyboardEvent) {
           })
           return
         case 's':
-          localClient.requestHand({
+          client.requestHand({
             pos,
             act: 'sell',
           })
@@ -208,7 +213,7 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'e':
-          localClient.requestStore({
+          client.requestStore({
             pos,
             act: player.can_buy_combine(player.store[pos] as CardKey)
               ? 'combine'
@@ -216,7 +221,7 @@ function handleKey(ev: KeyboardEvent) {
           })
           return
         case 'v':
-          localClient.requestStore({
+          client.requestStore({
             pos,
             act: 'cache',
           })
@@ -229,13 +234,13 @@ function handleKey(ev: KeyboardEvent) {
       }
       switch (ev.key) {
         case 'u':
-          localClient.requestPresent({
+          client.requestPresent({
             pos,
             act: 'upgrade',
           })
           return
         case 's':
-          localClient.requestPresent({
+          client.requestPresent({
             pos,
             act: 'sell',
           })
@@ -253,7 +258,7 @@ function doExport() {
     pack: Object.keys(packConfig.value).filter(k => packConfig.value[k]),
     seed: props.seed,
     role: props.role,
-    log: game.log,
+    log: game.slave.game.log,
   })
   expDlg.value = true
 }
@@ -283,8 +288,9 @@ main()
     <div class="d-flex">
       <div class="d-flex flex-column text-h6" :key="`Info-${timeTick}`">
         <span
-          >回合 {{ game.data.round }} 等级 {{ player.data.level }} 升级
-          {{ player.data.upgrade_cost }} 总价值 {{ player.value() }}</span
+          >回合 {{ game.slave.game.data.round }} 等级
+          {{ player.data.level }} 升级 {{ player.data.upgrade_cost }} 总价值
+          {{ player.value() }}</span
         >
         <span
           >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
@@ -294,39 +300,36 @@ main()
           <v-btn
             class="mr-1"
             :disabled="model || !player.can_tavern_upgrade()"
-            @click="localClient.requestUpgrade()"
+            @click="client.requestUpgrade()"
             >升级</v-btn
           >
           <v-btn
             class="mr-1"
             :disabled="model || !player.can_refresh()"
-            @click="localClient.requestRefresh()"
+            @click="client.requestRefresh()"
             >刷新</v-btn
           >
           <v-btn
             v-if="player.data.locked"
             class="mr-1"
             :disabled="model"
-            @click="localClient.requestUnlock()"
+            @click="client.requestUnlock()"
             >解锁</v-btn
           >
           <v-btn
             v-else
             class="mr-1"
             :disabled="model"
-            @click="localClient.requestLock()"
+            @click="client.requestLock()"
             >锁定</v-btn
           >
-          <v-btn
-            class="mr-1"
-            :disabled="model"
-            @click="localClient.requestNext()"
+          <v-btn class="mr-1" :disabled="model" @click="client.requestNext()"
             >下一回合</v-btn
           >
           <v-btn
             v-if="!model"
             :disabled="!player.can_use_ability()"
-            @click="localClient.requestAbility()"
+            @click="client.requestAbility()"
             >{{ getRole(role).ability }}</v-btn
           >
         </div>
@@ -372,7 +375,7 @@ main()
                   v-model="obtainCardKey"
                   @keyup.enter="
                     obtainCardChoice.length > 0 &&
-                      localClient.requestObtainCard(obtainCardChoice[0].name)
+                      client.requestObtainCard(obtainCardChoice[0].name)
                   "
                 ></v-text-field>
                 <div class="d-flex flex-column">
@@ -383,7 +386,7 @@ main()
                       enterSelect: i === 0,
                     }"
                     :key="`OCChoice-${i}`"
-                    @click="localClient.requestObtainCard(c.name)"
+                    @click="client.requestObtainCard(c.name)"
                     >{{ c.pinyin }} {{ c.name }}</v-btn
                   >
                 </div>
@@ -394,7 +397,7 @@ main()
           <v-btn
             class="ml-1"
             :disabled="model"
-            @click="localClient.requestResource()"
+            @click="client.requestResource()"
             >获得资源</v-btn
           >
         </div>
@@ -436,7 +439,7 @@ main()
             :model="model"
             :pos="i"
             :selected="selected === `H${i}`"
-            :client="localClient"
+            :client="client"
           ></hand-item>
         </div>
       </div>
@@ -450,7 +453,7 @@ main()
             :model="model"
             :pos="i"
             :selected="selected === `S${i}`"
-            :client="localClient"
+            :client="client"
           ></store-item>
         </div>
         <div class="d-flex mt-4" v-if="discover">
@@ -461,12 +464,12 @@ main()
             :item="it"
             :model="model"
             :pos="i"
-            :client="localClient"
+            :client="client"
           ></discover-item>
           <v-btn
             v-if="discoverCancel"
             variant="text"
-            @click="localClient.discoverChoose({ pos: -1 })"
+            @click="client.discoverChoose({ pos: -1 })"
             color="red"
             >放弃</v-btn
           >
@@ -485,7 +488,7 @@ main()
           :pos="i"
           :insert="insert"
           :selected="selected === `P${i}`"
-          :client="localClient"
+          :client="client"
         ></present-item>
       </div>
     </div>

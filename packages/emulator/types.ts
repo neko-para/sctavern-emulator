@@ -1,4 +1,4 @@
-import { Card, CardKey, UnitKey, UpgradeKey } from 'data'
+import { Card, CardKey, RoleKey, UnitKey, UpgradeKey } from 'data'
 import { CardInstance } from './card'
 import { Emitter } from './emitter'
 
@@ -58,7 +58,7 @@ interface InputBusTemplate {
   $imr: {}
 }
 
-type InputBus = ApplyKey<InputBusTemplate, { player: number }>
+export type InputBus = ApplyKey<InputBusTemplate, { player: number }>
 
 type GameBus = {
   'round-start': {
@@ -203,4 +203,10 @@ export interface PlayerConfig {
 
   MaxMineral: number
   MaxGas: number
+}
+
+export interface GameConfig {
+  pack: string[]
+  seed: string
+  role: RoleKey[]
 }

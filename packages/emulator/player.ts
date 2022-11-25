@@ -660,7 +660,7 @@ export class Player {
     })
     this.bus.on('$done', async () => {
       // TODO: wait all done
-      await this.game.next_round()
+      await this.game.add_done()
     })
     this.bus.on('$ability', async () => {
       if (!this.can_use_ability()) {
