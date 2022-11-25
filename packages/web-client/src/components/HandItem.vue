@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { getCard, type CardKey } from 'data'
 import type { Player } from 'emulator'
 import TemplateRefer from './TemplateRefer.vue'
@@ -9,13 +10,25 @@ const props = defineProps<{
   card: CardKey | null
   model: boolean
   pos: number
+  selected: boolean
 }>()
 
 const cardInfo = props.card ? getCard(props.card) : null
+const elv = ref(5)
 </script>
 
 <template>
-  <v-card id="handItemRoot" class="d-flex flex-column space-between">
+  <v-card
+    id="handItemRoot"
+    class="d-flex flex-column space-between"
+    :elevation="elv"
+    :class="{
+      selected: selected,
+    }"
+    @mouseover="elv = 10"
+    @mouseout="elv = 5"
+    @click="$emit(card ? 'select' : 'unselect')"
+  >
     <template v-if="card && cardInfo">
       <div class="d-flex">
         <race-icon class="mt-1" :race="cardInfo.race"></race-icon>
@@ -53,5 +66,10 @@ const cardInfo = props.card ? getCard(props.card) : null
 #handItemRoot {
   width: 200px;
   height: 100px;
+  transition: border 0.1s;
+}
+
+.selected {
+  border: 2px solid black;
 }
 </style>

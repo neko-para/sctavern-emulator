@@ -35,6 +35,7 @@ interface PlayerAttrib {
   mineral_max: number
   gas: number
 
+  selected: string
   locked: boolean
 
   attrib: AttributeManager
@@ -64,7 +65,6 @@ export class Player {
 
   insertResolve: ((v: number) => void) | null
   discoverResolve: ((v: number) => void) | null
-  selectResolve: ((v: number) => void) | null
 
   constructor(game: Game, pos: number, role: RoleKey) {
     this.bus = new Emitter('card', [])
@@ -77,6 +77,8 @@ export class Player {
       mineral: 0,
       mineral_max: 2,
       gas: -1,
+
+      selected: 'none',
       locked: false,
 
       attrib: new AttributeManager(() => this.refresh()),
@@ -103,7 +105,6 @@ export class Player {
 
     this.insertResolve = null
     this.discoverResolve = null
-    this.selectResolve = null
 
     this.bind_inputs()
     this.bind_default()
@@ -594,24 +595,6 @@ export class Player {
     })
   }
 
-  async querySelect() {
-    const client = this.pos
-    return new Promise<number>(resolve => {
-      this.selectResolve = (v: number) => {
-        this.game
-          .postOutput('end-select', {
-            client,
-          })
-          .then(() => {
-            resolve(v)
-          })
-      }
-      this.game.postOutput('begin-select', {
-        client,
-      })
-    })
-  }
-
   private fill_store() {
     const nf = this.store.filter(c => !c).length
     const nc = this.game.pool.discover(
@@ -623,6 +606,25 @@ export class Player {
         this.store[i] = nc.shift()?.name || null
       }
     }
+  }
+
+  current_selected(): CardInstance | CardKey | null {
+    if (this.data.selected === 'none') {
+      return null
+    }
+    const m = /^([HSP])(\d)$/.exec(this.data.selected)
+    if (!m) {
+      return null
+    }
+    switch (m[1]) {
+      case 'H':
+        return this.hand[Number(m[2])]
+      case 'S':
+        return this.store[Number(m[2])]
+      case 'P':
+        return this.present[Number(m[2])]
+    }
+    return null
   }
 
   bind_inputs() {
@@ -664,11 +666,10 @@ export class Player {
       }
       switch (this.role) {
         case '执政官': {
-          const choice = await this.querySelect()
-          if (choice === -1) {
+          const left = this.current_selected()
+          if (!(left instanceof CardInstance)) {
             break
           }
-          const left = this.present[choice]
           const right = left?.right()
           if (
             !left ||
@@ -706,16 +707,15 @@ export class Player {
           await this.obtain_resource({
             mineral: -2,
           })
-          await this.discover(this.game.pool.discover(c => c.level === tl, 3))
+          await this.discover(this.game.pool.discover(c => c.level === tl, 2))
           this.data.attrib.registerAttribute('角色:陆战队员', () => '', 1)
           break
         }
         case '感染虫': {
-          const choice = await this.querySelect()
-          if (choice === -1) {
+          const card = this.current_selected()
+          if (!(card instanceof CardInstance)) {
             break
           }
-          const card = this.present[choice] as CardInstance
           if (card.data.race !== 'T') {
             break
           }
@@ -737,11 +737,10 @@ export class Player {
           break
         }
         case 'SCV': {
-          const choice = await this.querySelect()
-          if (choice === -1) {
+          const card = this.current_selected()
+          if (!(card instanceof CardInstance)) {
             break
           }
-          const card = this.present[choice] as CardInstance
           if (card.data.race !== 'T' || card.infr()[0] === 'hightech') {
             break
           }
@@ -753,11 +752,10 @@ export class Player {
           if (this.data.mineral < 2) {
             break
           }
-          const choice = await this.querySelect()
-          if (choice === -1) {
+          const card = this.current_selected()
+          if (!(card instanceof CardInstance)) {
             break
           }
-          const card = this.present[choice] as CardInstance
           const tl = Math.min(6, card.data.level + 1)
           await this.obtain_resource({
             mineral: -2,
@@ -777,6 +775,10 @@ export class Player {
       this.data.locked = false
       await this.refresh()
     })
+    this.bus.on('$select', async ({ choice }) => {
+      this.data.selected = choice
+      await this.refresh()
+    })
     this.bus.on('$insert-choice', async ({ choice }) => {
       if (this.insertResolve) {
         this.insertResolve(choice)
@@ -785,11 +787,6 @@ export class Player {
     this.bus.on('$discover-choice', async ({ choice }) => {
       if (this.discoverResolve) {
         this.discoverResolve(choice)
-      }
-    })
-    this.bus.on('$select-choice', async ({ choice }) => {
-      if (this.selectResolve) {
-        this.selectResolve(choice)
       }
     })
     this.bus.on('$buy-enter', async ({ place }) => {

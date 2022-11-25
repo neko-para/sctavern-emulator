@@ -33,7 +33,7 @@ const packDlg = ref(false)
 const model = ref(false)
 const discover = ref(false)
 const insert = ref(false)
-const select = ref(false)
+const selected = ref('none')
 const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
 
@@ -115,17 +115,6 @@ class LocalClient extends Client {
     discover.value = false
     discoverItems.value = []
     discoverCancel.value = false
-    model.value = false
-  }
-
-  async begin_select() {
-    select.value = true
-    model.value = true
-    await super.replay_select()
-  }
-
-  async end_select() {
-    select.value = false
     model.value = false
   }
 }
@@ -280,9 +269,10 @@ function discoverChoose({ pos }: { pos: number }) {
   })
 }
 
-function selectChoose({ pos }: { pos: number }) {
-  localClient.post('$select-choice', {
-    choice: pos,
+function selectChoose(s: string) {
+  selected.value = s
+  localClient.post('$select', {
+    choice: selected.value,
     player: player.pos,
   })
 }
@@ -307,6 +297,98 @@ function requestResource() {
   localClient.post('$imr', {
     player: player.pos,
   })
+}
+
+function handleKey(ev: KeyboardEvent) {
+  if (model.value) {
+    return
+  }
+  switch (ev.key) {
+    case 'w':
+      requestUpgrade()
+      return
+    case 'c':
+      if (player.data.locked) {
+        requestUnlock()
+      } else {
+        requestLock()
+      }
+      return
+    case 'z':
+      requestNext()
+      return
+    case 'r':
+      requestRefresh()
+      return
+  }
+  const m = /^[HSP](\d)$/.exec(selected.value)
+  if (!m) {
+    return
+  }
+  const pos = Number(m[1])
+  switch (selected.value[0]) {
+    case 'h':
+      if (!player.hand[pos]) {
+        return
+      }
+      switch (ev.key) {
+        case 'e':
+          requestHand({
+            pos,
+            act: player.can_hand_combine(player.hand[pos] as CardKey)
+              ? 'combine'
+              : 'enter',
+          })
+          return
+        case 's':
+          requestHand({
+            pos,
+            act: 'sell',
+          })
+          return
+      }
+      break
+    case 'S':
+      if (!player.store[pos]) {
+        return
+      }
+      switch (ev.key) {
+        case 'e':
+          requestStore({
+            pos,
+            act: player.can_buy_combine(player.store[pos] as CardKey)
+              ? 'combine'
+              : 'enter',
+          })
+          return
+        case 'v':
+          requestStore({
+            pos,
+            act: 'cache',
+          })
+          return
+      }
+      break
+    case 'P':
+      if (!player.present[pos]) {
+        return
+      }
+      switch (ev.key) {
+        case 'u':
+          requestPresent({
+            pos,
+            act: 'upgrade',
+          })
+          return
+        case 's':
+          requestPresent({
+            pos,
+            act: 'sell',
+          })
+          return
+      }
+      break
+  }
 }
 
 const expDlg = ref(false)
@@ -336,6 +418,8 @@ function doImport() {
   roleConfig.value = obj.role
   applyConfigChange(impData.value)
 }
+
+document.onkeydown = handleKey
 
 main()
 </script>
@@ -384,7 +468,7 @@ main()
             @click="requestAbility"
             >{{ getRole(role).ability }}</v-btn
           >
-          <v-btn v-else @click="selectChoose({ pos: -1 })">取消</v-btn>
+          <!-- <v-btn v-else @click="selectChoose({ pos: -1 })">取消</v-btn> -->
         </div>
         <div class="d-flex mt-1">
           <v-dialog v-model="packDlg" class="w-25">
@@ -489,7 +573,10 @@ main()
             :card="h"
             :model="model"
             :pos="i"
+            :selected="selected === `H${i}`"
             @request="requestHand"
+            @select="selectChoose(`H${i}`)"
+            @unselect="selectChoose(`none`)"
           ></hand-item>
         </div>
       </div>
@@ -503,7 +590,10 @@ main()
             :card="s"
             :model="model"
             :pos="i"
+            :selected="selected === `S${i}`"
             @request="requestStore"
+            @select="selectChoose(`S${i}`)"
+            @unselect="selectChoose(`none`)"
           ></store-item>
         </div>
         <div class="d-flex mt-4" v-if="discover">
@@ -533,16 +623,17 @@ main()
         :key="`Present-Item-${i}-${timeTick}`"
       >
         <present-item
-          class="mr-1"
+          class="mr-2"
           :player="player"
           :card="p"
           :model="model"
           :pos="i"
           :insert="insert"
-          :select="select"
+          :selected="selected === `P${i}`"
           @request="requestPresent"
           @ichoose="insertChoose"
-          @schoose="selectChoose"
+          @select="selectChoose(`P${i}`)"
+          @unselect="selectChoose(`none`)"
         ></present-item>
       </div>
     </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { getCard, type CardKey } from 'data'
 import type { Player } from 'emulator'
 import TemplateRefer from './TemplateRefer.vue'
@@ -9,9 +10,12 @@ const props = defineProps<{
   card: CardKey | null
   model: boolean
   pos: number
+  selected: boolean
 }>()
 
 const cardInfo = props.card ? getCard(props.card) : null
+
+const elv = ref(5)
 </script>
 
 <template>
@@ -19,6 +23,13 @@ const cardInfo = props.card ? getCard(props.card) : null
     id="storeItemRoot"
     class="d-flex flex-column space-between"
     :color="player.data.locked && card ? 'cyan' : 'white'"
+    :elevation="elv"
+    :class="{
+      selected: selected,
+    }"
+    @mouseover="elv = 10"
+    @mouseout="elv = 5"
+    @click="$emit(card ? 'select' : 'unselect')"
   >
     <template v-if="card && cardInfo">
       <div class="d-flex">
@@ -57,5 +68,10 @@ const cardInfo = props.card ? getCard(props.card) : null
 #storeItemRoot {
   width: 200px;
   height: 100px;
+  transition: border 0.1s;
+}
+
+.selected {
+  border: 2px solid black;
 }
 </style>

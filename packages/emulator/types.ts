@@ -14,6 +14,9 @@ interface InputBusTemplate {
   $lock: {}
   $unlock: {}
 
+  $select: {
+    choice: string
+  }
   '$insert-choice': {
     choice: number
   }
@@ -164,8 +167,6 @@ interface OutputBusTemplate {
     cancel: boolean
   }
   'end-discover': {}
-  'begin-select': {} // 用于角色技能等需要选择有效卡牌
-  'end-select': {}
 }
 
 export type OutputBus = ApplyKey<OutputBusTemplate, { client: number }>

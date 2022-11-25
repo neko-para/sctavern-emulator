@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { Card, UpgradeKey } from 'data'
 import type { Player } from 'emulator'
 import RaceIcon from './RaceIcon.vue'
@@ -9,26 +10,29 @@ const props = defineProps<{
   model: boolean
   pos: number
 }>()
+
+const elv = ref(5)
 </script>
 
 <template>
-  <v-card id="discoverItemRoot" class="d-flex flex-column space-between">
+  <v-card
+    id="discoverItemRoot"
+    class="d-flex flex-column space-between"
+    :elevation="elv"
+    @mouseover="elv = 10"
+    @mouseout="elv = 5"
+    @click="$emit('choose', { pos })"
+  >
     <template v-if="typeof item !== 'string'">
       <div class="d-flex">
         <race-icon class="mt-1" :race="item.race"></race-icon>
         <span class="text-h5 mt-2">{{ item.name }}</span>
         <span class="text-h5 ml-auto mt-2 mr-2">{{ item.level }}</span>
       </div>
-      <div class="d-flex mt-auto">
-        <v-btn variant="text" @click="$emit('choose', { pos })">这个</v-btn>
-      </div>
     </template>
     <template v-else>
       <div class="d-flex">
         <span class="text-h5 ml-2 mt-2">{{ item }}</span>
-      </div>
-      <div class="d-flex mt-auto">
-        <v-btn variant="text" @click="$emit('choose', { pos })">这个</v-btn>
       </div>
     </template>
   </v-card>

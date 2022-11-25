@@ -12,8 +12,6 @@ interface ClientRespond {
   end_discover(): Promise<void>
   begin_insert(): Promise<void>
   end_insert(): Promise<void>
-  begin_select(): Promise<void>
-  end_select(): Promise<void>
 }
 
 interface GameWrapperBase {
@@ -41,8 +39,6 @@ export class LocalGame implements GameWrapperBase {
     bus.on('end-discover', () => client.end_discover())
     bus.on('begin-insert', () => client.begin_insert())
     bus.on('end-insert', () => client.end_insert())
-    bus.on('begin-select', () => client.begin_select())
-    bus.on('end-select', () => client.end_select())
   }
 
   async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {

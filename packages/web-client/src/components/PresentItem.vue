@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import type { CardInstance, Player } from 'emulator'
 import { AllCard, type CardKey } from 'data'
 import type { UnitKey } from 'data'
@@ -13,7 +13,7 @@ const props = defineProps<{
   model: boolean
   pos: number
   insert: boolean
-  select: boolean
+  selected: boolean
 }>()
 
 const allUnit = computed(() => {
@@ -31,6 +31,8 @@ const Color = {
   gold: 'yellow',
   darkgold: 'amber',
 }
+
+const elv = ref(5)
 </script>
 
 <template>
@@ -38,6 +40,13 @@ const Color = {
     id="presentItemRoot"
     class="d-flex flex-column space-between"
     :color="card ? Color[card.data.color] : 'white'"
+    :elevation="elv"
+    :class="{
+      selected: selected,
+    }"
+    @mouseover="elv = 10"
+    @mouseout="elv = 5"
+    @click="$emit(card ? 'select' : 'unselect')"
   >
     <template v-if="card">
       <div class="d-flex">
@@ -106,13 +115,6 @@ const Color = {
           @click="$emit('ichoose', { pos })"
           >这里</v-btn
         >
-        <v-btn
-          class="ml-auto"
-          v-if="select"
-          variant="text"
-          @click="$emit('schoose', { pos })"
-          >这里</v-btn
-        >
       </div>
     </template>
     <template v-else>
@@ -131,5 +133,10 @@ const Color = {
 #presentItemRoot {
   width: 250px;
   height: 350px;
+  transition: border 0.1s;
+}
+
+.selected {
+  border: 2px solid black;
 }
 </style>
