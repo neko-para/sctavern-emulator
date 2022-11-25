@@ -350,6 +350,9 @@ const data: CardDescriptorTable = {
           }
         })
         .slice(0, 1)
+      for (const e of es) {
+        card.player.destroy(e)
+      }
       if (us.length === 0) {
         return
       }

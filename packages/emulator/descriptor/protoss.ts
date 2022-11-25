@@ -227,7 +227,6 @@ const data: CardDescriptorTable = {
         return
       }
       param.units = param.units.map(u => (isMachine(u) ? '尤尔兰' : u))
-      console.log(param.units)
     }),
   ],
   光复艾尔: [
