@@ -102,7 +102,10 @@ const data: CardDescriptorTable = {
       card.data.attrib.registerAttribute(
         '折跃信标',
         v => (v ? (ret.disabled ? '停用' : '启用') : '禁用'),
-        1
+        1,
+        {
+          override: true,
+        }
       )
       card.bus.begin()
       card.bus.on('wrap', async param => {
@@ -247,7 +250,11 @@ const data: CardDescriptorTable = {
       card.data.attrib.registerAttribute(
         '光复艾尔',
         v => (v ? (ret.disabled ? '停用' : '启用') : '禁用'),
-        1
+        1,
+        {
+          override: true,
+          combine_policy: 'max',
+        }
       )
       card.bus.begin()
       card.bus.on('card-selled', async param => {

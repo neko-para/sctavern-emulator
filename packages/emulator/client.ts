@@ -84,6 +84,9 @@ export class Client implements ClientRespond {
   }
 
   async replay_discover() {
+    while (this.peekNextReplayItem()?.msg === '$select') {
+      await this.postItem(this.nextReplayItem())
+    }
     if (this.peekNextReplayItem()?.msg === '$discover-choice') {
       await this.step()
       await this.postItem(this.nextReplayItem())
@@ -91,14 +94,10 @@ export class Client implements ClientRespond {
   }
 
   async replay_insert() {
-    if (this.peekNextReplayItem()?.msg === '$insert-choice') {
-      await this.step()
+    while (this.peekNextReplayItem()?.msg === '$select') {
       await this.postItem(this.nextReplayItem())
     }
-  }
-
-  async replay_select() {
-    if (this.peekNextReplayItem()?.msg === '$select-choice') {
+    if (this.peekNextReplayItem()?.msg === '$insert-choice') {
       await this.step()
       await this.postItem(this.nextReplayItem())
     }
@@ -123,6 +122,7 @@ export class Client implements ClientRespond {
     step: () => Promise<boolean> = async () => false
   ) {
     this.replayLog = replay.log
+    console.log(replay)
     this.replayPos = 0
     this.step = async () => {
       this.stop = await step()

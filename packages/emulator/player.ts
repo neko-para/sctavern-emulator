@@ -296,10 +296,12 @@ export class Player {
         return a.desc.gold ? -1 : 1
       }
     })
-    data[0].desc.disabled = false
-    data.slice(1).forEach(({ desc: d }) => {
-      d.disabled = true
-    })
+    if (data.length >= 0) {
+      data[0].desc.disabled = !!data[0].desc.manualDisable
+      data.slice(1).forEach(({ desc: d }) => {
+        d.disabled = true
+      })
+    }
     await this.refresh()
   }
 
@@ -991,7 +993,6 @@ export class Player {
   cost_of(ck: CardKey) {
     switch (this.role) {
       case '收割者':
-        console.log(ck)
         if (getCard(ck).attr.insert) {
           return 2
         }
