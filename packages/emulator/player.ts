@@ -681,6 +681,11 @@ export class Player {
           }
           const leftBinds = left.desc_binder
           right.data.name = `${right.data.name}x${left.data.name}`
+          if (right.data.race === 'N') {
+            right.data.race = left.data.race
+          } else if (left.data.race !== 'N') {
+            right.data.race = 'N'
+          }
           right.occupy.push(...left.occupy)
           await right.seize(left, {
             unreal: true,
@@ -714,7 +719,12 @@ export class Player {
           if (card.data.race !== 'T') {
             break
           }
+          const infr = card.infr()
+          if (infr[0] === 'reactor') {
+            await card.remove_unit([infr[1]])
+          }
           card.data.color = 'darkgold'
+          card.data.race = 'Z'
           card.data.name = `被感染的${card.data.name}`
           await card.clear_desc()
           await card.add_desc(
