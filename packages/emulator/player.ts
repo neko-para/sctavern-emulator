@@ -961,9 +961,11 @@ export class Player {
       switch (this.role) {
         case '工蜂':
           if (round % 2 === 1) {
-            await this.obtain_resource({
-              gas: 1,
-            })
+            if (this.data.gas < 6) {
+              await this.obtain_resource({
+                gas: 1,
+              })
+            }
           } else {
             await this.obtain_resource({
               mineral: 1,
