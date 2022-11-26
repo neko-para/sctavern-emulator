@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getCard, type CardKey } from 'data'
+import { getCard, type CardKey, tr } from 'data'
 import type { Client } from 'emulator'
-import TemplateRefer from './TemplateRefer.vue'
-import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
   card: CardKey | null
@@ -14,28 +12,25 @@ const props = defineProps<{
 }>()
 
 const cardInfo = props.card ? getCard(props.card) : null
-const elv = ref(5)
 </script>
 
 <template>
   <v-card
     id="handItemRoot"
-    class="d-flex flex-column justify-space-between"
-    :elevation="elv"
+    class="d-flex align-center justify-space-around"
+    elevation="5"
     :class="{
       selected: selected,
     }"
-    @mouseover="elv = 10"
-    @mouseout="elv = 5"
     @click="client.selectChoose(card ? `H${pos}` : 'none')"
   >
     <template v-if="card && cardInfo">
-      <div class="d-flex">
-        <race-icon class="mt-1" :race="cardInfo.race"></race-icon>
-        <template-refer :card="card"></template-refer>
-        <span class="text-h5 ml-auto mt-2 mr-2">{{ cardInfo.level }}</span>
+      <div class="d-flex text-h6 mx-1 w-100" v-if="!selected">
+        <span>{{ tr[cardInfo.race] }}</span>
+        <span class="ml-1">{{ card }}</span>
+        <span class="ml-auto">{{ cardInfo.level }}</span>
       </div>
-      <div class="d-flex">
+      <div class="d-flex justify-space-around w-100" v-else>
         <v-btn
           :disabled="model || !client.player.can_hand_combine(card)"
           variant="flat"
@@ -79,12 +74,12 @@ const elv = ref(5)
 
 <style scoped>
 #handItemRoot {
-  width: 200px;
-  height: 100px;
+  width: 180px;
+  height: 50px;
   transition: border 0.1s;
 }
 
 .selected {
-  border: 2px solid black;
+  border: 1px solid black;
 }
 </style>

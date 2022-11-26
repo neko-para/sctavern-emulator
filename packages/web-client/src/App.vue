@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RoleKey } from 'data'
-import GameInstance from './components/GameInstance.vue'
+import LocalGame from './components/LocalGame.vue'
+import LocalGameMobile from './components/LocalGameMobile.vue'
 
 const params = new URLSearchParams(window.location.search.substring(1))
 
@@ -20,13 +21,22 @@ const mobile =
 </script>
 
 <template>
-  <div class="d-flex">
-    <game-instance
-      :pack="packs"
-      :seed="seed"
-      :role="role"
-      :replay="replay"
-      :mobile="mobile"
-    ></game-instance>
+  <div class="d-flex h-100">
+    <template v-if="!mobile">
+      <local-game
+        :pack="packs"
+        :seed="seed"
+        :role="role"
+        :replay="replay"
+      ></local-game>
+    </template>
+    <template v-else>
+      <local-game-mobile
+        :pack="packs"
+        :seed="seed"
+        :role="role"
+        :replay="replay"
+      ></local-game-mobile>
+    </template>
   </div>
 </template>

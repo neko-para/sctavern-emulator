@@ -15,10 +15,10 @@ export interface LogItem {
   param: {}
 }
 
-export interface GameReplay {
+export interface GameReplay extends GameConfig {
   pack: string[]
   seed: string
-  role: RoleKey
+  role: RoleKey[]
   log: LogItem[]
 }
 

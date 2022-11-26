@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Client, Game, LocalGame, Shuffler, type GameReplay } from 'emulator'
+import { Client, LocalGame, type GameReplay } from 'emulator'
+import { getRole } from 'data'
 import StoreItem from './StoreItem.vue'
-import { AllRole, getRole } from 'data'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
 import DiscoverItem from './DiscoverItem.vue'
+import ConfigDialog from './ConfigDialog.vue'
 import {
   AllCard,
   getCard,
@@ -13,9 +14,8 @@ import {
   type CardKey,
   type UpgradeKey,
   type RoleKey,
-  order,
 } from 'data'
-import { compress, decompress } from './compress'
+import { applyConfigChange, compress, decompress } from './utils'
 import type { SlaveGame } from 'emulator/client'
 
 const props = defineProps<{
@@ -23,15 +23,7 @@ const props = defineProps<{
   seed: string
   role: RoleKey
   replay: string | null
-
-  mobile: boolean
 }>()
-
-const packConfig = ref<Record<string, boolean>>({})
-const seedConfig = ref(props.seed)
-const roleConfig = ref<RoleKey>(props.role)
-
-const packDlg = ref(false)
 
 const model = ref(false)
 const discover = ref(false)
@@ -39,39 +31,6 @@ const insert = ref(false)
 const selected = ref('none')
 const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
-
-props.pack.forEach(s => {
-  packConfig.value[s] = true
-})
-
-function applyConfigChange(replay?: string) {
-  const param = new URLSearchParams({
-    pack: Object.keys(packConfig.value).join(','),
-    seed: seedConfig.value,
-    role: roleConfig.value,
-  })
-  if (replay) {
-    param.set('replay', replay)
-  }
-  window.location.href = '/sctavern-emulator/?' + param.toString()
-}
-
-function genPackConfig() {
-  const res: Record<string, boolean> = {
-    核心: true,
-  }
-  new Shuffler(Math.random().toString())
-    .shuffle(order.pack.slice(1))
-    .slice(0, 2)
-    .forEach(p => {
-      res[p] = true
-    })
-  packConfig.value = res
-}
-
-function genSeed() {
-  seedConfig.value = Math.floor(Math.random() * 1000000).toString()
-}
 
 const game = new LocalGame({
   pack: props.pack,
@@ -163,6 +122,21 @@ function handleKey(ev: KeyboardEvent) {
     return
   }
   switch (ev.key) {
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7': {
+      const pos = Number(ev.key) - 1
+      if (player.present[pos]) {
+        client.selectChoose(`P${pos}`)
+      } else {
+        client.selectChoose('none')
+      }
+      break
+    }
     case 'w':
       client.requestUpgrade()
       return
@@ -233,7 +207,7 @@ function handleKey(ev: KeyboardEvent) {
         return
       }
       switch (ev.key) {
-        case 'u':
+        case 'g':
           client.requestPresent({
             pos,
             act: 'upgrade',
@@ -255,7 +229,7 @@ const expData = ref('')
 
 function doExport() {
   expData.value = compress({
-    pack: Object.keys(packConfig.value).filter(k => packConfig.value[k]),
+    pack: props.pack,
     seed: props.seed,
     role: props.role,
     log: game.slave.game.log,
@@ -268,14 +242,7 @@ const impData = ref('')
 
 function doImport() {
   const obj = decompress(impData.value) as GameReplay
-  const pack: Record<string, boolean> = {}
-  obj.pack.forEach(p => {
-    pack[p] = true
-  })
-  packConfig.value = pack
-  seedConfig.value = obj.seed
-  roleConfig.value = obj.role
-  applyConfigChange(impData.value)
+  applyConfigChange(obj, impData.value)
 }
 
 document.onkeydown = handleKey
@@ -334,33 +301,7 @@ main()
           >
         </div>
         <div class="d-flex mt-1">
-          <v-dialog v-model="packDlg" class="w-25">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props">配置</v-btn>
-            </template>
-            <v-card>
-              <v-card-title>配置</v-card-title>
-              <v-card-text>
-                <v-text-field v-model="seedConfig" label="种子"></v-text-field>
-                <v-select v-model="roleConfig" :items="AllRole"></v-select>
-                <v-checkbox
-                  hide-details
-                  :disabled="i === 0"
-                  v-for="(p, i) in order.pack"
-                  :key="`pack-${i}`"
-                  v-model="packConfig[p]"
-                  :label="p"
-                ></v-checkbox>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn @click="applyConfigChange()" color="red"
-                  >确认(会刷新当前游戏)</v-btn
-                >
-                <v-btn @click="genPackConfig()">随机两个扩展包</v-btn>
-                <v-btn @click="genSeed()">随机种子</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+          <config-dialog></config-dialog>
           <v-dialog v-model="obtainCardDlg" class="w-25">
             <template v-slot:activator="{ props }">
               <v-btn class="ml-1" v-bind="props" :disabled="model"
