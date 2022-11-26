@@ -1,0 +1,62 @@
+[[unit]]
+name = "母舰核心"
+race = "P"
+value = 0
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
+health = 130
+shield = 60
+[[unit.weapon]]
+name = "斥力炮"
+damage = 8
+range = 5
+speed = 0.61
+target = "G"
+[unit.armor]
+name = "星灵护板"
+defense = 1
+speed = 2.62
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "母舰"
+race = "P"
+value = 800
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位", "重型单位", "英雄单位"]
+health = 350
+shield = 350
+[[unit.weapon]]
+name = "净化光束"
+damage = 18
+range = 7
+speed = 1.58
+target = "GA"
+multiple = 6
+[unit.armor]
+name = "星灵护板"
+defense = 2
+speed = 2.62
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "岗哨机枪"
+race = "N"
+value = 100
+utype = "normal"
+tag = ["重甲", "建筑"]
+health = 125
+[[unit.weapon]]
+name = "岗哨机枪"
+damage = 8
+range = 6
+speed = 0.57
+target = "GA"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 1
+speed = 0

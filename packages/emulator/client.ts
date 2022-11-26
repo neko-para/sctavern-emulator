@@ -70,7 +70,7 @@ export class SlaveGame {
     while (true) {
       const item = await this.queue.pop()
       // @ts-ignore
-      await this.game.postInput(item.msg, item.param)
+      this.game.postInput(item.msg, item.param)
     }
   }
 

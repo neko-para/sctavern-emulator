@@ -134,10 +134,7 @@ const data: CardDescriptorTable = {
       await card
         .left()
         ?.obtain_unit(
-          us(
-            '毁灭者',
-            Math.min(card.data.attrib.getAttribute('dark') || 0, gold ? 30 : 10)
-          )
+          us('毁灭者', Math.min(card.data.attrib.get('dark'), gold ? 30 : 10))
         )
     }),
   ],
@@ -205,7 +202,7 @@ const data: CardDescriptorTable = {
         .filter(isCardInstance)
         .filter(c => c.data.level <= 4)
         .filter(c => 'dark' in c.data.attrib.attrib)) {
-        const cd = c.data.attrib.getAttribute('dark') || 0
+        const cd = c.data.attrib.get('dark')
         d += cd
         await c.gain_darkness(-cd)
       }
@@ -216,11 +213,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(
         us(
           '天罚行者',
-          2 *
-            Math.min(
-              2,
-              Math.floor((card.data.attrib.getAttribute('dark') || 0) / 10)
-            )
+          2 * Math.min(2, Math.floor(card.data.attrib.get('dark') / 10))
         )
       )
     }),
@@ -249,24 +242,21 @@ const data: CardDescriptorTable = {
           return
         }
         if (card.player.data.mineral >= 1) {
-          card.player.data.persisAttrib.registerAttribute(
-            '德哈卡',
-            () => `德哈卡`,
-            1
-          )
+          card.player.data.persisAttrib.config('德哈卡', 1)
         }
       })
       card.bus.on('round-start', async () => {
         if (ret.disabled) {
           return
         }
-        if (card.player.data.persisAttrib.getAttribute('德哈卡')) {
+        if (card.player.data.persisAttrib.get('德哈卡')) {
           await card.player.discover(
             card.player.game.pool.discover(
               c => !!c.attr.origin && c.level < 5,
               3
             )
           )
+          await card.player.data.persisAttrib.set('德哈卡', 0)
         }
       })
       cleaner = card.bus.end()
@@ -473,7 +463,7 @@ const data: CardDescriptorTable = {
         await card.player.destroy(ps[0])
         for (const c of card.player.present
           .filter(isCardInstance)
-          .filter(c => c.data.attrib.getAttribute('void'))) {
+          .filter(c => c.data.attrib.get('void'))) {
           await c.obtain_unit(us('混合体毁灭者', gold ? 3 : 2))
         }
       }

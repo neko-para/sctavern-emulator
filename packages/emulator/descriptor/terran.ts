@@ -29,27 +29,21 @@ function 任务<T extends string & keyof LogicBus>(
   policy: RenewPolicy = RenewPolicy.never
 ): DescriptorGenerator {
   return (card, gold, text) => {
-    card.data.attrib.registerAttribute(
-      'task',
-      n => `任务进度: ${n} / ${count}`,
-      0,
-      {
-        combine_policy: 'discard',
-      }
-    )
+    card.data.attrib.config('task', 0, 'discard')
+    card.data.attrib.setView('任务', n => `任务进度: ${n} / ${count}`, 'task')
     let n = 0
     const bus = card.bus
     bus.begin()
     bus.on(msg, async p => {
       if (n < count && pred(p)) {
         n += 1
-        await card.data.attrib.setAttribute('task', n)
+        await card.data.attrib.set('task', n)
         if (n === count) {
           await reward(card, gold)
           await card.player.game.post('task-done', refC(card))
           if (policy === RenewPolicy.instant) {
             n = 0
-            await card.data.attrib.setAttribute('task', 0)
+            await card.data.attrib.set('task', 0)
           }
         }
       }
@@ -58,7 +52,7 @@ function 任务<T extends string & keyof LogicBus>(
       case RenewPolicy.roundend:
         bus.on('round-end', async () => {
           n = 0
-          await card.data.attrib.setAttribute('task', 0)
+          await card.data.attrib.set('task', 0)
         })
         break
     }
@@ -315,24 +309,17 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.registerAttribute(
-        '沃菲尔德-提示',
-        () => {
-          if (ret.disabled) {
-            return '禁用'
-          }
-          const v = card.player.data.attrib.getAttribute('沃菲尔德')
-          if (v === null || v < (gold ? 2 : 1)) {
-            return `启用 ${v || 0}`
-          } else {
-            return `停用 ${v}`
-          }
-        },
-        0,
-        {
-          override: true,
+      card.data.attrib.setView('沃菲尔德', () => {
+        if (ret.disabled) {
+          return '禁用'
         }
-      )
+        const v = card.player.data.attrib.get('沃菲尔德')
+        if (v === null || v < (gold ? 2 : 1)) {
+          return `启用 ${v || 0}`
+        } else {
+          return `停用 ${v}`
+        }
+      })
       card.bus.on('card-selled', async ({ target }) => {
         if (ret.disabled) {
           return
@@ -340,16 +327,17 @@ const data: CardDescriptorTable = {
         if (target.data.race !== 'T') {
           return
         }
-        card.player.data.attrib.registerAttribute(
+        card.player.data.attrib.config('沃菲尔德', 0)
+        card.player.data.attrib.setView(
           '沃菲尔德',
           v => `本回合沃菲尔德已回收的卡牌数: ${v}`,
-          0
+          '沃菲尔德'
         )
-        const v = card.player.data.attrib.getAttribute('沃菲尔德') as number
+        const v = card.player.data.attrib.get('沃菲尔德')
         if (v >= (gold ? 2 : 1)) {
           return
         }
-        await card.player.data.attrib.setAttribute('沃菲尔德', v + 1)
+        await card.player.data.attrib.set('沃菲尔德', v + 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
       cleaner = card.bus.end()

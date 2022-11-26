@@ -755,21 +755,3 @@ target = "GA"
 name = "星灵护甲"
 defense = 2
 speed = 2.8
-
-[[unit]]
-name = "岗哨机枪"
-race = "N"
-value = 100
-utype = "normal"
-tag = ["重甲", "机械单位", "建筑"]
-health = 125
-[[unit.weapon]]
-name = "岗哨机枪"
-damage = 8
-range = 6
-speed = 0.57
-target = "GA"
-[unit.armor]
-name = "人类建筑钢板"
-defense = 1
-speed = 0

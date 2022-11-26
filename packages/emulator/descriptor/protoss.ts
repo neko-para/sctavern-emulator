@@ -99,13 +99,8 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.registerAttribute(
-        '折跃信标',
-        v => (v ? (ret.disabled ? '停用' : '启用') : '禁用'),
-        1,
-        {
-          override: true,
-        }
+      card.data.attrib.setView('折跃信标', () =>
+        ret.disabled ? '停用' : '启用'
       )
       card.bus.begin()
       card.bus.on('wrap', async param => {
@@ -208,15 +203,13 @@ const data: CardDescriptorTable = {
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
   尤尔兰: [
     (card, gold, text) => {
-      card.data.attrib.registerAttribute('供能', () => '', gold ? 8 : 5, {
-        override: true,
-      })
+      card.data.attrib.config('供能', gold ? 8 : 5)
       return {
         text,
         gold,
 
         unbind() {
-          card.data.attrib.removeAttribute('供能')
+          card.data.attrib.set('供能', 0)
         },
       }
     },
@@ -247,14 +240,11 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.registerAttribute(
+      card.data.attrib.config('光复艾尔', 1, 'max')
+      card.data.attrib.setView(
         '光复艾尔',
         v => (v ? (ret.disabled ? '停用' : '启用') : '禁用'),
-        1,
-        {
-          override: true,
-          combine_policy: 'max',
-        }
+        '光复艾尔'
       )
       card.bus.begin()
       card.bus.on('card-selled', async param => {
@@ -274,12 +264,12 @@ const data: CardDescriptorTable = {
             .filter(u => isNormal(u) || u === '水晶塔')
             .filter(u => gold || !isHero(u))
         )
-        card.data.attrib.setAttribute('光复艾尔', 0)
+        card.data.attrib.set('光复艾尔', 0)
         ret.manualDisable = true
         await card.player.resort_unique('光复艾尔')
       })
       card.bus.on('obtain-upgrade', async () => {
-        card.data.attrib.setAttribute('光复艾尔', 1)
+        card.data.attrib.set('光复艾尔', 1)
         ret.manualDisable = false
         await card.player.resort_unique('光复艾尔')
       })

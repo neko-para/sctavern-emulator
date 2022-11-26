@@ -287,7 +287,7 @@ const data: CardDescriptorTable = {
         if (target.data.race === 'Z' || target.data.level >= 6) {
           return
         }
-        const v = card.player.data.persisAttrib.getAttribute('斯托科夫') || 0
+        const v = card.player.data.persisAttrib.getAttribute('斯托科夫')
         await card.player.data.persisAttrib.setAttribute(
           '斯托科夫',
           gold ? 0 : 1 - v

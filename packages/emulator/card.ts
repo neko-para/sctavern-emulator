@@ -76,8 +76,22 @@ export class CardInstance {
       this.set_void()
     }
 
+    this.data.attrib.setView(
+      'power',
+      () => {
+        const p = this.power()
+        if (this.data.race === 'P' || p > 0) {
+          return `能量强度: ${p}`
+        } else {
+          return ''
+        }
+      },
+      '供能'
+    )
+
     if (cardt.attr.dark) {
-      this.data.attrib.registerAttribute('dark', v => `黑暗值: ${v}`, 0)
+      this.data.attrib.config('dark', 0, 'add')
+      this.data.attrib.setView('dark', v => `黑暗值: ${v}`, 'dark')
     }
 
     this.desc_binder = []
@@ -121,7 +135,7 @@ export class CardInstance {
     return (
       this.find('水晶塔').length +
       this.find('虚空水晶塔').length +
-      (this.data.attrib.getAttribute('供能') || 0)
+      this.data.attrib.get('供能')
     )
   }
 
@@ -134,20 +148,12 @@ export class CardInstance {
   }
 
   set_void() {
-    this.data.attrib.registerAttribute('void', () => `虚空投影`, 1, {
-      combine_policy: 'max',
-    })
+    this.data.attrib.config('void', 1, 'max')
+    this.data.attrib.setView('void', () => '虚空投影', 'void')
   }
 
   attribs(): string[] {
-    const result: string[] = Object.keys(this.data.attrib.attrib)
-      .map(a => this.data.attrib.attrib[a])
-      .map(a => a.show(a.value))
-      .filter(a => a)
-    if (this.data.race === 'P' || this.power() > 0) {
-      result.push(`能量强度: ${this.power()}`)
-    }
-    return result
+    return this.data.attrib.queryView()
   }
 
   infr(): ['reactor' | 'scilab' | 'hightech' | 'none', number] {
@@ -286,18 +292,15 @@ export class CardInstance {
               .reduce((a, b) => a + b, 0) * 1.5
 
           this.data.units = [this.data.units[idx]]
-          this.data.attrib.registerAttribute(
-            '献祭',
-            v => `献祭的生命值: ${v}`,
-            sum
-          )
+          this.data.attrib.config('献祭', sum)
+          this.data.attrib.setView('献祭', v => `献祭的生命值: ${v}`, '献祭')
           this.add_desc(
             (card, gold, text) => {
               card.bus.begin()
               card.bus.on('obtain-unit-prev', async param => {
-                await card.data.attrib.setAttribute(
+                await card.data.attrib.set(
                   '献祭',
-                  (card.data.attrib.getAttribute('献祭') || 0) +
+                  card.data.attrib.get('献祭') +
                     param.units
                       .map(getUnit)
                       .map(u => u.health + (u.shield || 0))
@@ -415,10 +418,7 @@ export class CardInstance {
     if (!('dark' in this.data.attrib.attrib)) {
       return
     }
-    this.data.attrib.setAttribute(
-      'dark',
-      (this.data.attrib.getAttribute('dark') || 0) + dark
-    )
+    this.data.attrib.set('dark', this.data.attrib.get('dark') + dark)
     if (dark > 0) {
       await this.post('gain-darkness', {
         ...refC(this),
