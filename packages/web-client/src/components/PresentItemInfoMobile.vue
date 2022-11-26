@@ -61,7 +61,7 @@ const Color = {
         </v-card>
       </v-dialog>
     </div>
-    <span class="text-h6 mx-1 mt-1">价值: {{ card.value() }}</span>
+    <span class="mx-1 mt-1">价值: {{ card.value() }}</span>
     <div class="d-flex ma-1"></div>
     <div class="d-flex">
       <div class="d-flex flex-column">

@@ -25,10 +25,9 @@ const cardInfo = props.card ? getCard(props.card) : null
     @click="client.selectChoose(card ? `S${pos}` : 'none')"
   >
     <template v-if="card && cardInfo">
-      <div class="d-flex text-h6 mx-1 w-100" v-if="!selected">
-        <span>{{ tr[cardInfo.race] }}</span>
+      <div class="d-flex mx-1 w-100" v-if="!selected">
+        <span>{{ cardInfo.race }}{{ cardInfo.level }}</span>
         <span class="ml-1">{{ card }}</span>
-        <span class="ml-auto">{{ cardInfo.level }}</span>
       </div>
       <div class="d-flex justify-space-around w-100" v-else>
         <v-btn
@@ -74,8 +73,8 @@ const cardInfo = props.card ? getCard(props.card) : null
 
 <style scoped>
 #storeItemRoot {
-  width: 180px;
-  height: 50px;
+  width: 160px;
+  height: 40px;
   transition: border 0.1s;
 }
 

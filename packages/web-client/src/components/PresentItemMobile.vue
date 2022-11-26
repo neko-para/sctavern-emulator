@@ -29,9 +29,9 @@ const Color = {
     }"
     @click="client.selectChoose(card ? `P${pos}` : 'none')"
   >
-    <div class="d-flex text-h6 mx-1 w-100">
+    <div class="d-flex mx-1 w-100">
       <template v-if="card">
-        <span>{{ tr[card.data.race] }}</span>
+        <span>{{ card.data.race }}{{ card.data.level }}</span>
         <span class="ml-1">{{ card.data.name }}</span>
       </template>
       <v-btn
@@ -45,17 +45,14 @@ const Color = {
         "
         >这里</v-btn
       >
-      <template v-else-if="card">
-        <span class="ml-auto">{{ card.data.level }}</span>
-      </template>
     </div>
   </v-card>
 </template>
 
 <style scoped>
 #presentItemRoot {
-  width: 180px;
-  height: 50px;
+  width: 160px;
+  height: 40px;
   transition: border 0.1s;
 }
 

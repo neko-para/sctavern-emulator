@@ -182,6 +182,43 @@ main()
             {{ player.data.gas }} / 6</span
           >
         </div>
+        <v-btn
+          :disabled="model || !player.can_use_ability()"
+          @click="client.requestAbility()"
+          >{{ getRole(role).ability }}</v-btn
+        >
+      </div>
+      <div class="d-flex">
+        <v-btn
+          class="mr-1"
+          :disabled="model || !player.can_tavern_upgrade()"
+          @click="client.requestUpgrade()"
+          >升级</v-btn
+        >
+        <v-btn
+          class="mr-1"
+          :disabled="model || !player.can_refresh()"
+          @click="client.requestRefresh()"
+          >刷新</v-btn
+        >
+        <v-btn
+          v-if="player.data.locked"
+          class="mr-1"
+          :disabled="model"
+          @click="client.requestUnlock()"
+          >解锁</v-btn
+        >
+        <v-btn
+          v-else
+          class="mr-1"
+          :disabled="model"
+          @click="client.requestLock()"
+          >锁定</v-btn
+        >
+        <v-btn class="mr-1" :disabled="model" @click="client.requestNext()"
+          >下一回合</v-btn
+        >
+
         <v-dialog v-model="extraDlg">
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props">其它</v-btn>
@@ -264,43 +301,6 @@ main()
             </v-card-text>
           </v-card>
         </v-dialog>
-      </div>
-      <div class="d-flex">
-        <v-btn
-          class="mr-1"
-          :disabled="model || !player.can_tavern_upgrade()"
-          @click="client.requestUpgrade()"
-          >升级</v-btn
-        >
-        <v-btn
-          class="mr-1"
-          :disabled="model || !player.can_refresh()"
-          @click="client.requestRefresh()"
-          >刷新</v-btn
-        >
-        <v-btn
-          v-if="player.data.locked"
-          class="mr-1"
-          :disabled="model"
-          @click="client.requestUnlock()"
-          >解锁</v-btn
-        >
-        <v-btn
-          v-else
-          class="mr-1"
-          :disabled="model"
-          @click="client.requestLock()"
-          >锁定</v-btn
-        >
-        <v-btn class="mr-1" :disabled="model" @click="client.requestNext()"
-          >下一回合</v-btn
-        >
-        <v-btn
-          v-if="!model"
-          :disabled="!player.can_use_ability()"
-          @click="client.requestAbility()"
-          >{{ getRole(role).ability }}</v-btn
-        >
       </div>
     </div>
 

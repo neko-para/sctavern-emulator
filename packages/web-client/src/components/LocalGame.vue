@@ -294,8 +294,7 @@ main()
             >下一回合</v-btn
           >
           <v-btn
-            v-if="!model"
-            :disabled="!player.can_use_ability()"
+            :disabled="model || !player.can_use_ability()"
             @click="client.requestAbility()"
             >{{ getRole(role).ability }}</v-btn
           >
