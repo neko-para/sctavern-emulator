@@ -247,10 +247,9 @@ const data: CardDescriptorTable = {
   ],
   斯托科夫: [
     (card, gold, text) => {
-      card.player.data.persisAttrib.registerAttribute(
+      card.player.data.persisAttrib.config(
         '斯托科夫',
-        v => `斯托科夫状态: ${v}`,
-        0
+        card.player.data.persisAttrib.get('斯托科夫')
       )
       let cleaner = () => {}
       const ret = {
@@ -263,22 +262,15 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.registerAttribute(
-        '斯托科夫',
-        () => {
-          if (ret.disabled) {
-            return '禁用'
-          } else if (
-            gold ||
-            card.player.data.persisAttrib.getAttribute('斯托科夫')
-          ) {
-            return '注卵'
-          } else {
-            return '非注卵'
-          }
-        },
-        0
-      )
+      card.data.attrib.setView('斯托科夫', () => {
+        if (ret.disabled) {
+          return '禁用'
+        } else if (gold || card.player.data.persisAttrib.get('斯托科夫')) {
+          return '注卵'
+        } else {
+          return '非注卵'
+        }
+      })
       card.bus.begin()
       card.bus.on('card-entered', async ({ target }) => {
         if (ret.disabled) {
@@ -287,11 +279,8 @@ const data: CardDescriptorTable = {
         if (target.data.race === 'Z' || target.data.level >= 6) {
           return
         }
-        const v = card.player.data.persisAttrib.getAttribute('斯托科夫')
-        await card.player.data.persisAttrib.setAttribute(
-          '斯托科夫',
-          gold ? 0 : 1 - v
-        )
+        const v = card.player.data.persisAttrib.get('斯托科夫')
+        await card.player.data.persisAttrib.set('斯托科夫', gold ? 0 : 1 - v)
         if (gold || v === 1) {
           await card.player.inject(
             target.data.units.filter(isNormal).filter(u => !isHero(u))
