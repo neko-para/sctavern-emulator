@@ -1,0 +1,43 @@
+{
+  "name": "data",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/data/src",
+  "projectType": "library",
+  "targets": {
+    "prebuild":{
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/data/src",
+        "command": "node generate.js pubdata.ts"
+      }
+    },
+    "build": {
+      "dependsOn": ["prebuild"],
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/data",
+        "tsConfig": "packages/data/tsconfig.lib.json",
+        "packageJson": "packages/data/package.json",
+        "main": "packages/data/src/index.ts",
+        "assets": ["packages/data/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/data/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/data/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

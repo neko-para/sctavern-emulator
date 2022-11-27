@@ -4,7 +4,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "emulator": ["../emulator/src/index.ts"],
+      "data": ["../data/src/index.ts"],
     }
   },
 

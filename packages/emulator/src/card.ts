@@ -11,7 +11,7 @@ import {
   UpgradeKey,
   Upgrades,
 } from 'data'
-import { describe } from 'node:test'
+// import { describe } from 'node:test'
 import { AttributeManager } from './attribute'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'

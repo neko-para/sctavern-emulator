@@ -6,16 +6,22 @@
   },
   "tasksRunnerOptions": {
     "default": {
-      "runner": "@nrwl/nx-cloud",
+      "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "e2e"
-        ],
-        "accessToken": "YTQ4Zjk1NmUtMDFkNS00MTg3LTllZTUtMDdlY2NkN2VmZTYwfHJlYWQtd3JpdGU="
+        "cacheableOperations": ["build", "lint", "test", "e2e"]
       }
     }
-  }
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build, prebuild"]
+    },
+    "lint": {
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"]
+    },
+    "test": {
+      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"]
+    }
+  },
+  "defaultBase": "master"
 }

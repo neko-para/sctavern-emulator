@@ -1,4 +1,4 @@
 node_modules
 index.js
-pubdata.*
+src/pubdata.*
 types.js
