@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Card, UpgradeKey } from 'data'
-import { tr } from 'data'
-import type { Client } from 'emulator'
+import type { Card, UpgradeKey } from '@sctavern-emulator/data'
+import { tr } from '@sctavern-emulator/data'
+import type { Client } from '@sctavern-emulator/emulator'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{

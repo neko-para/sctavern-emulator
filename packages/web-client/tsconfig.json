@@ -5,11 +5,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "emulator": ["../emulator/src/index.ts"],
-      "data": ["../data/src/index.ts"],
+      "@sctavern-emulator/emulator": ["../emulator/src/index.ts"],
+      "@sctavern-emulator/data": ["../data/src/index.ts"],
     }
   },
-
   "references": [
     {
       "path": "./tsconfig.config.json"

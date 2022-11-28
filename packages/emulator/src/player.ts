@@ -10,9 +10,9 @@ import {
   UnitKey,
   Upgrade,
   UpgradeKey,
-} from 'data'
-// import { RoleKey } from 'data/pubdata'
-import { RoleKey } from 'data/src/pubdata'
+  RoleKey
+} from '@sctavern-emulator/data'
+// import { RoleKey } from 'data'
 import { AttributeManager } from './attribute'
 import { CardInstance } from './card'
 import { Descriptors } from './descriptor'

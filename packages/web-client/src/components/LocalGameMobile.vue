@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CardInstance, Client, LocalGame, type GameReplay } from 'emulator'
-import { getRole } from 'data'
+import { CardInstance, Client, LocalGame, type GameReplay } from '@sctavern-emulator/emulator'
+import { getRole } from '@sctavern-emulator/data'
 import StoreItem from './StoreItemMobile.vue'
 import HandItem from './HandItemMobile.vue'
 import PresentItem from './PresentItemMobile.vue'
@@ -15,9 +15,9 @@ import {
   type CardKey,
   type UpgradeKey,
   type RoleKey,
-} from 'data'
+} from '@sctavern-emulator/data'
 import { applyConfigChange, compress, decompress } from './utils'
-import type { SlaveGame } from 'emulator/client'
+import type { SlaveGame } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   pack: string[]

@@ -7,7 +7,7 @@ import {
   isMachine,
   isNormal,
   UnitKey,
-} from 'data'
+} from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import { autoBind, isCardInstance, refC, Shuffler, us } from '../utils'

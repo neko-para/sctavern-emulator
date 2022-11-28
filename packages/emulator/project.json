@@ -1,6 +1,7 @@
 {
   "name": "emulator",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "packages/emulator",
   "sourceRoot": "packages/emulator/src",
   "projectType": "library",
   "targets": {

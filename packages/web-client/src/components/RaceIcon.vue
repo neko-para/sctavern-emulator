@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { racepng } from '@/assets/racePng'
-import type { Race } from 'data/types'
+import type { Race } from '@sctavern-emulator/data/types'
 
 const props = defineProps<{
   race: Race

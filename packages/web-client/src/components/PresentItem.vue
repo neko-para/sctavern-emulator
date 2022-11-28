@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CardInstance, Client } from 'emulator'
-import { AllCard, type CardKey } from 'data'
-import type { UnitKey } from 'data'
+import type { CardInstance, Client } from '@sctavern-emulator/emulator'
+import { AllCard, type CardKey } from '@sctavern-emulator/data'
+import type { UnitKey } from '@sctavern-emulator/data'
 import TemplateRefer from './TemplateRefer.vue'
 import InstanceRefer from './InstanceRefer.vue'
 import RaceIcon from './RaceIcon.vue'

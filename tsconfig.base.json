@@ -6,14 +6,10 @@
     "rootDir": ".",
     "moduleResolution": "node",
     "baseUrl": ".",
-    "paths": {
-      "emulator": ["packages/emulator/src/index.ts"],
-      "data": ["packages/data/src/index.ts"],
-    },
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "exclude": ["node_modules", "tmp", "dist"]
 }

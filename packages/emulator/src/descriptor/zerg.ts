@@ -1,4 +1,4 @@
-import { elited, getUnit, isBiological, isHero, isNormal, Unit } from 'data'
+import { elited, getUnit, isBiological, isHero, isNormal, Unit } from '@sctavern-emulator/data'
 import { CardDescriptorTable } from '../types'
 import { autoBind, isCardInstance, us } from '../utils'
 import { 科挂X } from './terran'

@@ -1,4 +1,4 @@
-import { elited, getCard, isBiological, isHero, isNormal, UnitKey } from 'data'
+import { elited, getCard, isBiological, isHero, isNormal, UnitKey } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import {
   CardDescriptorTable,

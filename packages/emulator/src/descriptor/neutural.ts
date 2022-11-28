@@ -11,7 +11,7 @@ import {
   Race,
   Unit,
   UnitKey,
-} from 'data'
+} from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import { autoBind, autoBindPlayer, isCardInstance, us } from '../utils'

@@ -10,7 +10,7 @@ import {
   UnitKey,
   UpgradeKey,
   Upgrades,
-} from 'data'
+} from '@sctavern-emulator/data'
 // import { describe } from 'node:test'
 import { AttributeManager } from './attribute'
 import { Descriptors } from './descriptor'

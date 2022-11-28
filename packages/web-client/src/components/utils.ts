@@ -1,6 +1,6 @@
 import { deflateRaw, inflateRaw } from 'pako'
 import { Buffer } from 'buffer'
-import type { GameConfig } from 'emulator'
+import type { GameConfig } from '@sctavern-emulator/emulator'
 
 export function compress(obj: any) {
   return Buffer.from(deflateRaw(JSON.stringify(obj))).toString('base64')

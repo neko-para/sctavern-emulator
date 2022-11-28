@@ -1,18 +1,17 @@
 {
-  "name": "emulator",
+  "name": "@sctavern-emulator/emulator",
   "version": "1.0.0",
   "description": "Emulator Core",
-  "main": "index.js",
-  "scripts": {
-  },
+  "main": "./src/index.ts",
+  "scripts": {},
   "author": "nekosu",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^18.11.9",
-    "typescript": "^4.9.3"
+    "@types/node": "*",
+    "typescript": "*"
   },
   "dependencies": {
-    "data": "*",
-    "random": "^4.0.3"
+    "random": "*",
+    "@sctavern-emulator/data": "*"
   }
 }
