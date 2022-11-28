@@ -80,7 +80,7 @@ export class CardInstance {
       occupy: [],
 
       attribs: computed(() => {
-        return this.attribs().value
+        return this.attrib.views.value
       }),
       left: computed(() => {
         if (this.data.pos > 0 && this.player.present[this.data.pos - 1]) {
@@ -191,10 +191,6 @@ export class CardInstance {
   set_void() {
     this.attrib.config('void', 1, 'max')
     this.attrib.setView('void', () => '虚空投影')
-  }
-
-  attribs() {
-    return this.attrib.views
   }
 
   async switch_infr() {

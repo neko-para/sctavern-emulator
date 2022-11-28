@@ -8,7 +8,7 @@ interface AttributeEntry {
 
 export class AttributeManager {
   attrib: Record<string, AttributeEntry>
-  view: Record<string, ComputedRef<string>>
+  view: Record<string, string>
 
   views: ComputedRef<string[]>
 
@@ -19,7 +19,7 @@ export class AttributeManager {
     this.views = computed(() => {
       const res: string[] = []
       for (const k in this.view) {
-        res.push(this.view[k].value)
+        res.push(this.view[k])
       }
       return res.filter(s => s)
     })
@@ -47,7 +47,7 @@ export class AttributeManager {
   }
 
   setView(name: string, view: () => string) {
-    this.view[name] = computed(view)
+    this.view[name] = computed(view) as unknown as string
   }
 
   cleanView() {

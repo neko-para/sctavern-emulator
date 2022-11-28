@@ -860,8 +860,8 @@ export class Player {
     })
     this.bus.on('$present-upgrade', async ({ place }) => {
       if (
-        !this.present[place] &&
-        this.can_pres_upgrade((this.present[place] as CardInstance).data)
+        !this.present[place] ||
+        !this.can_pres_upgrade((this.present[place] as CardInstance).data)
       ) {
         return
       }

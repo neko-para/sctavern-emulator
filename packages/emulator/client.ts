@@ -230,7 +230,6 @@ export class Client implements ClientRespond {
     step: () => Promise<boolean> = async () => false
   ) {
     this.replayLog = replay.log
-    console.log(replay)
     this.replayPos = 0
     this.step = async () => {
       this.stop = await step()
