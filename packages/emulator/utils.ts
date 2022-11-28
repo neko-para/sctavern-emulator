@@ -24,7 +24,7 @@ export class Shuffler {
 export function refC(card: CardInstance, direct = false) {
   return {
     player: card.player.pos,
-    card: direct ? card.bus : card.pos,
+    card: direct ? card.bus : card.data.pos,
   }
 }
 

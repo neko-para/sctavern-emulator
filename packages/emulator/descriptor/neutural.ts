@@ -339,7 +339,6 @@ const data: CardDescriptorTable = {
       const around = [card.left(), card.right()]
         .filter(isCardInstance)
         .filter(c => c.data.name === '凯瑞甘')
-      console.log(around)
       if (around.length > 0) {
         await around[0].clear_desc()
         around[0].data.name = '刀锋女王'
