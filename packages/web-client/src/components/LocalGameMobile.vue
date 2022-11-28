@@ -121,7 +121,7 @@ function doExport() {
   expData.value = compress({
     pack: props.pack,
     seed: props.seed,
-    role: props.role,
+    role: [props.role],
     log: game.slave.game.log,
   })
   expDlg.value = true
