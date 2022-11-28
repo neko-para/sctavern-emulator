@@ -5,8 +5,8 @@ import {
   LocalGame,
   type CardInstanceAttrib,
   type GameReplay,
+  SlaveGame,
 } from 'emulator'
-import { getRole } from 'data'
 import StoreItem from './StoreItemMobile.vue'
 import HandItem from './HandItemMobile.vue'
 import PresentItem from './PresentItemMobile.vue'
@@ -21,7 +21,6 @@ import {
   type RoleKey,
 } from 'data'
 import { applyConfigChange, compress, decompress } from './utils'
-import type { SlaveGame } from 'emulator/client'
 
 const props = defineProps<{
   pack: string[]
@@ -172,9 +171,15 @@ main()
           >
         </div>
         <v-btn
-          :disabled="model || !player.can_use_ability()"
+          :disabled="model || !player.data.ability.enable"
+          :color="player.data.ability.enpower ? 'white' : ''"
           @click="client.requestAbility()"
-          >{{ getRole(role).ability }}</v-btn
+          >{{ player.data.ability.name
+          }}{{
+            player.data.ability.progress_cur !== -1
+              ? ` ${player.data.ability.progress_cur} / ${player.data.ability.progress_max}`
+              : ''
+          }}</v-btn
         >
       </div>
       <div class="d-flex">
@@ -333,7 +338,8 @@ main()
       </div>
       <template
         v-if="
-          selected[0] === 'P' && player.present[Number(selected.substring(1))]
+          selected[0] === 'P' &&
+          player.data.present[Number(selected.substring(1))]
         "
       >
         <present-item-info
@@ -344,7 +350,6 @@ main()
           :key="`Present-Item-Open`"
         ></present-item-info>
       </template>
-      <div v-for="(p, i) in player.present" :key="`Present-Item-${i}`"></div>
     </div>
   </div>
 </template>

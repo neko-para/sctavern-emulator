@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Client, LocalGame, type GameReplay } from 'emulator'
-import { getRole } from 'data'
+import { Client, LocalGame, type GameReplay, SlaveGame } from 'emulator'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
@@ -16,7 +15,6 @@ import {
   type RoleKey,
 } from 'data'
 import { applyConfigChange, compress, decompress } from './utils'
-import type { SlaveGame } from 'emulator/client'
 
 const props = defineProps<{
   pack: string[]
@@ -278,11 +276,6 @@ main()
           <v-btn class="mr-1" :disabled="model" @click="client.requestNext()"
             >下一回合</v-btn
           >
-          <v-btn
-            :disabled="model || !player.can_use_ability()"
-            @click="client.requestAbility()"
-            >{{ getRole(role).ability }}</v-btn
-          >
         </div>
         <div class="d-flex mt-1">
           <config-dialog></config-dialog>
@@ -354,6 +347,18 @@ main()
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <v-btn
+            class="ml-1"
+            :disabled="model || !player.data.ability.enable"
+            :color="player.data.ability.enpower ? 'white' : ''"
+            @click="client.requestAbility()"
+            >{{ player.data.ability.name
+            }}{{
+              player.data.ability.progress_cur !== -1
+                ? ` ${player.data.ability.progress_cur} / ${player.data.ability.progress_max}`
+                : ''
+            }}</v-btn
+          >
         </div>
         <div id="HandRegion">
           <hand-item

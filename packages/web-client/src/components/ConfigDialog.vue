@@ -47,6 +47,10 @@ function genSeed() {
         ></v-checkbox>
       </v-card-text>
       <v-card-actions>
+        <v-btn @click="genPackConfig()">随机两个扩展包</v-btn>
+        <v-btn @click="genSeed()">随机种子</v-btn>
+      </v-card-actions>
+      <v-card-actions>
         <v-btn
           @click="
             applyConfigChange({
@@ -58,8 +62,6 @@ function genSeed() {
           color="red"
           >确认(会刷新当前游戏)</v-btn
         >
-        <v-btn @click="genPackConfig()">随机两个扩展包</v-btn>
-        <v-btn @click="genSeed()">随机种子</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

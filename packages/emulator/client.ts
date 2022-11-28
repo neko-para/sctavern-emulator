@@ -44,7 +44,7 @@ class LogQueue {
   }
 }
 
-interface Adapter {
+export interface Adapter {
   onPosted: (item: LogItem) => void
 
   post<T extends keyof InputBus>(msg: T, param: InputBus[T]): Promise<void>
@@ -91,7 +91,7 @@ export class SlaveGame {
   }
 }
 
-class MasterGame {
+export class MasterGame {
   adapter: Adapter[]
   queue: LogQueue
 

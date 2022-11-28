@@ -5,6 +5,7 @@ import {
   Card,
   CardKey,
   getCard,
+  getRole,
   getUpgrade,
   isNormal,
   Race,
@@ -69,6 +70,14 @@ export interface PlayerAttrib {
   handActs: HandAct[]
   present: (CardInstanceAttrib | null)[]
   presentActs: PresentAct[]
+
+  ability: {
+    name: string
+    progress_cur: number
+    progress_max: number
+    enable: boolean
+    enpower: boolean
+  }
 
   value: number
   first_hole: number
@@ -203,6 +212,16 @@ export class Player {
         })
       }),
 
+      ability: {
+        name: '',
+        progress_cur: -1,
+        progress_max: 0,
+        enable: computed(() => {
+          return this.can_use_ability()
+        }),
+        enpower: false,
+      },
+
       value: computed(() => {
         return this.data.present
           .filter(isCardInstanceAttrib)
@@ -231,8 +250,19 @@ export class Player {
     this.bind_inputs()
     this.bind_default()
 
+    this.data.ability.name = getRole(this.role).ability
+
     switch (this.role) {
+      case 'SCV':
+      case '副官':
+      case '感染虫':
+      case '执政官':
+      case '阿巴瑟':
+      case '陆战队员':
+        this.data.ability.progress_max = 1
+        break
       case '追猎者':
+        this.data.ability.progress_max = 5
         this.persisAttrib.config('追猎者', 0)
         break
     }
@@ -740,8 +770,8 @@ export class Player {
       }
     })
     this.bus.on('$refresh', async () => {
-      if (this.role === '副官' && !this.attrib.get('副官')) {
-        this.attrib.config('副官', 1)
+      if (this.role === '副官' && this.data.ability.progress_cur === 1) {
+        this.data.ability.progress_cur = 0
       } else {
         if (this.data.mineral < 1) {
           return
@@ -790,7 +820,7 @@ export class Player {
           for (const b of leftBinds) {
             await right.bind_desc(b)
           }
-          this.attrib.config('角色:执政官', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '陆战队员': {
@@ -802,7 +832,7 @@ export class Player {
             mineral: -2,
           })
           await this.discover(this.game.pool.discover(c => c.level === tl, 2))
-          this.attrib.config('角色:陆战队员', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '感染虫': {
@@ -827,7 +857,7 @@ export class Player {
             }),
             ['每回合结束时注卵随机一个单位', '每回合结束时注卵随机一个单位']
           )
-          this.attrib.config('角色:感染虫', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case 'SCV': {
@@ -839,7 +869,7 @@ export class Player {
             break
           }
           await card.switch_infr()
-          this.attrib.config('角色:SCV', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '阿巴瑟': {
@@ -856,7 +886,7 @@ export class Player {
           })
           await this.destroy(card)
           await this.discover(this.game.pool.discover(c => c.level === tl, 3))
-          this.attrib.config('角色:阿巴瑟', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
       }
@@ -895,7 +925,8 @@ export class Player {
 
       switch (this.role) {
         case '追猎者':
-          if (this.persisAttrib.get('追猎者') || !this.attrib.get('追猎者')) {
+          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
+            this.attrib.config('追猎者', 1)
             await this.do_refresh()
           }
           break
@@ -912,7 +943,8 @@ export class Player {
 
       switch (this.role) {
         case '追猎者':
-          if (this.persisAttrib.get('追猎者') || !this.attrib.get('追猎者')) {
+          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
+            this.attrib.config('追猎者', 1)
             await this.do_refresh()
           }
           break
@@ -1083,6 +1115,17 @@ export class Player {
               mineral: 1,
             })
           }
+        case 'SCV':
+        case '感染虫':
+        case '执政官':
+        case '阿巴瑟':
+        case '陆战队员':
+          this.data.ability.progress_cur = 1
+          break
+        case '追猎者':
+          if (!this.data.ability.enpower) {
+            this.data.ability.progress_cur = 0
+          }
           break
       }
     })
@@ -1096,10 +1139,16 @@ export class Player {
     this.bus.on('refreshed', async () => {
       switch (this.role) {
         case '追猎者': {
-          const nv = this.attrib.get('追猎者') + 1
-          this.attrib.config('追猎者', nv)
-          if (!this.persisAttrib.get('追猎者') && nv === 5) {
-            this.persisAttrib.set('追猎者', 1)
+          if (
+            !this.data.ability.enpower &&
+            this.data.ability.progress_cur < this.data.ability.progress_max
+          ) {
+            this.data.ability.progress_cur += 1
+            if (
+              this.data.ability.progress_cur === this.data.ability.progress_max
+            ) {
+              this.data.ability.enpower = true
+            }
           }
           break
         }
@@ -1138,7 +1187,7 @@ export class Player {
       case '执政官':
       case '感染虫':
       case 'SCV':
-        return this.attrib.get(`角色:${this.role}`) === 0
+        return this.data.ability.progress_cur > 0
     }
     return false
   }
@@ -1183,7 +1232,7 @@ export class Player {
   can_refresh() {
     switch (this.role) {
       case '副官':
-        if (!this.attrib.get('副官')) {
+        if (this.data.ability.progress_cur === 1) {
           return true
         }
         break
