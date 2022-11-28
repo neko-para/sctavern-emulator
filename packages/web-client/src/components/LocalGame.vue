@@ -46,16 +46,6 @@ class LocalClient extends Client {
     this.timeout = null
   }
 
-  async refresh() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
-    this.timeout = setTimeout(() => {
-      timeTick.value += 1
-      this.timeout = null
-    }, 1)
-  }
-
   async selected(choice: string) {
     selected.value = choice
   }
@@ -90,8 +80,6 @@ class LocalClient extends Client {
 const client = new LocalClient(game.slave, 0)
 
 const player = client.player
-
-const timeTick = ref(0)
 
 async function main() {
   game.master.poll()
@@ -161,14 +149,14 @@ function handleKey(ev: KeyboardEvent) {
   const pos = Number(m[1])
   switch (selected.value[0]) {
     case 'H':
-      if (!player.hand[pos]) {
+      if (!player.data.hand[pos]) {
         return
       }
       switch (ev.key) {
         case 'e':
           client.requestHand({
             pos,
-            act: player.can_hand_combine(player.hand[pos] as CardKey)
+            act: player.can_hand_combine(player.data.hand[pos] as CardKey)
               ? 'combine'
               : 'enter',
           })
@@ -182,14 +170,14 @@ function handleKey(ev: KeyboardEvent) {
       }
       break
     case 'S':
-      if (!player.store[pos]) {
+      if (!player.data.store[pos]) {
         return
       }
       switch (ev.key) {
         case 'e':
           client.requestStore({
             pos,
-            act: player.can_buy_combine(player.store[pos] as CardKey)
+            act: player.can_buy_combine(player.data.store[pos] as CardKey)
               ? 'combine'
               : 'enter',
           })
@@ -253,11 +241,11 @@ main()
 <template>
   <div class="d-flex flex-column pa-1">
     <div class="d-flex">
-      <div class="d-flex flex-column text-h6" :key="`Info-${timeTick}`">
+      <div class="d-flex flex-column text-h6" :key="`Info`">
         <span
           >回合 {{ game.slave.game.data.round }} 等级
           {{ player.data.level }} 升级 {{ player.data.upgrade_cost }} 总价值
-          {{ player.value() }}</span
+          {{ player.data.value }}</span
         >
         <span
           >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
@@ -373,8 +361,8 @@ main()
         <div id="HandRegion">
           <hand-item
             class="mt-2 mr-2"
-            v-for="(h, i) in player.hand"
-            :key="`Hand-Item-${i}-${timeTick}`"
+            v-for="(h, i) in player.data.hand"
+            :key="`Hand-Item-${i}`"
             :card="h"
             :model="model"
             :pos="i"
@@ -386,8 +374,8 @@ main()
       <div class="d-flex flex-column">
         <div class="d-flex">
           <store-item
-            v-for="(s, i) in player.store"
-            :key="`Store-Item-${i}-${timeTick}`"
+            v-for="(s, i) in player.data.store"
+            :key="`Store-Item-${i}`"
             class="mr-2"
             :card="s"
             :model="model"
@@ -399,7 +387,7 @@ main()
         <div class="d-flex mt-4" v-if="discover">
           <discover-item
             v-for="(it, i) in discoverItems"
-            :key="`Discover-Item-${i}-${timeTick}`"
+            :key="`Discover-Item-${i}`"
             class="mr-2"
             :item="it"
             :model="model"
@@ -417,10 +405,7 @@ main()
       </div>
     </div>
     <div class="d-flex mt-2">
-      <div
-        v-for="(p, i) in player.present"
-        :key="`Present-Item-${i}-${timeTick}`"
-      >
+      <div v-for="(p, i) in player.data.present" :key="`Present-Item-${i}`">
         <present-item
           class="mr-2"
           :card="p"

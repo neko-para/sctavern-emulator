@@ -1,5 +1,6 @@
-type CombinePolicy = 'add' | 'max' | 'discard'
+import { computed, reactive, ComputedRef } from '@vue/reactivity'
 
+type CombinePolicy = 'add' | 'max' | 'discard'
 interface AttributeEntry {
   value: number
   policy: CombinePolicy
@@ -7,19 +8,21 @@ interface AttributeEntry {
 
 export class AttributeManager {
   attrib: Record<string, AttributeEntry>
-  view: Record<
-    string,
-    {
-      view: (...a: number[]) => string
-      deps: string[]
-    }
-  >
-  refresh: () => Promise<void>
+  view: Record<string, ComputedRef<string>>
 
-  constructor(refresh: () => Promise<void>) {
-    this.attrib = {}
-    this.view = {}
-    this.refresh = refresh
+  views: ComputedRef<string[]>
+
+  constructor() {
+    this.attrib = reactive({})
+    this.view = reactive({})
+
+    this.views = computed(() => {
+      const res: string[] = []
+      for (const k in this.view) {
+        res.push(this.view[k].value)
+      }
+      return res.filter(s => s)
+    })
   }
 
   has(name: string): boolean {
@@ -37,38 +40,18 @@ export class AttributeManager {
     }
   }
 
-  async set(name: string, value: number) {
-    if (!this.has(name)) {
-      return
-    }
-    this.attrib[name].value = value
-    if (
-      Object.keys(this.view)
-        .map(k => this.view[k])
-        .map(v => v.deps.includes(name))
-        .reduce((a, b) => a || b, false)
-    ) {
-      await this.refresh()
+  set(name: string, value: number) {
+    if (this.has(name)) {
+      this.attrib[name].value = value
     }
   }
 
-  setView(name: string, view: (...v: number[]) => string, ...deps: string[]) {
-    this.view[name] = {
-      view,
-      deps,
-    }
+  setView(name: string, view: () => string) {
+    this.view[name] = computed(view)
   }
 
   cleanView() {
-    this.view = {}
-  }
-
-  queryView(): string[] {
-    const res: string[] = []
-    for (const k in this.view) {
-      res.push(this.view[k].view(...this.view[k].deps.map(a => this.get(a))))
-    }
-    return res.filter(s => s)
+    this.view = reactive({})
   }
 
   combine(a: AttributeManager) {

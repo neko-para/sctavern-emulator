@@ -29,21 +29,24 @@ function 任务<T extends string & keyof LogicBus>(
   policy: RenewPolicy = RenewPolicy.never
 ): DescriptorGenerator {
   return (card, gold, text) => {
-    card.data.attrib.config('task', 0, 'discard')
-    card.data.attrib.setView('任务', n => `任务进度: ${n} / ${count}`, 'task')
+    card.attrib.config('task', 0, 'discard')
+    card.attrib.setView(
+      '任务',
+      () => `任务进度: ${card.attrib.get('task')} / ${count}`
+    )
     let n = 0
     const bus = card.bus
     bus.begin()
     bus.on(msg, async p => {
       if (n < count && pred(p)) {
         n += 1
-        await card.data.attrib.set('task', n)
+        await card.attrib.set('task', n)
         if (n === count) {
           await reward(card, gold)
           await card.player.game.post('task-done', refC(card))
           if (policy === RenewPolicy.instant) {
             n = 0
-            await card.data.attrib.set('task', 0)
+            await card.attrib.set('task', 0)
           }
         }
       }
@@ -52,7 +55,7 @@ function 任务<T extends string & keyof LogicBus>(
       case RenewPolicy.roundend:
         bus.on('round-end', async () => {
           n = 0
-          await card.data.attrib.set('task', 0)
+          await card.attrib.set('task', 0)
         })
         break
     }
@@ -102,7 +105,7 @@ function 科挂(
 
 function 反应堆(unit: UnitKey): DescriptorGenerator {
   return autoBind('round-end', async (card, gold) => {
-    if (card.infr()[0] === 'reactor') {
+    if (card.data.infr[0] === 'reactor') {
       await card.obtain_unit(us(unit, gold ? 2 : 1))
     }
   })
@@ -198,7 +201,7 @@ const data: CardDescriptorTable = {
   枪兵坦克: [
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.all_of('T')) {
-        if (c.infr()[0] === 'reactor') {
+        if (c.data.infr[0] === 'reactor') {
           await c.obtain_unit(us('陆战队员', gold ? 4 : 2))
         }
       }
@@ -309,11 +312,11 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.setView('沃菲尔德', () => {
+      card.attrib.setView('沃菲尔德', () => {
         if (ret.disabled) {
           return '禁用'
         }
-        const v = card.player.data.attrib.get('沃菲尔德')
+        const v = card.player.attrib.get('沃菲尔德')
         if (v === null || v < (gold ? 2 : 1)) {
           return `启用 ${v || 0}`
         } else {
@@ -327,17 +330,19 @@ const data: CardDescriptorTable = {
         if (target.data.race !== 'T') {
           return
         }
-        card.player.data.attrib.config('沃菲尔德', 0)
-        card.player.data.attrib.setView(
+        card.player.attrib.config('沃菲尔德', 0)
+        card.player.attrib.setView(
           '沃菲尔德',
-          v => `本回合沃菲尔德已回收的卡牌数: ${v}`,
-          '沃菲尔德'
+          () =>
+            `本回合沃菲尔德已回收的卡牌数: ${card.player.attrib.get(
+              '沃菲尔德'
+            )}`
         )
-        const v = card.player.data.attrib.get('沃菲尔德')
+        const v = card.player.attrib.get('沃菲尔德')
         if (v >= (gold ? 2 : 1)) {
           return
         }
-        await card.player.data.attrib.set('沃菲尔德', v + 1)
+        await card.player.attrib.set('沃菲尔德', v + 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
       cleaner = card.bus.end()
@@ -385,7 +390,7 @@ const data: CardDescriptorTable = {
   以火治火: [
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.all_of('T')) {
-        if (c.infr()[0] === 'reactor') {
+        if (c.data.infr[0] === 'reactor') {
           await c.obtain_unit(us('火蝠', gold ? 2 : 1))
         }
       }
@@ -398,7 +403,7 @@ const data: CardDescriptorTable = {
   ],
   复制中心: [
     autoBind('fast-prod', async (card, gold) => {
-      for (const c of card.player.hand) {
+      for (const c of card.player.data.hand) {
         if (!c) {
           continue
         }

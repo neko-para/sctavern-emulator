@@ -1,3 +1,4 @@
+import { reactive, computed, ComputedRef } from '@vue/reactivity'
 import {
   Card,
   CardKey,
@@ -22,9 +23,11 @@ import {
   DescriptorGenerator,
   ObtainUnitWay,
 } from './types'
-import { isCardInstance, refC, refP, us } from './utils'
+import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
 
 export interface CardInstanceAttrib {
+  pos: number
+
   name: string
   race: Race
   level: number
@@ -37,25 +40,34 @@ export interface CardInstanceAttrib {
   belong: 'none' | 'origin' | 'void'
 
   descs: Descriptor[]
-  attrib: AttributeManager
+  desc_binder: ((card: CardInstance) => Descriptor)[]
+
+  occupy: CardKey[]
+
+  attribs: string[]
+  left: CardInstanceAttrib | null
+  right: CardInstanceAttrib | null
+  around: CardInstanceAttrib[]
+  value: number
+  self_power: number
+  power: number
+  infr: ['reactor' | 'scilab' | 'hightech' | 'none', number]
 }
 
 export class CardInstance {
   bus: Emitter<LogicBus>
-  pos: number
   player: Player
 
-  data: CardInstanceAttrib
+  readonly data: CardInstanceAttrib
 
-  desc_binder: ((card: CardInstance) => Descriptor)[]
-  occupy: CardKey[]
+  attrib: AttributeManager
 
   constructor(player: Player, cardt: Card) {
     this.bus = new Emitter('', [])
-    this.pos = -1
     this.player = player
 
-    this.data = {
+    this.data = reactive({
+      pos: -1,
       name: cardt.name,
       race: cardt.race,
       level: cardt.level,
@@ -64,10 +76,69 @@ export class CardInstance {
       upgrades: [],
       belong: 'none',
       descs: [],
-      attrib: new AttributeManager(async () => {
-        await this.player.refresh()
+      desc_binder: [],
+      occupy: [],
+
+      attribs: computed(() => {
+        return this.attribs().value
       }),
-    }
+      left: computed(() => {
+        if (this.data.pos > 0 && this.player.present[this.data.pos - 1]) {
+          return this.player.present[this.data.pos - 1]?.data || null
+        } else {
+          return null
+        }
+      }),
+      right: computed(() => {
+        if (this.data.pos < 6 && this.player.present[this.data.pos + 1]) {
+          return this.player.present[this.data.pos + 1]?.data || null
+        } else {
+          return null
+        }
+      }),
+      around: computed(() => {
+        return [this.data.left, this.data.right].filter(isCardInstanceAttrib)
+      }),
+      value: computed(() => {
+        return this.data.units
+          .map(getUnit)
+          .map(u => u.value)
+          .reduce((a, b) => a + b, 0)
+      }),
+      self_power: computed(() => {
+        return (
+          this.find('水晶塔').length +
+          this.find('虚空水晶塔').length +
+          this.attrib.get('供能')
+        )
+      }),
+      power: computed(() => {
+        return (
+          this.data.self_power +
+          this.data.around.map(c => c.self_power).reduce((a, b) => a + b, 0)
+        )
+      }),
+      infr: computed<['reactor' | 'scilab' | 'hightech' | 'none', number]>(
+        () => {
+          let idx = -1
+          idx = this.data.units.indexOf('反应堆')
+          if (idx !== -1) {
+            return ['reactor', idx]
+          }
+          idx = this.data.units.indexOf('科技实验室')
+          if (idx !== -1) {
+            return ['scilab', idx]
+          }
+          idx = this.data.units.indexOf('高级科技实验室')
+          if (idx !== -1) {
+            return ['hightech', idx]
+          }
+          return ['none', -1]
+        }
+      ),
+    })
+
+    this.attrib = new AttributeManager()
 
     if (cardt.attr.origin) {
       this.data.belong = 'origin'
@@ -76,26 +147,19 @@ export class CardInstance {
       this.set_void()
     }
 
-    this.data.attrib.setView(
-      'power',
-      () => {
-        const p = this.power()
-        if (this.data.race === 'P' || p > 0) {
-          return `能量强度: ${p}`
-        } else {
-          return ''
-        }
-      },
-      '供能'
-    )
+    this.attrib.setView('power', () => {
+      const p = this.data.power
+      if (this.data.race === 'P' || p > 0) {
+        return `能量强度: ${p}`
+      } else {
+        return ''
+      }
+    })
 
     if (cardt.attr.dark) {
-      this.data.attrib.config('dark', 0, 'add')
-      this.data.attrib.setView('dark', v => `黑暗值: ${v}`, 'dark')
+      this.attrib.config('dark', 0, 'add')
+      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
     }
-
-    this.desc_binder = []
-    this.occupy = []
 
     this.bind()
   }
@@ -105,16 +169,16 @@ export class CardInstance {
   }
 
   left(): CardInstance | null {
-    if (this.pos > 0 && this.player.present[this.pos - 1]) {
-      return this.player.present[this.pos - 1]
+    if (this.data.pos > 0 && this.player.present[this.data.pos - 1]) {
+      return this.player.present[this.data.pos - 1]
     } else {
       return null
     }
   }
 
   right(): CardInstance | null {
-    if (this.pos < 6 && this.player.present[this.pos + 1]) {
-      return this.player.present[this.pos + 1]
+    if (this.data.pos < 6 && this.player.present[this.data.pos + 1]) {
+      return this.player.present[this.data.pos + 1]
     } else {
       return null
     }
@@ -124,60 +188,20 @@ export class CardInstance {
     return [this.left(), this.right()].filter(isCardInstance)
   }
 
-  value() {
-    return this.data.units
-      .map(getUnit)
-      .map(u => u.value)
-      .reduce((p, c) => p + c, 0)
-  }
-
-  private self_power(): number {
-    return (
-      this.find('水晶塔').length +
-      this.find('虚空水晶塔').length +
-      this.data.attrib.get('供能')
-    )
-  }
-
-  power(): number {
-    return (
-      this.self_power() +
-      (this.left()?.self_power() || 0) +
-      (this.right()?.self_power() || 0)
-    )
-  }
-
   set_void() {
-    this.data.attrib.config('void', 1, 'max')
-    this.data.attrib.setView('void', () => '虚空投影', 'void')
+    this.attrib.config('void', 1, 'max')
+    this.attrib.setView('void', () => '虚空投影')
   }
 
-  attribs(): string[] {
-    return this.data.attrib.queryView()
-  }
-
-  infr(): ['reactor' | 'scilab' | 'hightech' | 'none', number] {
-    let idx = -1
-    idx = this.data.units.indexOf('反应堆')
-    if (idx !== -1) {
-      return ['reactor', idx]
-    }
-    idx = this.data.units.indexOf('科技实验室')
-    if (idx !== -1) {
-      return ['scilab', idx]
-    }
-    idx = this.data.units.indexOf('高级科技实验室')
-    if (idx !== -1) {
-      return ['hightech', idx]
-    }
-    return ['none', -1]
+  attribs() {
+    return this.attrib.views
   }
 
   async switch_infr() {
     if (this.data.race !== 'T') {
       return
     }
-    const [type, pos] = this.infr()
+    const [type, pos] = this.data.infr
     switch (type) {
       case 'reactor':
         this.replace_unit([pos], '科技实验室')
@@ -196,7 +220,7 @@ export class CardInstance {
     if (this.data.race !== 'T') {
       return
     }
-    const [type, pos] = this.infr()
+    const [type, pos] = this.data.infr
     switch (type) {
       case 'reactor':
       case 'scilab':
@@ -208,8 +232,7 @@ export class CardInstance {
   }
 
   async fast_prod() {
-    await this.player.game.post('fast-prod', refC(this))
-    await this.player.refresh()
+    await this.post('fast-prod', refC(this))
   }
 
   async obtain_unit(units: UnitKey[], way: ObtainUnitWay = 'normal') {
@@ -221,9 +244,8 @@ export class CardInstance {
     await this.post('obtain-unit-prev', p)
     this.data.units = this.data.units
       .concat(p.units)
-      .slice(0, this.player.config.MaxUnitPerCard)
+      .slice(0, this.player.data.config.MaxUnitPerCard)
     await this.post('obtain-unit-post', p)
-    await this.player.refresh()
   }
 
   async remove_unit(index: number[]) {
@@ -231,7 +253,7 @@ export class CardInstance {
   }
 
   async obtain_upgrade(upgrade: UpgradeKey) {
-    if (this.data.upgrades.length < this.player.config.MaxUpgradePerCard) {
+    if (this.data.upgrades.length < this.player.data.config.MaxUpgradePerCard) {
       const u = getUpgrade(upgrade)
       if (!u.override && this.data.upgrades.includes(upgrade)) {
         return
@@ -292,15 +314,18 @@ export class CardInstance {
               .reduce((a, b) => a + b, 0) * 1.5
 
           this.data.units = [this.data.units[idx]]
-          this.data.attrib.config('献祭', sum)
-          this.data.attrib.setView('献祭', v => `献祭的生命值: ${v}`, '献祭')
+          this.attrib.config('献祭', sum)
+          this.attrib.setView(
+            '献祭',
+            () => `献祭的生命值: ${this.attrib.get('献祭')}`
+          )
           this.add_desc(
             (card, gold, text) => {
               card.bus.begin()
               card.bus.on('obtain-unit-prev', async param => {
-                await card.data.attrib.set(
+                await card.attrib.set(
                   '献祭',
-                  card.data.attrib.get('献祭') +
+                  card.attrib.get('献祭') +
                     param.units
                       .map(getUnit)
                       .map(u => u.health + (u.shield || 0))
@@ -324,7 +349,6 @@ export class CardInstance {
         ...refC(this),
         upgrade,
       })
-      await this.player.refresh()
     }
   }
 
@@ -338,7 +362,6 @@ export class CardInstance {
         this.data.units[idx] = proc(this.data.units[idx])
       }
     })
-    await this.player.refresh()
   }
 
   async filter(func: (unit: UnitKey, pos: number) => boolean) {
@@ -351,18 +374,17 @@ export class CardInstance {
         return true
       }
     })
-    await this.player.refresh()
+
     return taked
   }
 
   async bind_desc(binder: (card: CardInstance) => Descriptor) {
     const d = binder(this)
     this.data.descs.push(d)
-    this.desc_binder.push(binder)
+    this.data.desc_binder.push(binder)
     if (d.unique) {
       await this.player.add_unique(this, d)
     } else {
-      await this.player.refresh()
     }
   }
 
@@ -382,7 +404,6 @@ export class CardInstance {
       }
     }
     this.data.descs = []
-    await this.player.refresh()
   }
 
   async seize(
@@ -415,10 +436,10 @@ export class CardInstance {
   }
 
   async gain_darkness(dark: number) {
-    if (!('dark' in this.data.attrib.attrib)) {
+    if (!this.attrib.has('dark')) {
       return
     }
-    this.data.attrib.set('dark', this.data.attrib.get('dark') + dark)
+    this.attrib.set('dark', this.attrib.get('dark') + dark)
     if (dark > 0) {
       await this.post('gain-darkness', {
         ...refC(this),
@@ -439,15 +460,15 @@ export class CardInstance {
   bind() {
     this.bus.on('round-end', async () => {
       // 高科的快产
-      if (this.data.race === 'T' && this.infr()[0] === 'hightech') {
-        await this.player.game.post('fast-prod', refC(this))
+      if (this.data.race === 'T' && this.data.infr[0] === 'hightech') {
+        await this.post('fast-prod', refC(this))
       }
     })
     this.bus.on('post-sell', async () => {
       const n = this.find('虚空水晶塔').length
       if (n > 0) {
-        for (const c of [this.left(), this.right()]) {
-          if (c?.data.race === 'P') {
+        for (const c of this.around()) {
+          if (c.data.race === 'P') {
             await c.obtain_unit(us('虚空水晶塔', n))
             break
           }

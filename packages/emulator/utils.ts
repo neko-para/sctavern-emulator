@@ -1,6 +1,6 @@
 import { UnitKey } from 'data'
 import { Random, RNG } from 'random'
-import { CardInstance } from './card'
+import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
 import { DescriptorGenerator, LogicBus } from './types'
 
@@ -37,6 +37,12 @@ export function refP(player: Player) {
 export function isCardInstance(
   card: CardInstance | null
 ): card is CardInstance {
+  return !!card
+}
+
+export function isCardInstanceAttrib(
+  card: CardInstanceAttrib | null
+): card is CardInstanceAttrib {
   return !!card
 }
 

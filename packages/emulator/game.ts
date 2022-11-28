@@ -1,6 +1,7 @@
+import { reactive } from '@vue/reactivity'
 import { RoleKey } from 'data'
 import { Emitter } from './emitter'
-import { Player } from './player'
+import { Player, PlayerAttrib } from './player'
 import { Pool } from './pool'
 import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
 import { Shuffler } from './utils'
@@ -8,6 +9,8 @@ import { Shuffler } from './utils'
 interface GameAttrib {
   round: number
   done_count: number
+
+  player: (PlayerAttrib | null)[]
 }
 
 export interface LogItem {
@@ -48,10 +51,12 @@ export class Game {
     )
     this.obus = new Emitter('client', Array(count).fill(null))
 
-    this.data = {
+    this.data = reactive({
       round: 0,
       done_count: 0,
-    }
+
+      player: this.player.map(p => p.data),
+    })
 
     this.gen = new Shuffler(config.seed)
 

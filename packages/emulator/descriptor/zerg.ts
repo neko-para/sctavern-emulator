@@ -247,9 +247,9 @@ const data: CardDescriptorTable = {
   ],
   斯托科夫: [
     (card, gold, text) => {
-      card.player.data.persisAttrib.config(
+      card.player.persisAttrib.config(
         '斯托科夫',
-        card.player.data.persisAttrib.get('斯托科夫')
+        card.player.persisAttrib.get('斯托科夫')
       )
       let cleaner = () => {}
       const ret = {
@@ -262,10 +262,10 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.setView('斯托科夫', () => {
+      card.attrib.setView('斯托科夫', () => {
         if (ret.disabled) {
           return '禁用'
-        } else if (gold || card.player.data.persisAttrib.get('斯托科夫')) {
+        } else if (gold || card.player.persisAttrib.get('斯托科夫')) {
           return '注卵'
         } else {
           return '非注卵'
@@ -279,8 +279,8 @@ const data: CardDescriptorTable = {
         if (target.data.race === 'Z' || target.data.level >= 6) {
           return
         }
-        const v = card.player.data.persisAttrib.get('斯托科夫')
-        await card.player.data.persisAttrib.set('斯托科夫', gold ? 0 : 1 - v)
+        const v = card.player.persisAttrib.get('斯托科夫')
+        await card.player.persisAttrib.set('斯托科夫', gold ? 0 : 1 - v)
         if (gold || v === 1) {
           await card.player.inject(
             target.data.units.filter(isNormal).filter(u => !isHero(u))
@@ -416,7 +416,7 @@ const data: CardDescriptorTable = {
           return
         }
         if (
-          target.value() >= 4000 &&
+          target.data.value >= 4000 &&
           target.data.name !== '虫卵' &&
           target.data.race === 'Z'
         ) {

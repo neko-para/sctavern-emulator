@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { CardInstance, Client } from 'emulator'
-import { AllCard, type CardKey, tr } from 'data'
+import { computed } from 'vue'
+import type { CardInstanceAttrib, Client } from 'emulator'
 import type { UnitKey } from 'data'
 
 const props = defineProps<{
-  card: CardInstance
+  card: CardInstanceAttrib
   model: boolean
   pos: number
   client: Client
@@ -15,7 +14,7 @@ const allUnit = computed(() => {
   const us: {
     [u in UnitKey]?: number
   } = {}
-  props.card?.data.units.forEach(u => {
+  props.card?.units.forEach(u => {
     us[u] = (us[u] || 0) + 1
   })
   return Object.keys(us).map(u => `${u}: ${us[u as UnitKey]}`)
@@ -32,7 +31,7 @@ const Color = {
   <v-card
     id="presentItemRoot"
     class="d-flex flex-column ml-2 mb-2"
-    :color="card ? Color[card.data.color] : 'white'"
+    :color="card ? Color[card.color] : 'white'"
     elevation="5"
   >
     <div class="d-flex justify-space-around mx-1 mt-1">
@@ -43,7 +42,7 @@ const Color = {
         <v-card>
           <v-card-text>
             <pre style="white-space: break-spaces">{{
-              card.data.descs
+              card.descs
                 .map(v => v.text[v.gold ? 1 : 0].replace(/<([^>]+?)>/g, '$1'))
                 .join('\n')
             }}</pre>
@@ -61,20 +60,16 @@ const Color = {
         </v-card>
       </v-dialog>
     </div>
-    <span class="mx-1 mt-1">价值: {{ card.value() }}</span>
+    <span class="mx-1 mt-1">价值: {{ card.value }}</span>
     <div class="d-flex ma-1"></div>
     <div class="d-flex">
       <div class="d-flex flex-column">
-        <span
-          class="mx-1"
-          v-for="(a, i) in card.attribs()"
-          :key="`Attrib-${i}`"
-        >
+        <span class="mx-1" v-for="(a, i) in card.attribs" :key="`Attrib-${i}`">
           {{ a }}
         </span>
       </div>
       <div class="d-flex flex-column ml-auto mr-1">
-        <span v-for="(u, i) in card.data.upgrades" :key="`Upgrade-${i}`">{{
+        <span v-for="(u, i) in card.upgrades" :key="`Upgrade-${i}`">{{
           u
         }}</span>
       </div>
@@ -86,8 +81,8 @@ const Color = {
         }}</span>
 
         <span
-          >{{ card.data.units.length }} /
-          {{ client.player.config.MaxUnitPerCard }}</span
+          >{{ card.units.length }} /
+          {{ client.player.data.config.MaxUnitPerCard }}</span
         >
       </div>
     </div>

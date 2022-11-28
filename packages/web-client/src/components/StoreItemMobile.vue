@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getCard, type CardKey, tr } from 'data'
+import { computed } from 'vue'
+import { getCard, type CardKey } from 'data'
 import type { Client } from 'emulator'
 
 const props = defineProps<{
@@ -10,7 +11,9 @@ const props = defineProps<{
   client: Client
 }>()
 
-const cardInfo = props.card ? getCard(props.card) : null
+const cardInfo = computed(() => {
+  return props.card ? getCard(props.card) : null
+})
 </script>
 
 <template>

@@ -7,7 +7,6 @@ import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
 interface ClientRespond {
   pos: number
 
-  refresh(): Promise<void>
   selected(choice: string): Promise<void>
   begin_discover(item: (Card | UpgradeKey)[], cancel: boolean): Promise<void>
   end_discover(): Promise<void>
@@ -78,7 +77,6 @@ export class SlaveGame {
     const bus = new Emitter<OutputBus>('', [])
     this.game.obus.child[client.pos] = bus
 
-    bus.on('refresh', () => client.refresh())
     bus.on('selected', ({ choice }) => client.selected(choice))
     bus.on('begin-discover', ({ item, cancel }) =>
       client.begin_discover(item, cancel)
@@ -212,8 +210,6 @@ export class Client implements ClientRespond {
       await this.postItem(this.nextReplayItem())
     }
   }
-
-  async refresh() {}
 
   async selected(choice: string) {}
 

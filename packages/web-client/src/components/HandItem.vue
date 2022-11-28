@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { getCard, type CardKey } from 'data'
 import type { Client } from 'emulator'
 import TemplateRefer from './TemplateRefer.vue'
@@ -13,7 +13,9 @@ const props = defineProps<{
   client: Client
 }>()
 
-const cardInfo = props.card ? getCard(props.card) : null
+const cardInfo = computed(() => {
+  return props.card ? getCard(props.card) : null
+})
 const elv = ref(5)
 </script>
 
