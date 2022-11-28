@@ -781,7 +781,6 @@ export class Player {
       await this.do_refresh()
     })
     this.bus.on('$done', async () => {
-      // TODO: wait all done
       await this.game.add_done()
     })
     this.bus.on('$ability', async () => {
@@ -897,7 +896,8 @@ export class Player {
     this.bus.on('$unlock', async () => {
       this.data.locked = false
     })
-    this.bus.on('$select', async ({ choice }) => {
+    this.bus.on('$select', async ({ choice, player }) => {
+      console.log(choice, player)
       this.data.selected = choice
       await this.game.postOutput('selected', {
         choice,
