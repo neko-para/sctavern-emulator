@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import type { Card, UpgradeKey } from 'data'
 import { tr } from 'data'
 import type { Client } from 'emulator'
-import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
   item: Card | UpgradeKey

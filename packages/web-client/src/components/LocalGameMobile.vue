@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import {
-  CardInstance,
   Client,
   LocalGame,
   type CardInstanceAttrib,
@@ -18,7 +17,6 @@ import {
   AllCard,
   getCard,
   type Card,
-  type CardKey,
   type UpgradeKey,
   type RoleKey,
 } from 'data'
@@ -46,11 +44,8 @@ const game = new LocalGame({
 })
 
 class LocalClient extends Client {
-  timeout: number | null
-
   constructor(game: SlaveGame, pos: number) {
     super(game, pos)
-    this.timeout = null
   }
 
   async selected(choice: string) {

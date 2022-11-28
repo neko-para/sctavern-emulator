@@ -29,6 +29,27 @@ import {
   us,
 } from './utils'
 
+interface StoreAct {
+  e: 'enter' | 'combine'
+  eE: boolean
+  v: 'cache'
+  vE: boolean
+}
+
+interface HandAct {
+  e: 'enter' | 'combine'
+  eE: boolean
+  s: 'sell'
+  sE: boolean
+}
+
+interface PresentAct {
+  g: 'upgrade'
+  gE: boolean
+  s: 'sell'
+  sE: boolean
+}
+
 export interface PlayerAttrib {
   level: number
   upgrade_cost: number
@@ -43,8 +64,11 @@ export interface PlayerAttrib {
   config: PlayerConfig
 
   store: (CardKey | null)[]
+  storeActs: StoreAct[]
   hand: (CardKey | null)[]
+  handActs: HandAct[]
   present: (CardInstanceAttrib | null)[]
+  presentActs: PresentAct[]
 
   value: number
   first_hole: number
@@ -101,8 +125,83 @@ export class Player {
       },
 
       store: Array(3).fill(null),
+      storeActs: computed<StoreAct[]>(() => {
+        return this.data.store.map(k => {
+          if (!k) {
+            return {
+              e: 'enter',
+              eE: false,
+              v: 'cache',
+              vE: false,
+            }
+          } else {
+            if (this.can_hand_combine(k)) {
+              return {
+                e: 'combine',
+                eE: this.can_buy_combine(k),
+                v: 'cache',
+                vE: this.can_buy_cache(k),
+              }
+            } else {
+              return {
+                e: 'enter',
+                eE: this.can_buy_enter(k),
+                v: 'cache',
+                vE: this.can_buy_cache(k),
+              }
+            }
+          }
+        })
+      }),
       hand: Array(6).fill(null),
+      handActs: computed<HandAct[]>(() => {
+        return this.data.hand.map(k => {
+          if (!k) {
+            return {
+              e: 'enter',
+              eE: false,
+              s: 'sell',
+              sE: false,
+            }
+          } else {
+            if (this.can_hand_combine(k)) {
+              return {
+                e: 'combine',
+                eE: true,
+                s: 'sell',
+                sE: true,
+              }
+            } else {
+              return {
+                e: 'enter',
+                eE: this.can_hand_enter(),
+                s: 'sell',
+                sE: true,
+              }
+            }
+          }
+        })
+      }),
       present: Array(7).fill(null),
+      presentActs: computed<PresentAct[]>(() => {
+        return this.data.present.map(ca => {
+          if (!ca) {
+            return {
+              g: 'upgrade',
+              gE: false,
+              s: 'sell',
+              sE: false,
+            }
+          } else {
+            return {
+              g: 'upgrade',
+              gE: this.can_pres_upgrade(ca),
+              s: 'sell',
+              sE: true,
+            }
+          }
+        })
+      }),
 
       value: computed(() => {
         return this.data.present
@@ -1059,7 +1158,7 @@ export class Player {
   }
 
   can_buy_combine(ck: CardKey) {
-    return this.data.mineral >= 3 && this.can_hand_combine(ck)
+    return this.data.mineral >= this.cost_of(ck) && this.can_hand_combine(ck)
   }
 
   can_hand_enter() {

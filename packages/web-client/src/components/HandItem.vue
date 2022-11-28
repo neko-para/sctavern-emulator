@@ -39,38 +39,23 @@ const elv = ref(5)
       </div>
       <div class="d-flex">
         <v-btn
-          :disabled="model || !client.player.can_hand_combine(card)"
+          :disabled="model || !client.player.data.handActs[pos].eE"
           variant="flat"
-          v-if="client.player.can_hand_combine(card)"
-          @click="
-            client.requestHand({
-              act: 'combine',
-              pos,
-            })
+          :color="
+            client.player.data.handActs[pos].e === 'combine' ? 'yellow' : ''
           "
-          color="yellow"
-          >三连</v-btn
+          @click="
+            client.requestHand({ act: client.player.data.handActs[pos].e, pos })
+          "
+          >{{
+            client.player.data.handActs[pos].e === 'combine' ? '三连' : '进场'
+          }}</v-btn
         >
         <v-btn
-          :disabled="model || !client.player.can_hand_enter()"
-          variant="text"
-          v-else
+          :disabled="model || !client.player.data.handActs[pos].sE"
+          variant="flat"
           @click="
-            client.requestHand({
-              act: 'enter',
-              pos,
-            })
-          "
-          >进场</v-btn
-        >
-        <v-btn
-          :disabled="model"
-          variant="text"
-          @click="
-            client.requestHand({
-              act: 'sell',
-              pos,
-            })
+            client.requestHand({ act: client.player.data.handActs[pos].s, pos })
           "
           >出售</v-btn
         >

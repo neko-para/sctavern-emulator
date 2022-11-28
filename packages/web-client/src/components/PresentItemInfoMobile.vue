@@ -88,22 +88,22 @@ const Color = {
     </div>
     <div class="d-flex">
       <v-btn
-        :disabled="model || !client.player.can_pres_upgrade(card)"
+        :disabled="model || !client.player.data.presentActs[pos].gE"
         variant="text"
         @click="
           client.requestPresent({
-            act: 'upgrade',
+            act: client.player.data.presentActs[pos].g,
             pos,
           })
         "
         >升级</v-btn
       >
       <v-btn
-        :disabled="model"
+        :disabled="model || !client.player.data.presentActs[pos].sE"
         variant="text"
         @click="
           client.requestPresent({
-            act: 'sell',
+            act: client.player.data.presentActs[pos].s,
             pos,
           })
         "

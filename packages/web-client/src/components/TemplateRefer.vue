@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { getCard, type CardKey } from 'data'
 
 const props = defineProps<{
   card: CardKey
 }>()
 
-const ci = getCard(props.card)
+const ci = computed(() => getCard(props.card))
 </script>
 
 <template>

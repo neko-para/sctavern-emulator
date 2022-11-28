@@ -39,11 +39,8 @@ const game = new LocalGame({
 })
 
 class LocalClient extends Client {
-  timeout: number | null
-
   constructor(game: SlaveGame, pos: number) {
     super(game, pos)
-    this.timeout = null
   }
 
   async selected(choice: string) {

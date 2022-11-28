@@ -34,36 +34,27 @@ const cardInfo = computed(() => {
       </div>
       <div class="d-flex justify-space-around w-100" v-else>
         <v-btn
-          :disabled="model || !client.player.can_buy_combine(card)"
+          :disabled="model || !client.player.data.storeActs[pos].eE"
           variant="flat"
-          v-if="client.player.can_hand_combine(card)"
+          :color="
+            client.player.data.storeActs[pos].e === 'combine' ? 'yellow' : ''
+          "
           @click="
             client.requestStore({
-              act: 'combine',
+              act: client.player.data.storeActs[pos].e,
               pos,
             })
           "
-          color="yellow"
-          >三连</v-btn
+          >{{
+            client.player.data.storeActs[pos].e === 'combine' ? '三连' : '进场'
+          }}</v-btn
         >
         <v-btn
-          :disabled="model || !client.player.can_buy_enter(card)"
-          variant="text"
-          v-else
+          :disabled="model || !client.player.data.storeActs[pos].vE"
+          variant="flat"
           @click="
             client.requestStore({
-              act: 'enter',
-              pos,
-            })
-          "
-          >购买</v-btn
-        >
-        <v-btn
-          :disabled="model || !client.player.can_buy_cache(card)"
-          variant="text"
-          @click="
-            client.requestStore({
-              act: 'cache',
+              act: client.player.data.storeActs[pos].v,
               pos,
             })
           "
