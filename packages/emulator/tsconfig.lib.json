@@ -5,10 +5,10 @@
     "module": "commonjs",
     "declaration": true,
     "incremental": true,
-    "outDir": "../../node_modules/@sctavern-emulator/emulator",
+    "outDir": "./dist/",
     "tsBuildInfoFile": "../../tmp/buildcache/data",
     "types": ["node"],
   },
-  "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts"],
+  "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts", "dist"],
   "include": ["**/*.ts"]
 }

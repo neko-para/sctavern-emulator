@@ -1,6 +1,6 @@
 {
     "name": "@sctavern-emulator/data",
-    "main": "./src/index.ts",
+    "main": "./src/index.js",
     "scripts": {
         "prebuild": "node generate.js pubdata.ts"
     },
@@ -12,5 +12,6 @@
     "dependencies": {
         "@ltd/j-toml": "*",
         "ahocorasick-ts": "*"
-    }
+    },
+    "type": "module"
 }

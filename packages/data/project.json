@@ -9,7 +9,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "packages/data/src",
-        "command": "node generate.js pubdata.ts"
+        "command": "node scripts/generate.js pubdata.ts"
       }
     },
     "build": {
@@ -17,7 +17,7 @@
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/data",
+        "outputPath": "packages/data/dist",
         "tsConfig": "packages/data/tsconfig.lib.json",
         "packageJson": "packages/data/package.json",
         "main": "packages/data/src/index.ts",

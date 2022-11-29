@@ -9,7 +9,7 @@
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/emulator",
+        "outputPath": "packages/emulator/dist",
         "tsConfig": "packages/emulator/tsconfig.lib.json",
         "packageJson": "packages/emulator/package.json",
         "main": "packages/emulator/src/index.ts",
