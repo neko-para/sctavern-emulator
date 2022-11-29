@@ -1193,10 +1193,7 @@ export class Player {
   }
 
   can_buy_enter(ck: CardKey) {
-    return (
-      this.data.mineral >= this.cost_of(ck) &&
-      this.present.filter(isNotCardInstance).length > 0
-    )
+    return this.data.mineral >= this.cost_of(ck) && this.can_hand_enter()
   }
 
   can_buy_cache(ck: CardKey) {
@@ -1211,11 +1208,16 @@ export class Player {
   }
 
   can_hand_enter() {
-    return this.present.filter(isNotCardInstance).length > 0
+    return this.data.present.filter(c => !isCardInstanceAttrib(c)).length > 0
   }
 
   can_hand_combine(ck: CardKey) {
-    return this.find_name(ck).filter(c => c.data.color === 'normal').length >= 2
+    return (
+      this.data.present
+        .filter(isCardInstanceAttrib)
+        .filter(card => card.name === ck)
+        .filter(c => c.color === 'normal').length >= 2
+    )
   }
 
   can_pres_upgrade(c: CardInstanceAttrib) {
