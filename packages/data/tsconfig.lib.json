@@ -2,10 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "module": "commonjs",
+    "module": "ES2015",
     "declaration": true,
     "incremental": true,
-    "outDir": "./dist/",
+    "outDir": "./src",
     "tsBuildInfoFile": "../../tmp/buildcache/data",
     "types": ["node"]
   },

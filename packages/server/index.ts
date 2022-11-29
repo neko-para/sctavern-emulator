@@ -1,4 +1,4 @@
-import { Adapter, LogItem, InputBus, MasterGame } from 'emulator'
+import { Adapter, LogItem, InputBus, MasterGame } from '@sctavern-emulator/emulator'
 import { WebSocketServer, WebSocket } from 'ws'
 
 class ServerAdapter implements Adapter {

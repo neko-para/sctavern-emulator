@@ -5,5 +5,15 @@ import { CardInstance, type CardInstanceAttrib } from './card'
 import { Shuffler } from './utils'
 import { Client, Adapter, SlaveGame, MasterGame, LocalGame } from './client'
 
-export type { LogItem, GameReplay, GameConfig }
-export { Game, Player, CardInstance, Shuffler, Client, LocalGame }
+export type { LogItem, GameReplay, GameConfig, InputBus, CardInstanceAttrib }
+export {
+  Game,
+  Player,
+  CardInstance,
+  Shuffler,
+  Client,
+  LocalGame,
+  Adapter,
+  SlaveGame,
+  MasterGame,
+}
