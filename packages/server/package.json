@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "run": "node --loader ts-node/esm index.ts"
+  },
   "type": "module",
   "dependencies": {
     "emulator": "*",
