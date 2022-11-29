@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { getCard, type CardKey } from '@sctavern-emulator/data'
 import type { Client } from '@sctavern-emulator/emulator'
 import TemplateRefer from './TemplateRefer.vue'
@@ -13,8 +13,9 @@ const props = defineProps<{
   client: Client
 }>()
 
-const cardInfo = props.card ? getCard(props.card) : null
-
+const cardInfo = computed(() => {
+  return props.card ? getCard(props.card) : null
+})
 const elv = ref(5)
 </script>
 
@@ -39,36 +40,27 @@ const elv = ref(5)
       </div>
       <div class="d-flex">
         <v-btn
-          :disabled="model || !client.player.can_buy_combine(card)"
+          :disabled="model || !client.player.data.storeActs[pos].eE"
           variant="flat"
-          v-if="client.player.can_hand_combine(card)"
+          :color="
+            client.player.data.storeActs[pos].e === 'combine' ? 'yellow' : ''
+          "
           @click="
             client.requestStore({
-              act: 'combine',
+              act: client.player.data.storeActs[pos].e,
               pos,
             })
           "
-          color="yellow"
-          >三连</v-btn
+          >{{
+            client.player.data.storeActs[pos].e === 'combine' ? '三连' : '进场'
+          }}</v-btn
         >
         <v-btn
-          :disabled="model || !client.player.can_buy_enter(card)"
-          variant="text"
-          v-else
+          :disabled="model || !client.player.data.storeActs[pos].vE"
+          variant="flat"
           @click="
             client.requestStore({
-              act: 'enter',
-              pos,
-            })
-          "
-          >购买</v-btn
-        >
-        <v-btn
-          :disabled="model || !client.player.can_buy_cache(card)"
-          variant="text"
-          @click="
-            client.requestStore({
-              act: 'cache',
+              act: client.player.data.storeActs[pos].v,
               pos,
             })
           "

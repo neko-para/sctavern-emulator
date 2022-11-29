@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CardInstance, Client, LocalGame, type GameReplay } from '@sctavern-emulator/emulator'
-import { getRole } from '@sctavern-emulator/data'
+import {
+  Client,
+  LocalGame,
+  type CardInstanceAttrib,
+  type GameReplay,
+  SlaveGame,
+} from '@sctavern-emulator/emulator'
 import StoreItem from './StoreItemMobile.vue'
 import HandItem from './HandItemMobile.vue'
 import PresentItem from './PresentItemMobile.vue'
@@ -12,12 +17,10 @@ import {
   AllCard,
   getCard,
   type Card,
-  type CardKey,
   type UpgradeKey,
   type RoleKey,
 } from '@sctavern-emulator/data'
 import { applyConfigChange, compress, decompress } from './utils'
-import type { SlaveGame } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   pack: string[]
@@ -40,21 +43,8 @@ const game = new LocalGame({
 })
 
 class LocalClient extends Client {
-  timeout: number | null
-
   constructor(game: SlaveGame, pos: number) {
     super(game, pos)
-    this.timeout = null
-  }
-
-  async refresh() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
-    this.timeout = setTimeout(() => {
-      timeTick.value += 1
-      this.timeout = null
-    }, 1)
   }
 
   async selected(choice: string) {
@@ -92,8 +82,6 @@ const client = new LocalClient(game.slave, 0)
 
 const player = client.player
 
-const timeTick = ref(0)
-
 async function main() {
   game.master.poll()
   game.slave.poll()
@@ -127,7 +115,7 @@ function doExport() {
   expData.value = compress({
     pack: props.pack,
     seed: props.seed,
-    role: props.role,
+    role: [props.role],
     log: game.slave.game.log,
   })
   expDlg.value = true
@@ -151,7 +139,7 @@ main()
         <v-card-text
           class="d-flex justify-space-around"
           v-for="(it, i) in discoverItems"
-          :key="`Discover-Item-${i}-${timeTick}`"
+          :key="`Discover-Item-${i}`"
         >
           <discover-item
             class="mr-2"
@@ -169,13 +157,13 @@ main()
       </v-card>
     </v-dialog>
 
-    <div class="d-flex flex-column" :key="`Info-${timeTick}`">
+    <div class="d-flex flex-column" :key="`Info`">
       <div class="d-flex justify-space-between">
         <div class="d-flex flex-column">
           <span
             >回合 {{ game.slave.game.data.round }} 等级
             {{ player.data.level }} 升级 {{ player.data.upgrade_cost }} 总价值
-            {{ player.value() }}</span
+            {{ player.data.value }}</span
           >
           <span
             >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
@@ -183,9 +171,15 @@ main()
           >
         </div>
         <v-btn
-          :disabled="model || !player.can_use_ability()"
+          :disabled="model || !player.data.ability.enable"
+          :color="player.data.ability.enpower ? 'white' : ''"
           @click="client.requestAbility()"
-          >{{ getRole(role).ability }}</v-btn
+          >{{ player.data.ability.name
+          }}{{
+            player.data.ability.progress_cur !== -1
+              ? ` ${player.data.ability.progress_cur} / ${player.data.ability.progress_max}`
+              : ''
+          }}</v-btn
         >
       </div>
       <div class="d-flex">
@@ -307,8 +301,8 @@ main()
     <div class="grid23 mt-2">
       <store-item
         class="mb-2"
-        v-for="(s, i) in player.store"
-        :key="`Store-Item-${i}-${timeTick}`"
+        v-for="(s, i) in player.data.store"
+        :key="`Store-Item-${i}`"
         :card="s"
         :model="model"
         :pos="i"
@@ -319,8 +313,8 @@ main()
     <div class="grid23 mt-1">
       <hand-item
         class="mb-2"
-        v-for="(h, i) in player.hand"
-        :key="`Hand-Item-${i}-${timeTick}`"
+        v-for="(h, i) in player.data.hand"
+        :key="`Hand-Item-${i}`"
         :card="h"
         :model="model"
         :pos="i"
@@ -330,10 +324,7 @@ main()
     </div>
     <div class="d-flex mt-1">
       <div class="d-flex flex-column">
-        <div
-          v-for="(p, i) in player.present"
-          :key="`Present-Item-${i}-${timeTick}`"
-        >
+        <div v-for="(p, i) in player.data.present" :key="`Present-Item-${i}`">
           <present-item
             class="mb-2"
             :card="p"
@@ -347,21 +338,18 @@ main()
       </div>
       <template
         v-if="
-          selected[0] === 'P' && player.present[Number(selected.substring(1))]
+          selected[0] === 'P' &&
+          player.data.present[Number(selected.substring(1))]
         "
       >
         <present-item-info
-          :card="player.present[Number(selected.substring(1))] as CardInstance"
+          :card="player.data.present[Number(selected.substring(1))] as CardInstanceAttrib"
           :model="model"
           :pos="Number(selected.substring(1))"
           :client="client"
-          :key="`Present-Item-Open-${timeTick}`"
+          :key="`Present-Item-Open`"
         ></present-item-info>
       </template>
-      <div
-        v-for="(p, i) in player.present"
-        :key="`Present-Item-${i}-${timeTick}`"
-      ></div>
     </div>
   </div>
 </template>

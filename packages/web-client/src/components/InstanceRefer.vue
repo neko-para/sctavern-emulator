@@ -2,7 +2,7 @@
 import type { CardInstance } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
-  card: CardInstance
+  card: CardInstanceAttrib
 }>()
 </script>
 
@@ -13,7 +13,7 @@ const props = defineProps<{
     </template>
     <div class="d-flex flex-column">
       <pre>{{
-        card.data.descs
+        card.descs
           .map(v => v.text[v.gold ? 1 : 0].replace(/<([^>]+?)>/g, '$1'))
           .join('\n')
       }}</pre>

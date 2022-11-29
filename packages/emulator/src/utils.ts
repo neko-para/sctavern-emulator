@@ -1,6 +1,6 @@
 import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
-import { CardInstance } from './card'
+import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
 import { DescriptorGenerator, LogicBus } from './types'
 
@@ -24,7 +24,7 @@ export class Shuffler {
 export function refC(card: CardInstance, direct = false) {
   return {
     player: card.player.pos,
-    card: direct ? card.bus : card.pos,
+    card: direct ? card.bus : card.data.pos,
   }
 }
 
@@ -37,6 +37,12 @@ export function refP(player: Player) {
 export function isCardInstance(
   card: CardInstance | null
 ): card is CardInstance {
+  return !!card
+}
+
+export function isCardInstanceAttrib(
+  card: CardInstanceAttrib | null
+): card is CardInstanceAttrib {
   return !!card
 }
 

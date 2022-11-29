@@ -2,8 +2,11 @@
 import type { RoleKey } from '@sctavern-emulator/data'
 import LocalGame from './components/LocalGame.vue'
 import LocalGameMobile from './components/LocalGameMobile.vue'
+import RemoteGame from './components/RemoteGame.vue'
 
 const params = new URLSearchParams(window.location.search.substring(1))
+
+const pos = params.get('pos') !== null ? Number(params.get('pos')) : null
 
 const packs = params.get('pack')?.split(',') || ['核心']
 const seed =
@@ -22,7 +25,10 @@ const mobile =
 
 <template>
   <div class="d-flex h-100">
-    <template v-if="!mobile">
+    <template v-if="pos !== null">
+      <remote-game target="ws://localhost:8080" :pos="pos"></remote-game>
+    </template>
+    <template v-else-if="!mobile">
       <local-game
         :pack="packs"
         :seed="seed"

@@ -134,7 +134,7 @@ const data: CardDescriptorTable = {
       await card
         .left()
         ?.obtain_unit(
-          us('毁灭者', Math.min(card.data.attrib.get('dark'), gold ? 30 : 10))
+          us('毁灭者', Math.min(card.attrib.get('dark'), gold ? 30 : 10))
         )
     }),
   ],
@@ -166,7 +166,6 @@ const data: CardDescriptorTable = {
       for (const c of card.around()) {
         c.set_void()
       }
-      await card.player.refresh()
     }),
   ],
   黑暗预兆: [
@@ -201,8 +200,8 @@ const data: CardDescriptorTable = {
       for (const c of card.player.present
         .filter(isCardInstance)
         .filter(c => c.data.level <= 4)
-        .filter(c => 'dark' in c.data.attrib.attrib)) {
-        const cd = c.data.attrib.get('dark')
+        .filter(c => 'dark' in c.attrib.attrib)) {
+        const cd = c.attrib.get('dark')
         d += cd
         await c.gain_darkness(-cd)
       }
@@ -213,7 +212,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(
         us(
           '天罚行者',
-          2 * Math.min(2, Math.floor(card.data.attrib.get('dark') / 10))
+          2 * Math.min(2, Math.floor(card.attrib.get('dark') / 10))
         )
       )
     }),
@@ -242,21 +241,21 @@ const data: CardDescriptorTable = {
           return
         }
         if (card.player.data.mineral >= 1) {
-          card.player.data.persisAttrib.config('德哈卡', 1)
+          card.player.persisAttrib.config('德哈卡', 1)
         }
       })
       card.bus.on('round-start', async () => {
         if (ret.disabled) {
           return
         }
-        if (card.player.data.persisAttrib.get('德哈卡')) {
+        if (card.player.persisAttrib.get('德哈卡')) {
           await card.player.discover(
             card.player.game.pool.discover(
               c => !!c.attr.origin && c.level < 5,
               3
             )
           )
-          await card.player.data.persisAttrib.set('德哈卡', 0)
+          await card.player.persisAttrib.set('德哈卡', 0)
         }
       })
       cleaner = card.bus.end()
@@ -270,9 +269,9 @@ const data: CardDescriptorTable = {
         if (
           left.data.level >= 1 &&
           left.data.level <= 6 &&
-          left.occupy.length > 0
+          left.data.occupy.length > 0
         ) {
-          await card.player.obtain_card(getCard(left.occupy[0]))
+          await card.player.obtain_card(getCard(left.data.occupy[0]))
         }
         await left.seize(card)
         await left.obtain_upgrade('星空加速')
@@ -296,7 +295,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async card => {
       for (const c of card.player.present
         .filter(isCardInstance)
-        .filter(c => c.pos > card.pos)) {
+        .filter(c => c.data.pos > card.data.pos)) {
         c.set_void()
       }
     }),
@@ -340,7 +339,6 @@ const data: CardDescriptorTable = {
       const around = [card.left(), card.right()]
         .filter(isCardInstance)
         .filter(c => c.data.name === '凯瑞甘')
-      console.log(around)
       if (around.length > 0) {
         await around[0].clear_desc()
         around[0].data.name = '刀锋女王'
@@ -411,8 +409,8 @@ const data: CardDescriptorTable = {
       let maxi = 0
       let exp: CardInstance | null = null
       for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.value() > maxi) {
-          maxi = c.value()
+        if (c.data.value > maxi) {
+          maxi = c.data.value
           exp = c
         }
       }
@@ -435,8 +433,8 @@ const data: CardDescriptorTable = {
       let mini = 9999999
       let exp: CardInstance | null = null
       for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.value() < mini) {
-          mini = c.value()
+        if (c.data.value < mini) {
+          mini = c.data.value
           exp = c
         }
       }
@@ -463,7 +461,7 @@ const data: CardDescriptorTable = {
         await card.player.destroy(ps[0])
         for (const c of card.player.present
           .filter(isCardInstance)
-          .filter(c => c.data.attrib.get('void'))) {
+          .filter(c => c.attrib.get('void'))) {
           await c.obtain_unit(us('混合体毁灭者', gold ? 3 : 2))
         }
       }
@@ -500,7 +498,7 @@ const data: CardDescriptorTable = {
         if (ret.disabled) {
           return
         }
-        for (const c of card.player.store.filter(
+        for (const c of card.player.data.store.filter(
           c => c !== null
         ) as CardKey[]) {
           const units = getCard(c).unit

@@ -44,14 +44,18 @@ export class Emitter<Msg extends Record<string, object>> {
     this.func[msg] = this.func[msg]?.filter(f => f !== func) || []
   }
 
-  private getTran(param: any) {
-    const sub = param[this.tran] as number | Emitter<Msg> | undefined
-    if (typeof sub === 'number') {
-      return this.child[sub] || null
-    } else if (sub instanceof Emitter<Msg>) {
-      return sub
+  private getTran(param: any): [boolean, Emitter<Msg> | null] {
+    if (this.tran in param) {
+      const sub = param[this.tran] as number | Emitter<Msg> | undefined
+      if (typeof sub === 'number') {
+        return [true, this.child[sub] || null]
+      } else if (sub instanceof Emitter<Msg>) {
+        return [true, sub]
+      } else {
+        return [true, null]
+      }
     } else {
-      return null
+      return [false, null]
     }
   }
 
@@ -59,9 +63,9 @@ export class Emitter<Msg extends Record<string, object>> {
     for (const f of this.func[msg] || []) {
       await f(param)
     }
-    const down = this.getTran(param)
-    if (down) {
-      await down.emit(msg, param)
+    const [fall, bus] = this.getTran(param)
+    if (fall) {
+      await bus?.emit(msg, param)
     } else {
       for (const c of this.child) {
         if (c) {

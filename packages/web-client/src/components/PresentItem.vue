@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CardInstance, Client } from '@sctavern-emulator/emulator'
+import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
 import { AllCard, type CardKey } from '@sctavern-emulator/data'
 import type { UnitKey } from '@sctavern-emulator/data'
 import TemplateRefer from './TemplateRefer.vue'
@@ -8,7 +8,7 @@ import InstanceRefer from './InstanceRefer.vue'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  card: CardInstance | null
+  card: CardInstanceAttrib | null
   model: boolean
   pos: number
   insert: boolean
@@ -20,7 +20,7 @@ const allUnit = computed(() => {
   const us: {
     [u in UnitKey]?: number
   } = {}
-  props.card?.data.units.forEach(u => {
+  props.card?.units.forEach(u => {
     us[u] = (us[u] || 0) + 1
   })
   return Object.keys(us).map(u => `${u}: ${us[u as UnitKey]}`)
@@ -39,7 +39,7 @@ const elv = ref(5)
   <v-card
     id="presentItemRoot"
     class="d-flex flex-column space-between"
-    :color="card ? Color[card.data.color] : 'white'"
+    :color="card ? Color[card.color] : 'white'"
     :elevation="elv"
     :class="{
       selected: selected,
@@ -50,31 +50,31 @@ const elv = ref(5)
   >
     <template v-if="card">
       <div class="d-flex">
-        <race-icon class="mt-1" :race="card.data.race"></race-icon>
+        <race-icon class="mt-1" :race="card.race"></race-icon>
         <template-refer
-          v-if="AllCard.includes(card.data.name as CardKey)"
-          :card="card.data.name as CardKey"
+          v-if="AllCard.includes(card.name as CardKey)"
+          :card="card.name as CardKey"
         ></template-refer>
-        <span v-else class="text-h5 mt-2">{{ card.data.name }}</span>
+        <span v-else class="text-h5 mt-2">{{ card.name }}</span>
         <div class="ml-auto"></div>
         <instance-refer :card="card"></instance-refer>
-        <span class="text-h5 ml-1 mt-2 mr-2">{{ card.data.level }}</span>
+        <span class="text-h5 ml-1 mt-2 mr-2">{{ card.level }}</span>
       </div>
       <div class="d-flex ma-1">
-        <span class="text-h5">{{ card.value() }}</span>
+        <span class="text-h5">{{ card.value }}</span>
       </div>
       <div class="d-flex">
         <div class="d-flex flex-column">
           <span
             class="mx-1"
-            v-for="(a, i) in card.attribs()"
+            v-for="(a, i) in props.card?.attribs"
             :key="`Attrib-${i}`"
           >
             {{ a }}
           </span>
         </div>
         <div class="d-flex flex-column ml-auto mr-1">
-          <span v-for="(u, i) in card.data.upgrades" :key="`Upgrade-${i}`">{{
+          <span v-for="(u, i) in card.upgrades" :key="`Upgrade-${i}`">{{
             u
           }}</span>
         </div>
@@ -87,8 +87,8 @@ const elv = ref(5)
           <v-tooltip location="top">
             <template v-slot:activator="{ props: p }">
               <span style="cursor: pointer" v-bind="p"
-                >{{ card.data.units.length }} /
-                {{ client.player.config.MaxUnitPerCard }}</span
+                >{{ card.units.length }} /
+                {{ client.player.data.config.MaxUnitPerCard }}</span
               >
             </template>
             <pre>{{ allUnit.join('\n') }}</pre>
@@ -97,22 +97,22 @@ const elv = ref(5)
       </div>
       <div class="d-flex">
         <v-btn
-          :disabled="model || !client.player.can_pres_upgrade(card)"
+          :disabled="model || !client.player.data.presentActs[pos].gE"
           variant="text"
           @click="
             client.requestPresent({
-              act: 'upgrade',
+              act: client.player.data.presentActs[pos].g,
               pos,
             })
           "
           >升级</v-btn
         >
         <v-btn
-          :disabled="model"
+          :disabled="model || !client.player.data.presentActs[pos].sE"
           variant="text"
           @click="
             client.requestPresent({
-              act: 'sell',
+              act: client.player.data.presentActs[pos].s,
               pos,
             })
           "

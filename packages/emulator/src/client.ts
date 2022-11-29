@@ -7,7 +7,6 @@ import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
 interface ClientRespond {
   pos: number
 
-  refresh(): Promise<void>
   selected(choice: string): Promise<void>
   begin_discover(item: (Card | UpgradeKey)[], cancel: boolean): Promise<void>
   end_discover(): Promise<void>
@@ -45,7 +44,7 @@ class LogQueue {
   }
 }
 
-interface Adapter {
+export interface Adapter {
   onPosted: (item: LogItem) => void
 
   post<T extends keyof InputBus>(msg: T, param: InputBus[T]): Promise<void>
@@ -78,7 +77,6 @@ export class SlaveGame {
     const bus = new Emitter<OutputBus>('', [])
     this.game.obus.child[client.pos] = bus
 
-    bus.on('refresh', () => client.refresh())
     bus.on('selected', ({ choice }) => client.selected(choice))
     bus.on('begin-discover', ({ item, cancel }) =>
       client.begin_discover(item, cancel)
@@ -93,7 +91,7 @@ export class SlaveGame {
   }
 }
 
-class MasterGame {
+export class MasterGame {
   adapter: Adapter[]
   queue: LogQueue
 
@@ -213,8 +211,6 @@ export class Client implements ClientRespond {
     }
   }
 
-  async refresh() {}
-
   async selected(choice: string) {}
 
   async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {}
@@ -234,7 +230,6 @@ export class Client implements ClientRespond {
     step: () => Promise<boolean> = async () => false
   ) {
     this.replayLog = replay.log
-    console.log(replay)
     this.replayPos = 0
     this.step = async () => {
       this.stop = await step()

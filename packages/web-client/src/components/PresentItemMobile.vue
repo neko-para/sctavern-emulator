@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { CardInstance, Client } from '@sctavern-emulator/emulator'
-import { tr } from '@sctavern-emulator/data'
+import { tr } from 'data'
 
 const props = defineProps<{
-  card: CardInstance | null
+  card: CardInstanceAttrib | null
   model: boolean
   pos: number
   insert: boolean
@@ -22,7 +22,7 @@ const Color = {
   <v-card
     id="presentItemRoot"
     class="d-flex align-center"
-    :color="card ? Color[card.data.color] : 'white'"
+    :color="card ? Color[card.color] : 'white'"
     elevation="5"
     :class="{
       selected: selected,
@@ -31,8 +31,8 @@ const Color = {
   >
     <div class="d-flex mx-1 w-100">
       <template v-if="card">
-        <span>{{ card.data.race }}{{ card.data.level }}</span>
-        <span class="ml-1">{{ card.data.name }}</span>
+        <span>{{ card.race }}{{ card.level }}</span>
+        <span class="ml-1">{{ card.name }}</span>
       </template>
       <v-btn
         class="ml-auto"

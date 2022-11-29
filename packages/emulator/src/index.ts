@@ -1,9 +1,9 @@
-import type { GameConfig } from './types'
+import type { GameConfig, InputBus } from './types'
 import { Game, type LogItem, type GameReplay } from './game'
 import { Player } from './player'
-import { CardInstance } from './card'
+import { CardInstance, type CardInstanceAttrib } from './card'
 import { Shuffler } from './utils'
-import { Client, LocalGame, SlaveGame } from './client'
+import { Client, Adapter, SlaveGame, MasterGame, LocalGame } from './client'
 
 export type { LogItem, GameReplay, GameConfig }
-export { Game, Player, CardInstance, Shuffler, Client, LocalGame, SlaveGame }
+export { Game, Player, CardInstance, Shuffler, Client, LocalGame }

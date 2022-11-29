@@ -5,7 +5,10 @@ import {
   LocalGame,
   type GameReplay,
   SlaveGame,
-} from '@sctavern-emulator/emulator'
+  type Adapter,
+  type InputBus,
+  type LogItem,
+} from 'emulator'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
@@ -18,14 +21,12 @@ import {
   type CardKey,
   type UpgradeKey,
   type RoleKey,
-} from '@sctavern-emulator/data'
+} from 'data'
 import { applyConfigChange, compress, decompress } from './utils'
 
 const props = defineProps<{
-  pack: string[]
-  seed: string
-  role: RoleKey
-  replay: string | null
+  target: string
+  pos: number
 }>()
 
 const model = ref(false)
@@ -35,11 +36,40 @@ const selected = ref('none')
 const discoverItems = ref<(Card | UpgradeKey)[]>([])
 const discoverCancel = ref(false)
 
-const game = new LocalGame({
-  pack: props.pack,
-  seed: props.seed,
-  role: [props.role],
-})
+class ClientAdapter implements Adapter {
+  onPosted: (item: LogItem) => void
+  sock: WebSocket
+
+  async post<T extends keyof InputBus>(msg: T, param: InputBus[T]) {
+    this.sock.send(
+      JSON.stringify({
+        msg,
+        param,
+      })
+    )
+  }
+
+  constructor(url: string = 'ws://localhost:8080') {
+    this.onPosted = () => {}
+
+    this.sock = new WebSocket(url)
+    this.sock.addEventListener('open', () => {
+      game.game.start()
+    })
+    this.sock.addEventListener('message', ({ data }) => {
+      this.onPosted(JSON.parse(data) as LogItem)
+    })
+  }
+}
+
+const game = new SlaveGame(
+  {
+    pack: ['核心'],
+    seed: '1',
+    role: ['SCV', '副官'],
+  },
+  new ClientAdapter()
+)
 
 class LocalClient extends Client {
   constructor(game: SlaveGame, pos: number) {
@@ -77,23 +107,12 @@ class LocalClient extends Client {
   }
 }
 
-const client = new LocalClient(game.slave, 0)
+const client = new LocalClient(game, props.pos)
 
 const player = client.player
 
 async function main() {
-  game.master.poll()
-  game.slave.poll()
-  await game.slave.game.start()
-  if (props.replay) {
-    const obj = decompress(props.replay) as GameReplay
-    await client.replay(obj, async () => {
-      await new Promise(resolve => {
-        setTimeout(resolve, 100)
-      })
-      return false
-    })
-  }
+  game.poll()
 }
 
 const obtainCardDlg = ref(false)
@@ -106,7 +125,7 @@ const obtainCardChoice = computed(() => {
 })
 
 function handleKey(ev: KeyboardEvent) {
-  if (model.value || expDlg.value || impDlg.value || obtainCardDlg.value) {
+  if (model.value || obtainCardDlg.value) {
     return
   }
   switch (ev.key) {
@@ -212,27 +231,6 @@ function handleKey(ev: KeyboardEvent) {
   }
 }
 
-const expDlg = ref(false)
-const expData = ref('')
-
-function doExport() {
-  expData.value = compress({
-    pack: props.pack,
-    seed: props.seed,
-    role: [props.role],
-    log: game.slave.game.log,
-  })
-  expDlg.value = true
-}
-
-const impDlg = ref(false)
-const impData = ref('')
-
-function doImport() {
-  const obj = decompress(impData.value) as GameReplay
-  applyConfigChange(obj, impData.value)
-}
-
 document.onkeydown = handleKey
 
 main()
@@ -243,14 +241,17 @@ main()
     <div class="d-flex">
       <div class="d-flex flex-column text-h6" :key="`Info`">
         <span
-          >回合 {{ game.slave.game.data.round }} 等级
-          {{ player.data.level }} 升级 {{ player.data.upgrade_cost }} 总价值
-          {{ player.data.value }}</span
+          >回合 {{ player.game.data.round }} 等级 {{ player.data.level }} 升级
+          {{ player.data.upgrade_cost }} 总价值 {{ player.data.value }}</span
         >
         <span
           >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
           {{ player.data.gas }} / 6</span
         >
+        <span>
+          {{ game.game.player[0].data.value }},
+          {{ game.game.player[1].data.value }}
+        </span>
         <div class="d-flex">
           <v-btn
             class="mr-1"
@@ -325,33 +326,6 @@ main()
           >
         </div>
         <div class="d-flex mt-1">
-          <v-dialog v-model="expDlg" class="w-50">
-            <v-card>
-              <v-card-title>导出</v-card-title>
-              <v-card-text>
-                <v-textarea
-                  readonly
-                  hide-details
-                  v-model="expData"
-                ></v-textarea>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
-          <v-btn :disabled="model" @click="doExport()">导出</v-btn>
-          <v-dialog v-model="impDlg" class="w-50">
-            <template v-slot:activator="{ props }">
-              <v-btn class="ml-1" v-bind="props" :disabled="model">导入</v-btn>
-            </template>
-            <v-card>
-              <v-card-title>导入</v-card-title>
-              <v-card-text>
-                <v-textarea hide-details v-model="impData"></v-textarea>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn @click="doImport()">导入</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
           <v-btn
             class="ml-1"
             :disabled="model || !player.data.ability.enable"

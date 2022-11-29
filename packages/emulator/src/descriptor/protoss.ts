@@ -20,7 +20,7 @@ function 集结X(
   return (card, gold, text) => {
     card.bus.begin()
     card.bus.on('round-end', async () => {
-      const n = Math.min(2, Math.floor(card.power() / power))
+      const n = Math.min(2, Math.floor(card.data.power / power))
       for (let i = 0; i < n; i++) {
         await card.post('regroup', {
           ...refC(card),
@@ -99,9 +99,7 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.setView('折跃信标', () =>
-        ret.disabled ? '停用' : '启用'
-      )
+      card.attrib.setView('折跃信标', () => (ret.disabled ? '停用' : '启用'))
       card.bus.begin()
       card.bus.on('wrap', async param => {
         if (ret.disabled) {
@@ -140,7 +138,7 @@ const data: CardDescriptorTable = {
     }),
     集结(3, '黑暗圣堂武士', 1, 2),
     autoBind('round-end', async card => {
-      if (card.power() >= 6) {
+      if (card.data.power >= 6) {
         await card.obtain_unit(['黑暗圣堂武士'])
       }
     }),
@@ -195,7 +193,7 @@ const data: CardDescriptorTable = {
     }),
     集结(5, '执政官', 1, 2, 'wrap'),
     autoBind('round-end', async card => {
-      if (card.power() >= 15) {
+      if (card.data.power >= 15) {
         await card.player.wrap(['执政官(精英)'])
       }
     }),
@@ -203,13 +201,13 @@ const data: CardDescriptorTable = {
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
   尤尔兰: [
     (card, gold, text) => {
-      card.data.attrib.config('供能', gold ? 8 : 5)
+      card.attrib.config('供能', gold ? 8 : 5)
       return {
         text,
         gold,
 
         unbind() {
-          card.data.attrib.set('供能', 0)
+          card.attrib.set('供能', 0)
         },
       }
     },
@@ -240,11 +238,9 @@ const data: CardDescriptorTable = {
           cleaner()
         },
       }
-      card.data.attrib.config('光复艾尔', 1, 'max')
-      card.data.attrib.setView(
-        '光复艾尔',
-        v => (v ? (ret.disabled ? '停用' : '启用') : '禁用'),
-        '光复艾尔'
+      card.attrib.config('光复艾尔', 1, 'max')
+      card.attrib.setView('光复艾尔', () =>
+        card.attrib.get('光复艾尔') ? (ret.disabled ? '停用' : '启用') : '禁用'
       )
       card.bus.begin()
       card.bus.on('card-selled', async param => {
@@ -264,12 +260,12 @@ const data: CardDescriptorTable = {
             .filter(u => isNormal(u) || u === '水晶塔')
             .filter(u => gold || !isHero(u))
         )
-        card.data.attrib.set('光复艾尔', 0)
+        card.attrib.set('光复艾尔', 0)
         ret.manualDisable = true
         await card.player.resort_unique('光复艾尔')
       })
       card.bus.on('obtain-upgrade', async () => {
-        card.data.attrib.set('光复艾尔', 1)
+        card.attrib.set('光复艾尔', 1)
         ret.manualDisable = false
         await card.player.resort_unique('光复艾尔')
       })
@@ -312,7 +308,7 @@ const data: CardDescriptorTable = {
       await card.player.wrap(
         us(
           '巨像(精英)',
-          (gold ? 2 : 1) * Math.min(2, Math.floor(card.power() / 7))
+          (gold ? 2 : 1) * Math.min(2, Math.floor(card.data.power / 7))
         )
       )
     }),
@@ -404,7 +400,7 @@ const data: CardDescriptorTable = {
   ],
   六脉神剑: [
     autoBind('card-entered', async (card, gold) => {
-      if (card.find('先知').length < card.power()) {
+      if (card.find('先知').length < card.data.power) {
         card.player.wrap(us('先知', gold ? 2 : 1))
       }
     }),

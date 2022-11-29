@@ -1,9 +1,11 @@
+import { computed, ComputedRef, reactive } from '@vue/reactivity'
 import {
   AllCard,
   AllUpgrade,
   Card,
   CardKey,
   getCard,
+  getRole,
   getUpgrade,
   isNormal,
   Race,
@@ -14,7 +16,7 @@ import {
 } from '@sctavern-emulator/data'
 // import { RoleKey } from 'data'
 import { AttributeManager } from './attribute'
-import { CardInstance } from './card'
+import { CardInstance, CardInstanceAttrib } from './card'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
@@ -22,13 +24,35 @@ import { Descriptor, LogicBus, PlayerConfig } from './types'
 import {
   autoBind,
   isCardInstance,
+  isCardInstanceAttrib,
   isNotCardInstance,
   refC,
   refP,
   us,
 } from './utils'
 
-interface PlayerAttrib {
+interface StoreAct {
+  e: 'enter' | 'combine'
+  eE: boolean
+  v: 'cache'
+  vE: boolean
+}
+
+interface HandAct {
+  e: 'enter' | 'combine'
+  eE: boolean
+  s: 'sell'
+  sE: boolean
+}
+
+interface PresentAct {
+  g: 'upgrade'
+  gE: boolean
+  s: 'sell'
+  sE: boolean
+}
+
+export interface PlayerAttrib {
   level: number
   upgrade_cost: number
 
@@ -39,8 +63,25 @@ interface PlayerAttrib {
   selected: string
   locked: boolean
 
-  attrib: AttributeManager
-  persisAttrib: AttributeManager
+  config: PlayerConfig
+
+  store: (CardKey | null)[]
+  storeActs: StoreAct[]
+  hand: (CardKey | null)[]
+  handActs: HandAct[]
+  present: (CardInstanceAttrib | null)[]
+  presentActs: PresentAct[]
+
+  ability: {
+    name: string
+    progress_cur: number
+    progress_max: number
+    enable: boolean
+    enpower: boolean
+  }
+
+  value: number
+  first_hole: number
 }
 
 interface UniqueDescInfo {
@@ -54,15 +95,14 @@ export class Player {
   role: RoleKey
   pos: number
 
-  data: PlayerAttrib
+  readonly data: PlayerAttrib
 
-  store: (CardKey | null)[]
-  hand: (CardKey | null)[]
   present: (CardInstance | null)[]
 
-  unique: Record<string, UniqueDescInfo[]> // 唯一
+  unique: Record<string, UniqueDescInfo[]>
 
-  config: PlayerConfig
+  attrib: AttributeManager
+  persisAttrib: AttributeManager
 
   insertResolve: ((v: number) => void) | null
   discoverResolve: ((v: number) => void) | null
@@ -72,7 +112,7 @@ export class Player {
     this.game = game
     this.role = role
     this.pos = pos
-    this.data = {
+    this.data = reactive({
       level: 1,
       upgrade_cost: 6,
       mineral: 0,
@@ -82,27 +122,128 @@ export class Player {
       selected: 'none',
       locked: false,
 
-      attrib: new AttributeManager(() => this.refresh()),
-      persisAttrib: new AttributeManager(() => this.refresh()),
-    }
+      config: {
+        MaxUnitPerCard: 200,
+        MaxUpgradePerCard: 5,
+        AlwaysInsert: role === '收割者',
 
-    this.store = Array(3).fill(null)
-    this.hand = Array(6).fill(null)
+        StoreCount: [0, 3, 4, 4, 5, 5, 6],
+        UpgradeCost: [0, 5, 7, 8, 9, 11, 0],
+
+        MaxMineral: 10,
+        MaxGas: 6,
+      },
+
+      store: Array(3).fill(null),
+      storeActs: computed<StoreAct[]>(() => {
+        return this.data.store.map(k => {
+          if (!k) {
+            return {
+              e: 'enter',
+              eE: false,
+              v: 'cache',
+              vE: false,
+            }
+          } else {
+            if (this.can_hand_combine(k)) {
+              return {
+                e: 'combine',
+                eE: this.can_buy_combine(k),
+                v: 'cache',
+                vE: this.can_buy_cache(k),
+              }
+            } else {
+              return {
+                e: 'enter',
+                eE: this.can_buy_enter(k),
+                v: 'cache',
+                vE: this.can_buy_cache(k),
+              }
+            }
+          }
+        })
+      }),
+      hand: Array(6).fill(null),
+      handActs: computed<HandAct[]>(() => {
+        return this.data.hand.map(k => {
+          if (!k) {
+            return {
+              e: 'enter',
+              eE: false,
+              s: 'sell',
+              sE: false,
+            }
+          } else {
+            if (this.can_hand_combine(k)) {
+              return {
+                e: 'combine',
+                eE: true,
+                s: 'sell',
+                sE: true,
+              }
+            } else {
+              return {
+                e: 'enter',
+                eE: this.can_hand_enter(),
+                s: 'sell',
+                sE: true,
+              }
+            }
+          }
+        })
+      }),
+      present: Array(7).fill(null),
+      presentActs: computed<PresentAct[]>(() => {
+        return this.data.present.map(ca => {
+          if (!ca) {
+            return {
+              g: 'upgrade',
+              gE: false,
+              s: 'sell',
+              sE: false,
+            }
+          } else {
+            return {
+              g: 'upgrade',
+              gE: this.can_pres_upgrade(ca),
+              s: 'sell',
+              sE: true,
+            }
+          }
+        })
+      }),
+
+      ability: {
+        name: '',
+        progress_cur: -1,
+        progress_max: 0,
+        enable: computed(() => {
+          return this.can_use_ability()
+        }),
+        enpower: false,
+      },
+
+      value: computed(() => {
+        return this.data.present
+          .filter(isCardInstanceAttrib)
+          .map(c => c.value)
+          .reduce((a, b) => a + b, 0)
+      }),
+      first_hole: computed(() => {
+        const place = this.data.present
+          .map((c, i) => [c, i] as [CardInstanceAttrib, number])
+          .filter(([c]) => !isCardInstanceAttrib(c))
+          .map(([c, i]) => i)
+        return place.length > 0 ? place[0] : -1
+      }),
+    })
+
     this.present = Array(7).fill(null)
 
     this.unique = {}
 
-    this.config = {
-      MaxUnitPerCard: 200,
-      MaxUpgradePerCard: 5,
-      AlwaysInsert: role === '收割者',
-
-      StoreCount: [0, 3, 4, 4, 5, 5, 6],
-      UpgradeCost: [0, 5, 7, 8, 9, 11, 0],
-
-      MaxMineral: 10,
-      MaxGas: 6,
-    }
+    this.attrib = new AttributeManager()
+    this.persisAttrib = new AttributeManager()
 
     this.insertResolve = null
     this.discoverResolve = null
@@ -110,9 +251,20 @@ export class Player {
     this.bind_inputs()
     this.bind_default()
 
+    this.data.ability.name = getRole(this.role).ability
+
     switch (this.role) {
+      case 'SCV':
+      case '副官':
+      case '感染虫':
+      case '执政官':
+      case '阿巴瑟':
+      case '陆战队员':
+        this.data.ability.progress_max = 1
+        break
       case '追猎者':
-        this.data.persisAttrib.config('追猎者', 0)
+        this.data.ability.progress_max = 5
+        this.persisAttrib.config('追猎者', 0)
         break
     }
   }
@@ -121,31 +273,10 @@ export class Player {
     await this.game.post(msg, param)
   }
 
-  async refresh() {
-    await this.game.postOutput('refresh', {
-      client: this.pos,
-    })
-  }
-
   find_name(name: CardKey) {
     return this.present
       .filter(isCardInstance)
       .filter(card => card.data.name === name)
-  }
-
-  value(): number {
-    return this.present
-      .filter(isCardInstance)
-      .map(c => c.value())
-      .reduce((a, b) => a + b, 0)
-  }
-
-  first_hole(): number {
-    const place = this.present
-      .map((c, i) => [c, i] as [CardInstance, number])
-      .filter(([c]) => isNotCardInstance(c))
-      .map(([c, i]) => i)
-    return place.length > 0 ? place[0] : -1
   }
 
   all_of(race: Race): CardInstance[] {
@@ -193,11 +324,10 @@ export class Player {
   async obtain_resource(resource: { mineral?: number; gas?: number }) {
     this.data.mineral += resource.mineral || 0
     this.data.gas += resource.gas || 0
-    await this.refresh()
   }
 
   async obtain_card(cardt: Card) {
-    const idx = this.hand.findIndex(x => x === null)
+    const idx = this.data.hand.findIndex(x => x === null)
     if (idx === -1) {
       if (
         this.find_name(cardt.name).filter(c => c.data.color === 'normal')
@@ -209,8 +339,7 @@ export class Player {
         await this.combine(cardt)
       }
     } else {
-      this.hand[idx] = cardt.name
-      await this.refresh()
+      this.data.hand[idx] = cardt.name
     }
   }
 
@@ -223,8 +352,8 @@ export class Player {
       from,
       units,
     })
-    for (const c of [from.left(), from.right()]) {
-      if (c?.data.race === 'Z') {
+    for (const c of from.around()) {
+      if (c.data.race === 'Z') {
         await c.obtain_unit(units, 'incubate')
       }
     }
@@ -237,7 +366,7 @@ export class Player {
     const eggs = this.find_name('虫卵')
     let egg_card: CardInstance | null = null
     if (eggs.length === 0) {
-      const hole = this.first_hole()
+      const hole = this.data.first_hole
       if (hole === -1) {
         return
       }
@@ -298,7 +427,7 @@ export class Player {
       if (!!a.desc.manualDisable !== !!b.desc.manualDisable) {
         return a.desc.manualDisable ? 1 : -1
       } else if (desc.uniqueNoGold || a.desc.gold === b.desc.gold) {
-        return a.card.pos - b.card.pos
+        return a.card.data.pos - b.card.data.pos
       } else {
         return a.desc.gold ? -1 : 1
       }
@@ -309,7 +438,6 @@ export class Player {
         d.disabled = true
       })
     }
-    await this.refresh()
   }
 
   async add_unique(card: CardInstance, desc: Descriptor) {
@@ -346,7 +474,6 @@ export class Player {
     } else {
       data.splice(idx, 1)
     }
-    await this.refresh()
   }
 
   private async _put(card: CardInstance, pos: number) {
@@ -356,21 +483,27 @@ export class Player {
     let p = this.present.indexOf(null, pos)
     if (p !== -1) {
       for (let i = p; i > pos; i--) {
-        this.present[i] = this.present[i - 1]
-        ;(this.present[i] as CardInstance).pos = i
+        const ci = this.present[i - 1] as CardInstance
+        this.present[i] = ci
+        ci.data.pos = i
+        this.data.present[i] = ci.data
       }
       this.present[pos] = card
-      card.pos = pos
+      card.data.pos = pos
+      this.data.present[pos] = card.data
       return true
     }
     p = this.present.lastIndexOf(null)
     if (p !== -1) {
       for (let i = p; i < pos; i++) {
-        this.present[i] = this.present[i + 1]
-        ;(this.present[i] as CardInstance).pos = i
+        const ci = this.present[i + 1] as CardInstance
+        this.present[i] = ci
+        ci.data.pos = i
+        this.data.present[i] = ci.data
       }
       this.present[pos] = card
-      card.pos = pos
+      card.data.pos = pos
+      this.data.present[pos] = card.data
       return true
     }
     return false
@@ -381,7 +514,6 @@ export class Player {
       for (let i = 0; i < 7; i++) {
         this.bus.child[i] = this.present[i]?.bus || null
       }
-      await this.refresh()
       return true
     } else {
       return false
@@ -389,20 +521,21 @@ export class Player {
   }
 
   async unput(card: CardInstance) {
-    this.present[card.pos] = null
-    this.bus.child[card.pos] = null
+    this.present[card.data.pos] = null
+    this.data.present[card.data.pos] = null
+    this.bus.child[card.data.pos] = null
   }
 
   async enter(cardt: Card) {
-    let pos = this.first_hole()
+    let pos = this.data.first_hole
     if (pos === -1) {
       return false
     }
-    if (cardt.attr.insert || this.config.AlwaysInsert) {
+    if (cardt.attr.insert || this.data.config.AlwaysInsert) {
       pos = await this.queryInsert()
     }
     const card = new CardInstance(this, cardt)
-    card.occupy.push(cardt.name)
+    card.data.occupy.push(cardt.name)
     this.put(card, pos)
 
     for (const k in cardt.unit) {
@@ -437,8 +570,8 @@ export class Player {
     cs[0].data.color = 'gold'
 
     if (cardt.race === 'T') {
-      const i1 = cs[0].infr()
-      const i2 = cs[1].infr()
+      const i1 = cs[0].data.infr
+      const i2 = cs[1].data.infr
       if (i1[0] !== 'hightech' && i2[0] === 'hightech') {
         cs[0].data.units[i1[1]] = '高级科技实验室'
       }
@@ -446,7 +579,7 @@ export class Player {
     }
     cs[0].data.units = cs[0].data.units
       .concat(cs[1].data.units)
-      .slice(0, this.config.MaxUnitPerCard)
+      .slice(0, this.data.config.MaxUnitPerCard)
 
     cs[1].data.upgrades.forEach(uk => {
       const u = getUpgrade(uk)
@@ -458,12 +591,12 @@ export class Player {
 
     cs[0].data.upgrades = cs[0].data.upgrades.slice(
       0,
-      this.config.MaxUpgradePerCard
+      this.data.config.MaxUpgradePerCard
     )
 
-    cs[0].data.attrib.combine(cs[1].data.attrib)
+    cs[0].attrib.combine(cs[1].attrib)
 
-    cs[0].occupy.push(...cs[1].occupy, cardt.name)
+    cs[0].data.occupy.push(...cs[1].data.occupy, cardt.name)
 
     await cs[0].clear_desc()
     await cs[1].clear_desc()
@@ -491,7 +624,7 @@ export class Player {
       3,
       true
     )
-    if (cs[0].data.upgrades.length < this.config.MaxUpgradePerCard) {
+    if (cs[0].data.upgrades.length < this.data.config.MaxUpgradePerCard) {
       reward.push(
         this.game.gen.shuffle(
           AllUpgrade.map(getUpgrade)
@@ -512,7 +645,7 @@ export class Player {
     this.unput(card)
     await this.post('post-sell', refC(card, true))
     await card.clear_desc()
-    this.game.pool.drop(card.occupy.map(getCard))
+    this.game.pool.drop(card.data.occupy.map(getCard))
     await this.post('card-selled', {
       ...refP(this),
       target: card,
@@ -531,7 +664,7 @@ export class Player {
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
     await card.clear_desc()
-    this.game.pool.drop(card.occupy.map(getCard))
+    this.game.pool.drop(card.data.occupy.map(getCard))
     await this.post('card-destroyed', {
       ...refP(this),
       target: card,
@@ -580,14 +713,14 @@ export class Player {
   }
 
   private fill_store() {
-    const nf = this.store.filter(c => !c).length
+    const nf = this.data.store.filter(c => !c).length
     const nc = this.game.pool.discover(
       card => card.level <= this.data.level,
       nf
     )
-    for (let i = 0; i < this.store.length; i++) {
-      if (!this.store[i]) {
-        this.store[i] = nc.shift()?.name || null
+    for (let i = 0; i < this.data.store.length; i++) {
+      if (!this.data.store[i]) {
+        this.data.store[i] = nc.shift()?.name || null
       }
     }
   }
@@ -602,9 +735,9 @@ export class Player {
     }
     switch (m[1]) {
       case 'H':
-        return this.hand[Number(m[2])]
+        return this.data.hand[Number(m[2])]
       case 'S':
-        return this.store[Number(m[2])]
+        return this.data.store[Number(m[2])]
       case 'P':
         return this.present[Number(m[2])]
     }
@@ -613,12 +746,11 @@ export class Player {
 
   async do_refresh() {
     this.game.pool.drop(
-      (this.store.filter(x => x !== null) as CardKey[]).map(getCard)
+      (this.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
     )
-    this.store.fill(null)
+    this.data.store.fill(null)
     this.fill_store()
     await this.post('refreshed', refP(this))
-    await this.refresh()
   }
 
   bind_inputs() {
@@ -626,20 +758,21 @@ export class Player {
       if (this.data.level < 6 && this.data.mineral >= this.data.upgrade_cost) {
         this.data.mineral -= this.data.upgrade_cost
         this.data.level += 1
-        this.data.upgrade_cost = this.config.UpgradeCost[this.data.level]
-        if (this.store.length < this.config.StoreCount[this.data.level]) {
-          this.store.push(null)
+        this.data.upgrade_cost = this.data.config.UpgradeCost[this.data.level]
+        if (
+          this.data.store.length < this.data.config.StoreCount[this.data.level]
+        ) {
+          this.data.store.push(null)
         }
         await this.post('tavern-upgraded', {
           ...refP(this),
           level: this.data.level,
         })
-        await this.refresh()
       }
     })
     this.bus.on('$refresh', async () => {
-      if (this.role === '副官' && !this.data.attrib.get('副官')) {
-        this.data.attrib.config('副官', 1)
+      if (this.role === '副官' && this.data.ability.progress_cur === 1) {
+        this.data.ability.progress_cur = 0
       } else {
         if (this.data.mineral < 1) {
           return
@@ -649,7 +782,6 @@ export class Player {
       await this.do_refresh()
     })
     this.bus.on('$done', async () => {
-      // TODO: wait all done
       await this.game.add_done()
     })
     this.bus.on('$ability', async () => {
@@ -662,7 +794,7 @@ export class Player {
           if (!(left instanceof CardInstance)) {
             break
           }
-          const right = left?.right()
+          const right = left.right()
           if (
             !left ||
             !right ||
@@ -672,14 +804,14 @@ export class Player {
           ) {
             break
           }
-          const leftBinds = left.desc_binder
+          const leftBinds = left.data.desc_binder
           right.data.name = `${right.data.name}x${left.data.name}`
           if (right.data.race === 'N') {
             right.data.race = left.data.race
           } else if (left.data.race !== 'N') {
             right.data.race = 'N'
           }
-          right.occupy.push(...left.occupy)
+          right.data.occupy.push(...left.data.occupy)
           await right.seize(left, {
             unreal: true,
             upgrade: true,
@@ -688,7 +820,7 @@ export class Player {
           for (const b of leftBinds) {
             await right.bind_desc(b)
           }
-          this.data.attrib.config('角色:执政官', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '陆战队员': {
@@ -700,7 +832,7 @@ export class Player {
             mineral: -2,
           })
           await this.discover(this.game.pool.discover(c => c.level === tl, 2))
-          this.data.attrib.config('角色:陆战队员', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '感染虫': {
@@ -711,7 +843,7 @@ export class Player {
           if (card.data.race !== 'T') {
             break
           }
-          const infr = card.infr()
+          const infr = card.data.infr
           if (infr[0] === 'reactor') {
             await card.remove_unit([infr[1]])
           }
@@ -725,7 +857,7 @@ export class Player {
             }),
             ['每回合结束时注卵随机一个单位', '每回合结束时注卵随机一个单位']
           )
-          this.data.attrib.config('角色:感染虫', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case 'SCV': {
@@ -733,11 +865,11 @@ export class Player {
           if (!(card instanceof CardInstance)) {
             break
           }
-          if (card.data.race !== 'T' || card.infr()[0] === 'hightech') {
+          if (card.data.race !== 'T' || card.data.infr[0] === 'hightech') {
             break
           }
           await card.switch_infr()
-          this.data.attrib.config('角色:SCV', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
         case '阿巴瑟': {
@@ -754,20 +886,19 @@ export class Player {
           })
           await this.destroy(card)
           await this.discover(this.game.pool.discover(c => c.level === tl, 3))
-          this.data.attrib.config('角色:阿巴瑟', 1)
+          this.data.ability.progress_cur -= 1
           break
         }
       }
     })
     this.bus.on('$lock', async () => {
       this.data.locked = true
-      await this.refresh()
     })
     this.bus.on('$unlock', async () => {
       this.data.locked = false
-      await this.refresh()
     })
-    this.bus.on('$select', async ({ choice }) => {
+    this.bus.on('$select', async ({ choice, player }) => {
+      console.log(choice, player)
       this.data.selected = choice
       await this.game.postOutput('selected', {
         choice,
@@ -785,40 +916,36 @@ export class Player {
       }
     })
     this.bus.on('$buy-enter', async ({ place }) => {
-      const ck = this.store[place]
+      const ck = this.data.store[place]
       if (!ck || !this.can_buy_enter(ck)) {
         return
       }
       this.data.mineral -= this.cost_of(ck)
       await this.enter(getCard(ck))
-      this.store[place] = null
-      await this.refresh()
+      this.data.store[place] = null
+
       switch (this.role) {
         case '追猎者':
-          if (
-            this.data.persisAttrib.get('追猎者') ||
-            !this.data.attrib.get('追猎者')
-          ) {
+          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
+            this.attrib.config('追猎者', 1)
             await this.do_refresh()
           }
           break
       }
     })
     this.bus.on('$buy-cache', async ({ place }) => {
-      const ck = this.store[place]
+      const ck = this.data.store[place]
       if (!ck || !this.can_buy_cache(ck)) {
         return
       }
       this.data.mineral -= this.cost_of(ck)
-      this.hand[this.hand.findIndex(v => v === null)] = ck
-      this.store[place] = null
-      await this.refresh()
+      this.data.hand[this.data.hand.findIndex(v => v === null)] = ck
+      this.data.store[place] = null
+
       switch (this.role) {
         case '追猎者':
-          if (
-            this.data.persisAttrib.get('追猎者') ||
-            !this.data.attrib.get('追猎者')
-          ) {
+          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
+            this.attrib.config('追猎者', 1)
             await this.do_refresh()
           }
           break
@@ -826,56 +953,53 @@ export class Player {
     })
     this.bus.on('$buy-combine', async ({ place }) => {
       if (
-        !this.store[place] ||
-        !this.can_buy_combine(this.store[place] as CardKey)
+        !this.data.store[place] ||
+        !this.can_buy_combine(this.data.store[place] as CardKey)
       ) {
         return
       }
       this.data.mineral -= 3
-      await this.combine(getCard(this.store[place] as CardKey))
-      this.store[place] = null
-      await this.refresh()
+      await this.combine(getCard(this.data.store[place] as CardKey))
+      this.data.store[place] = null
     })
     this.bus.on('$hand-enter', async ({ place }) => {
-      if (!this.hand[place] || !this.can_hand_enter()) {
+      if (!this.data.hand[place] || !this.can_hand_enter()) {
         return
       }
-      const c = this.hand[place] as CardKey
-      this.hand[place] = null
+      const c = this.data.hand[place] as CardKey
+      this.data.hand[place] = null
       await this.enter(getCard(c))
-      await this.refresh()
     })
     this.bus.on('$hand-combine', async ({ place }) => {
       if (
-        !this.hand[place] ||
-        !this.can_hand_combine(this.hand[place] as CardKey)
+        !this.data.hand[place] ||
+        !this.can_hand_combine(this.data.hand[place] as CardKey)
       ) {
         return
       }
-      const c = this.hand[place] as CardKey
-      this.hand[place] = null
+      const c = this.data.hand[place] as CardKey
+      this.data.hand[place] = null
       await this.combine(getCard(c))
-      await this.refresh()
     })
     this.bus.on('$hand-sell', async ({ place }) => {
-      if (!this.hand[place]) {
+      if (!this.data.hand[place]) {
         return
       }
-      this.hand[place] = null
+      this.data.hand[place] = null
       await this.obtain_resource({
         mineral: 1,
       })
     })
     this.bus.on('$present-upgrade', async ({ place }) => {
       if (
-        !this.present[place] &&
-        this.can_pres_upgrade(this.present[place] as CardInstance)
+        !this.present[place] ||
+        !this.can_pres_upgrade((this.present[place] as CardInstance).data)
       ) {
         return
       }
 
       const c = this.present[place] as CardInstance
-      if (c.data.upgrades.length >= this.config.MaxUpgradePerCard) {
+      if (c.data.upgrades.length >= this.data.config.MaxUpgradePerCard) {
         return
       }
       const comm: Upgrade[] = [],
@@ -940,11 +1064,10 @@ export class Player {
       await this.sell(this.present[place] as CardInstance)
     })
     this.bus.on('$obtain-card', async ({ card }) => {
-      if (this.hand.filter(x => x).length === 6) {
+      if (this.data.hand.filter(x => x).length === 6) {
         return
       }
-      this.hand[this.hand.findIndex(v => v === null)] = card
-      await this.refresh()
+      this.data.hand[this.data.hand.findIndex(v => v === null)] = card
     })
     this.bus.on('$imr', async () => {
       await this.obtain_resource({
@@ -956,19 +1079,19 @@ export class Player {
 
   bind_default() {
     this.bus.on('round-start', async ({ round }) => {
-      this.data.attrib = new AttributeManager(() => this.refresh())
+      this.attrib = new AttributeManager()
       if (this.data.upgrade_cost > 0) {
         this.data.upgrade_cost -= 1
       }
-      if (this.data.mineral_max < this.config.MaxMineral) {
+      if (this.data.mineral_max < this.data.config.MaxMineral) {
         this.data.mineral_max += 1
       }
       this.data.mineral = this.data.mineral_max
-      if (this.data.gas < this.config.MaxGas) {
+      if (this.data.gas < this.data.config.MaxGas) {
         this.data.gas += 1
       }
       if (!this.data.locked) {
-        this.store.fill(null)
+        this.data.store.fill(null)
       }
       this.data.locked = false
       this.fill_store()
@@ -988,31 +1111,45 @@ export class Player {
           }
           break
         case '副官':
-          if (this.data.persisAttrib.get('副官')) {
+          if (this.persisAttrib.get('副官')) {
             await this.obtain_resource({
               mineral: 1,
             })
           }
+        case 'SCV':
+        case '感染虫':
+        case '执政官':
+        case '阿巴瑟':
+        case '陆战队员':
+          this.data.ability.progress_cur = 1
+          break
+        case '追猎者':
+          if (!this.data.ability.enpower) {
+            this.data.ability.progress_cur = 0
+          }
           break
       }
-
-      await this.refresh()
     })
     this.bus.on('round-end', async () => {
       switch (this.role) {
         case '副官':
-          this.data.persisAttrib.config('副官', this.data.mineral > 0 ? 1 : 0)
+          this.persisAttrib.config('副官', this.data.mineral > 0 ? 1 : 0)
           break
       }
-      await this.refresh()
     })
     this.bus.on('refreshed', async () => {
       switch (this.role) {
         case '追猎者': {
-          const nv = this.data.attrib.get('追猎者') + 1
-          this.data.attrib.config('追猎者', nv)
-          if (!this.data.persisAttrib.get('追猎者') && nv === 5) {
-            this.data.persisAttrib.set('追猎者', 1)
+          if (
+            !this.data.ability.enpower &&
+            this.data.ability.progress_cur < this.data.ability.progress_max
+          ) {
+            this.data.ability.progress_cur += 1
+            if (
+              this.data.ability.progress_cur === this.data.ability.progress_max
+            ) {
+              this.data.ability.enpower = true
+            }
           }
           break
         }
@@ -1051,40 +1188,42 @@ export class Player {
       case '执政官':
       case '感染虫':
       case 'SCV':
-        return this.data.attrib.get(`角色:${this.role}`) === 0
+        return this.data.ability.progress_cur > 0
     }
     return false
   }
 
   can_buy_enter(ck: CardKey) {
-    return (
-      this.data.mineral >= this.cost_of(ck) &&
-      this.present.filter(isNotCardInstance).length > 0
-    )
+    return this.data.mineral >= this.cost_of(ck) && this.can_hand_enter()
   }
 
   can_buy_cache(ck: CardKey) {
     return (
       this.data.mineral >= this.cost_of(ck) &&
-      this.hand.filter(x => x).length < 6
+      this.data.hand.filter(x => x).length < 6
     )
   }
 
   can_buy_combine(ck: CardKey) {
-    return this.data.mineral >= 3 && this.can_hand_combine(ck)
+    return this.data.mineral >= this.cost_of(ck) && this.can_hand_combine(ck)
   }
 
   can_hand_enter() {
-    return this.present.filter(isNotCardInstance).length > 0
+    return this.data.present.filter(c => !isCardInstanceAttrib(c)).length > 0
   }
 
   can_hand_combine(ck: CardKey) {
-    return this.find_name(ck).filter(c => c.data.color === 'normal').length >= 2
+    return (
+      this.data.present
+        .filter(isCardInstanceAttrib)
+        .filter(card => card.name === ck)
+        .filter(c => c.color === 'normal').length >= 2
+    )
   }
 
-  can_pres_upgrade(c: CardInstance) {
+  can_pres_upgrade(c: CardInstanceAttrib) {
     return (
-      c.data.upgrades.length < this.config.MaxUpgradePerCard &&
+      c.upgrades.length < this.data.config.MaxUpgradePerCard &&
       this.data.gas >= 2
     )
   }
@@ -1096,7 +1235,7 @@ export class Player {
   can_refresh() {
     switch (this.role) {
       case '副官':
-        if (!this.data.attrib.get('副官')) {
+        if (this.data.ability.progress_cur === 1) {
           return true
         }
         break
