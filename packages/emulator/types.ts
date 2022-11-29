@@ -64,6 +64,10 @@ type GameBus = {
   'round-start': {
     round: number
   }
+  'round-enter': {
+    // 操作前的时间点, 用于各个角色的技能
+    round: number
+  }
   'round-end': {
     round: number
   }

@@ -104,6 +104,9 @@ export class Game {
     await this.post('round-start', {
       round: 1,
     })
+    await this.post('round-enter', {
+      round: 1,
+    })
   }
 
   async add_done() {
@@ -120,6 +123,9 @@ export class Game {
     this.data.round += 1
     this.data.done_count = 0
     await this.post('round-start', {
+      round: this.data.round,
+    })
+    await this.post('round-enter', {
       round: this.data.round,
     })
   }

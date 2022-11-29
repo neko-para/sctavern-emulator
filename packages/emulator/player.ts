@@ -19,6 +19,7 @@ import { CardInstance, CardInstanceAttrib } from './card'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
+import { create_role, RoleData, RoleImpl } from './role'
 import { Descriptor, LogicBus, PlayerConfig } from './types'
 import {
   autoBind,
@@ -71,13 +72,7 @@ export interface PlayerAttrib {
   present: (CardInstanceAttrib | null)[]
   presentActs: PresentAct[]
 
-  ability: {
-    name: string
-    progress_cur: number
-    progress_max: number
-    enable: boolean
-    enpower: boolean
-  }
+  ability: RoleData
 
   value: number
   first_hole: number
@@ -91,10 +86,10 @@ interface UniqueDescInfo {
 export class Player {
   bus: Emitter<LogicBus>
   game: Game
-  role: RoleKey
+  role: RoleImpl
   pos: number
 
-  readonly data: PlayerAttrib
+  data: PlayerAttrib
 
   present: (CardInstance | null)[]
 
@@ -109,7 +104,6 @@ export class Player {
   constructor(game: Game, pos: number, role: RoleKey) {
     this.bus = new Emitter('card', [])
     this.game = game
-    this.role = role
     this.pos = pos
     this.data = reactive({
       level: 1,
@@ -214,11 +208,9 @@ export class Player {
 
       ability: {
         name: '',
-        progress_cur: -1,
-        progress_max: 0,
-        enable: computed(() => {
-          return this.can_use_ability()
-        }),
+        prog_cur: -1,
+        prog_max: 0,
+        enable: false,
         enpower: false,
       },
 
@@ -250,22 +242,8 @@ export class Player {
     this.bind_inputs()
     this.bind_default()
 
-    this.data.ability.name = getRole(this.role).ability
-
-    switch (this.role) {
-      case 'SCV':
-      case '副官':
-      case '感染虫':
-      case '执政官':
-      case '阿巴瑟':
-      case '陆战队员':
-        this.data.ability.progress_max = 1
-        break
-      case '追猎者':
-        this.data.ability.progress_max = 5
-        this.persisAttrib.config('追猎者', 0)
-        break
-    }
+    this.role = create_role(this, role)
+    this.data.ability = this.role.data
   }
 
   async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
@@ -770,125 +748,22 @@ export class Player {
       }
     })
     this.bus.on('$refresh', async () => {
-      if (this.role === '副官' && this.data.ability.progress_cur === 1) {
-        this.data.ability.progress_cur = 0
-      } else {
-        if (this.data.mineral < 1) {
-          return
-        }
-        this.data.mineral -= 1
+      if (this.data.mineral < this.role.refresh_cost()) {
+        return
       }
+      this.data.mineral -= this.role.refresh_cost()
       await this.do_refresh()
+
+      await this.role.refreshed()
     })
     this.bus.on('$done', async () => {
       await this.game.add_done()
     })
     this.bus.on('$ability', async () => {
-      if (!this.can_use_ability()) {
+      if (!this.data.ability.enable) {
         return
       }
-      switch (this.role) {
-        case '执政官': {
-          const left = this.current_selected()
-          if (!(left instanceof CardInstance)) {
-            break
-          }
-          const right = left.right()
-          if (
-            !left ||
-            !right ||
-            left.data.race === right.data.race ||
-            left.data.color !== 'normal' ||
-            right.data.color !== 'normal'
-          ) {
-            break
-          }
-          const leftBinds = left.data.desc_binder
-          right.data.name = `${right.data.name}x${left.data.name}`
-          if (right.data.race === 'N') {
-            right.data.race = left.data.race
-          } else if (left.data.race !== 'N') {
-            right.data.race = 'N'
-          }
-          right.data.occupy.push(...left.data.occupy)
-          await right.seize(left, {
-            unreal: true,
-            upgrade: true,
-          })
-          right.data.color = 'darkgold'
-          for (const b of leftBinds) {
-            await right.bind_desc(b)
-          }
-          this.data.ability.progress_cur -= 1
-          break
-        }
-        case '陆战队员': {
-          if (this.data.mineral < 2) {
-            break
-          }
-          const tl = Math.max(1, this.data.level - 1)
-          await this.obtain_resource({
-            mineral: -2,
-          })
-          await this.discover(this.game.pool.discover(c => c.level === tl, 2))
-          this.data.ability.progress_cur -= 1
-          break
-        }
-        case '感染虫': {
-          const card = this.current_selected()
-          if (!(card instanceof CardInstance)) {
-            break
-          }
-          if (card.data.race !== 'T') {
-            break
-          }
-          const infr = card.data.infr
-          if (infr[0] === 'reactor') {
-            await card.remove_unit([infr[1]])
-          }
-          card.data.color = 'darkgold'
-          card.data.race = 'Z'
-          card.data.name = `被感染的${card.data.name}`
-          await card.clear_desc()
-          await card.add_desc(
-            autoBind('round-end', async card => {
-              await this.inject(card.data.units.filter(isNormal).slice(0, 1))
-            }),
-            ['每回合结束时注卵随机一个单位', '每回合结束时注卵随机一个单位']
-          )
-          this.data.ability.progress_cur -= 1
-          break
-        }
-        case 'SCV': {
-          const card = this.current_selected()
-          if (!(card instanceof CardInstance)) {
-            break
-          }
-          if (card.data.race !== 'T' || card.data.infr[0] === 'hightech') {
-            break
-          }
-          await card.switch_infr()
-          this.data.ability.progress_cur -= 1
-          break
-        }
-        case '阿巴瑟': {
-          if (this.data.mineral < 2) {
-            break
-          }
-          const card = this.current_selected()
-          if (!(card instanceof CardInstance)) {
-            break
-          }
-          const tl = Math.min(6, card.data.level + 1)
-          await this.obtain_resource({
-            mineral: -2,
-          })
-          await this.destroy(card)
-          await this.discover(this.game.pool.discover(c => c.level === tl, 3))
-          this.data.ability.progress_cur -= 1
-          break
-        }
-      }
+      await this.role.ability()
     })
     this.bus.on('$lock', async () => {
       this.data.locked = true
@@ -897,7 +772,6 @@ export class Player {
       this.data.locked = false
     })
     this.bus.on('$select', async ({ choice, player }) => {
-      console.log(choice, player)
       this.data.selected = choice
       await this.game.postOutput('selected', {
         choice,
@@ -919,47 +793,33 @@ export class Player {
       if (!ck || !this.can_buy_enter(ck)) {
         return
       }
-      this.data.mineral -= this.cost_of(ck)
+      this.data.mineral -= this.role.buy_cost(ck)
       await this.enter(getCard(ck))
       this.data.store[place] = null
 
-      switch (this.role) {
-        case '追猎者':
-          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
-            this.attrib.config('追猎者', 1)
-            await this.do_refresh()
-          }
-          break
-      }
+      await this.role.bought()
     })
     this.bus.on('$buy-cache', async ({ place }) => {
       const ck = this.data.store[place]
       if (!ck || !this.can_buy_cache(ck)) {
         return
       }
-      this.data.mineral -= this.cost_of(ck)
+      this.data.mineral -= this.role.buy_cost(ck)
       this.data.hand[this.data.hand.findIndex(v => v === null)] = ck
       this.data.store[place] = null
 
-      switch (this.role) {
-        case '追猎者':
-          if (this.data.ability.enpower || !this.attrib.get('追猎者')) {
-            this.attrib.config('追猎者', 1)
-            await this.do_refresh()
-          }
-          break
-      }
+      await this.role.bought()
     })
     this.bus.on('$buy-combine', async ({ place }) => {
-      if (
-        !this.data.store[place] ||
-        !this.can_buy_combine(this.data.store[place] as CardKey)
-      ) {
+      const ck = this.data.store[place]
+      if (!ck || !this.can_buy_combine(ck)) {
         return
       }
-      this.data.mineral -= 3
+      this.data.mineral -= this.role.buy_cost(ck)
       await this.combine(getCard(this.data.store[place] as CardKey))
       this.data.store[place] = null
+
+      await this.role.bought() // 虽然但是, 对于原版来说可能三连不算购买(比如副官)
     })
     this.bus.on('$hand-enter', async ({ place }) => {
       if (!this.data.hand[place] || !this.can_hand_enter()) {
@@ -1094,65 +954,6 @@ export class Player {
       }
       this.data.locked = false
       this.fill_store()
-
-      switch (this.role) {
-        case '工蜂':
-          if (round % 2 === 1) {
-            if (this.data.gas < 6) {
-              await this.obtain_resource({
-                gas: 1,
-              })
-            }
-          } else {
-            await this.obtain_resource({
-              mineral: 1,
-            })
-          }
-          break
-        case '副官':
-          if (this.persisAttrib.get('副官')) {
-            await this.obtain_resource({
-              mineral: 1,
-            })
-          }
-        case 'SCV':
-        case '感染虫':
-        case '执政官':
-        case '阿巴瑟':
-        case '陆战队员':
-          this.data.ability.progress_cur = 1
-          break
-        case '追猎者':
-          if (!this.data.ability.enpower) {
-            this.data.ability.progress_cur = 0
-          }
-          break
-      }
-    })
-    this.bus.on('round-end', async () => {
-      switch (this.role) {
-        case '副官':
-          this.persisAttrib.config('副官', this.data.mineral > 0 ? 1 : 0)
-          break
-      }
-    })
-    this.bus.on('refreshed', async () => {
-      switch (this.role) {
-        case '追猎者': {
-          if (
-            !this.data.ability.enpower &&
-            this.data.ability.progress_cur < this.data.ability.progress_max
-          ) {
-            this.data.ability.progress_cur += 1
-            if (
-              this.data.ability.progress_cur === this.data.ability.progress_max
-            ) {
-              this.data.ability.enpower = true
-            }
-          }
-          break
-        }
-      }
     })
     this.bus.on('card-selled', async ({ target }) => {
       if (target.data.race === 'N') {
@@ -1167,29 +968,7 @@ export class Player {
   }
 
   cost_of(ck: CardKey) {
-    switch (this.role) {
-      case '收割者':
-        if (getCard(ck).attr.insert) {
-          return 2
-        }
-        break
-    }
-    return 3
-  }
-
-  can_use_ability(): boolean {
-    switch (this.role) {
-      case '陆战队员':
-      case '阿巴瑟':
-        if (this.data.mineral < 2) {
-          return false
-        }
-      case '执政官':
-      case '感染虫':
-      case 'SCV':
-        return this.data.ability.progress_cur > 0
-    }
-    return false
+    return this.role.buy_cost(ck)
   }
 
   can_buy_enter(ck: CardKey) {
@@ -1232,13 +1011,6 @@ export class Player {
   }
 
   can_refresh() {
-    switch (this.role) {
-      case '副官':
-        if (this.data.ability.progress_cur === 1) {
-          return true
-        }
-        break
-    }
-    return this.data.mineral >= 1
+    return this.data.mineral >= this.role.refresh_cost()
   }
 }

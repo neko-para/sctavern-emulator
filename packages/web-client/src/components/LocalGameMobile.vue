@@ -176,8 +176,8 @@ main()
           @click="client.requestAbility()"
           >{{ player.data.ability.name
           }}{{
-            player.data.ability.progress_cur !== -1
-              ? ` ${player.data.ability.progress_cur} / ${player.data.ability.progress_max}`
+            player.data.ability.prog_cur !== -1
+              ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
               : ''
           }}</v-btn
         >
