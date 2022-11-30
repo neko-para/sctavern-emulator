@@ -114,7 +114,7 @@ function 执政官(r: Role) {
     ) {
       return false
     }
-    const leftBinds = left.data.desc_binder
+    const leftBinds = left.data.descriptors
     right.data.name = `${right.data.name}x${left.data.name}`
     if (right.data.race === 'N') {
       right.data.race = left.data.race
@@ -129,7 +129,7 @@ function 执政官(r: Role) {
     right.data.color = 'darkgold'
     right.data.belong = 'none'
     for (const b of leftBinds) {
-      await right.bind_desc(b)
+      await right.bind_desc(b.bind, b.text)
     }
     return true
   })

@@ -3,7 +3,7 @@ import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
-import { DescriptorGenerator, LogicBus } from './types'
+import { Descriptor, DescriptorGenerator, LogicBus } from './types'
 
 export class Shuffler {
   gen: Random
@@ -78,6 +78,31 @@ export function autoBindPlayer<T extends keyof LogicBus>(
 
       unbind: card.player.bus.end(),
     })
+  }
+}
+
+export function autoBindUnique(
+  func: (card: CardInstance, desc: Descriptor) => void,
+  unique: string,
+  uniqueNoGold = false
+): DescriptorGenerator {
+  return (card, gold) => {
+    const ret: Descriptor = reactive({
+      gold,
+      disabled: false,
+      unique,
+      uniqueNoGold,
+    })
+    card.bus.begin()
+    card.player.bus.begin()
+    func(card, ret)
+    const cc = card.bus.end()
+    const pc = card.player.bus.end()
+    ret.unbind = () => {
+      cc()
+      pc()
+    }
+    return ret
   }
 }
 

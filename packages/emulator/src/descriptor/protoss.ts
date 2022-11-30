@@ -11,7 +11,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
-import { autoBind, isCardInstance, refC, us } from '../utils'
+import { autoBind, autoBindUnique, isCardInstance, refC, us } from '../utils'
 
 function 集结X(
   power: number,
@@ -84,28 +84,23 @@ const data: CardDescriptorTable = {
   ],
   万叉奔腾: [集结(2, '狂热者', 1, 2)],
   折跃信标: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '折跃信标',
-        uniqueNoGold: true,
-      })
-      card.attrib.setView('折跃信标', () => (ret.disabled ? '停用' : '启用'))
-      card.bus.begin()
-      card.bus.on('wrap', async param => {
-        if (ret.disabled) {
-          return
-        }
-        if (!param.into) {
-          param.into = card
-        } else {
-          // ???
-        }
-      })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    autoBindUnique(
+      (card, desc) => {
+        card.attrib.setView('折跃信标', () => (desc.disabled ? '停用' : '启用'))
+        card.bus.on('wrap', async param => {
+          if (desc.disabled) {
+            return
+          }
+          if (!param.into) {
+            param.into = card
+          } else {
+            // ???
+          }
+        })
+      },
+      '折跃信标',
+      true
+    ),
   ],
   艾尔之刃: [
     autoBind('post-enter', async (card, gold) => {
@@ -215,48 +210,46 @@ const data: CardDescriptorTable = {
     }),
   ],
   光复艾尔: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        manualDisable: false,
-        unique: '光复艾尔',
-        uniqueNoGold: true,
-      })
-      card.attrib.config('光复艾尔', 1, 'max')
-      card.attrib.setView('光复艾尔', () =>
-        card.attrib.get('光复艾尔') ? (ret.disabled ? '停用' : '启用') : '禁用'
-      )
-      card.bus.begin()
-      card.bus.on('card-selled', async param => {
-        if (ret.disabled) {
-          return
-        }
-        if (param.flag) {
-          return
-        }
-        const { target } = param
-        if (target.data.race !== 'P') {
-          return
-        }
-        param.flag = true
-        await card.obtain_unit(
-          target.data.units
-            .filter(u => isNormal(u) || u === '水晶塔')
-            .filter(u => gold || !isHero(u))
+    autoBindUnique(
+      (card, desc) => {
+        card.attrib.config('光复艾尔', 1, 'max')
+        card.attrib.setView('光复艾尔', () =>
+          card.attrib.get('光复艾尔')
+            ? desc.disabled
+              ? '停用'
+              : '启用'
+            : '禁用'
         )
-        card.attrib.set('光复艾尔', 0)
-        ret.manualDisable = true
-        await card.player.resort_unique('光复艾尔')
-      })
-      card.bus.on('obtain-upgrade', async () => {
-        card.attrib.set('光复艾尔', 1)
-        ret.manualDisable = false
-        await card.player.resort_unique('光复艾尔')
-      })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+        card.bus.on('card-selled', async param => {
+          if (desc.disabled) {
+            return
+          }
+          if (param.flag) {
+            return
+          }
+          const { target } = param
+          if (target.data.race !== 'P') {
+            return
+          }
+          param.flag = true
+          await card.obtain_unit(
+            target.data.units
+              .filter(u => isNormal(u) || u === '水晶塔')
+              .filter(u => desc.gold || !isHero(u))
+          )
+          card.attrib.set('光复艾尔', 0)
+          desc.manualDisable = true
+          await card.player.resort_unique('光复艾尔')
+        })
+        card.bus.on('obtain-upgrade', async () => {
+          card.attrib.set('光复艾尔', 1)
+          desc.manualDisable = false
+          await card.player.resort_unique('光复艾尔')
+        })
+      },
+      '光复艾尔',
+      true
+    ),
   ],
   菲尼克斯: [
     autoBind('post-enter', async card => {
@@ -299,24 +292,16 @@ const data: CardDescriptorTable = {
     }),
   ],
   阿尔达瑞斯: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '阿尔达瑞斯',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('round-end', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (card.player.count_present().P >= 5) {
-          await card.obtain_unit(us('英雄不朽者', gold ? 2 : 1))
+          await card.obtain_unit(us('英雄不朽者', desc.gold ? 2 : 1))
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '阿尔达瑞斯'),
   ],
   阿塔尼斯: [
     autoBind('round-end', async (card, gold) => {
@@ -325,15 +310,9 @@ const data: CardDescriptorTable = {
         ...us('阿塔尼斯', gold ? 2 : 0),
       ])
     }),
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '阿塔尼斯',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('round-end', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         for (const c of card.player.present.filter(isCardInstance)) {
@@ -343,9 +322,7 @@ const data: CardDescriptorTable = {
           })
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '阿塔尼斯'),
   ],
   净化之光: [
     autoBind('round-end', async (card, gold) => {

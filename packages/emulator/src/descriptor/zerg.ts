@@ -8,7 +8,7 @@ import {
   Unit,
 } from '@sctavern-emulator/data'
 import { CardDescriptorTable, Descriptor } from '../types'
-import { autoBind, isCardInstance, us } from '../utils'
+import { autoBind, autoBindUnique, isCardInstance, us } from '../utils'
 import { 科挂X } from './terran'
 
 const data: CardDescriptorTable = {
@@ -79,15 +79,9 @@ const data: CardDescriptorTable = {
         )
       )
     }),
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '爆虫滚滚',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('card-selled', async ({ target }) => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         await card.obtain_unit([
@@ -95,9 +89,7 @@ const data: CardDescriptorTable = {
           ...us('爆虫(精英)', target.find('跳虫(精英)').length),
         ])
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '爆虫滚滚'),
   ],
   飞龙骑脸: [
     autoBind('post-sell', async (card, gold) => {
@@ -118,25 +110,17 @@ const data: CardDescriptorTable = {
     }),
   ],
   孵化所: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '孵化所',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('obtain-unit-post', async ({ units, way }) => {
-        if (ret.disabled || way !== 'incubate') {
+        if (desc.disabled || way !== 'incubate') {
           return
         }
         await card.obtain_unit(
-          us(units[units.length - 1], gold ? 3 : 2)
+          us(units[units.length - 1], desc.gold ? 3 : 2)
           // 'incubate'
         )
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '孵化所'),
   ],
   地底伏击: [
     autoBind('post-enter', async (card, gold) => {
@@ -215,65 +199,46 @@ const data: CardDescriptorTable = {
     }),
   ],
   扎加拉: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '扎加拉',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('incubate', async ({ units }) => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         await card.obtain_unit(units, 'incubate')
-        if (gold) {
+        if (desc.gold) {
           await card.obtain_unit(['巢虫领主'])
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '扎加拉'),
   ],
   斯托科夫: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '斯托科夫',
-      })
-      card.player.persisAttrib.config(
-        '斯托科夫',
-        card.player.persisAttrib.get('斯托科夫')
-      )
+    autoBindUnique((card, desc) => {
+      card.player.persisAttrib.config('斯托科夫', 0, 'add', false)
       card.attrib.setView('斯托科夫', () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return '禁用'
-        } else if (gold || card.player.persisAttrib.get('斯托科夫')) {
+        } else if (desc.gold || card.player.persisAttrib.get('斯托科夫')) {
           return '注卵'
         } else {
           return '非注卵'
         }
       })
-      card.bus.begin()
       card.bus.on('card-entered', async ({ target }) => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (target.data.race === 'Z' || target.data.level >= 6) {
           return
         }
         const v = card.player.persisAttrib.get('斯托科夫')
-        await card.player.persisAttrib.set('斯托科夫', gold ? 0 : 1 - v)
-        if (gold || v === 1) {
+        card.player.persisAttrib.set('斯托科夫', desc.gold ? 0 : 1 - v)
+        if (desc.gold || v === 1) {
           await card.player.inject(
             target.data.units.filter(isNormal).filter(u => !isHero(u))
           )
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '斯托科夫'),
   ],
   守卫巢穴: [
     autoBind('round-end', async (card, gold) => {
@@ -378,15 +343,9 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       await card.player.incubate(card, us('被感染的女妖', gold ? 2 : 1))
     }),
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '机械感染',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('card-selled', async ({ target }) => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (
@@ -397,9 +356,7 @@ const data: CardDescriptorTable = {
           await card.obtain_unit(us('末日巨兽', 1))
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '机械感染'),
   ],
 }
 

@@ -14,7 +14,14 @@ import {
   DescriptorGenerator,
   LogicBus,
 } from '../types'
-import { autoBind, autoBindPlayer, isCardInstance, refC, us } from '../utils'
+import {
+  autoBind,
+  autoBindPlayer,
+  autoBindUnique,
+  isCardInstance,
+  refC,
+  us,
+} from '../utils'
 
 enum RenewPolicy {
   never,
@@ -297,26 +304,21 @@ const data: CardDescriptorTable = {
         }
       }
     }),
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '沃菲尔德',
-      })
+    autoBindUnique((card, desc) => {
       card.player.attrib.config('沃菲尔德', 0, 'add', false)
       card.attrib.setView('沃菲尔德', () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return '禁用'
         }
         const v = card.player.attrib.get('沃菲尔德')
-        if (v === null || v < (gold ? 2 : 1)) {
+        if (v === null || v < (desc.gold ? 2 : 1)) {
           return `启用 ${v || 0}`
         } else {
           return `停用 ${v}`
         }
       })
       card.bus.on('card-selled', async ({ target }) => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (target.data.race !== 'T') {
@@ -330,15 +332,13 @@ const data: CardDescriptorTable = {
             )}`
         )
         const v = card.player.attrib.get('沃菲尔德')
-        if (v >= (gold ? 2 : 1)) {
+        if (v >= (desc.gold ? 2 : 1)) {
           return
         }
         card.player.attrib.set('沃菲尔德', v + 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '沃菲尔德'),
   ],
   帝国舰队: [
     任务(

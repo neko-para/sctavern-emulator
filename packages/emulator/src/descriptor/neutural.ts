@@ -14,7 +14,13 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
-import { autoBind, autoBindPlayer, isCardInstance, us } from '../utils'
+import {
+  autoBind,
+  autoBindPlayer,
+  autoBindUnique,
+  isCardInstance,
+  us,
+} from '../utils'
 
 function 供养(n: number, unit: UnitKey): DescriptorGenerator {
   return autoBind('post-sell', async card => {
@@ -220,15 +226,9 @@ const data: CardDescriptorTable = {
         await card.obtain_unit(us('德哈卡分身', gold ? 4 : 2))
       }
     }),
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '德哈卡',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('round-end', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (card.player.data.mineral >= 1) {
@@ -236,7 +236,7 @@ const data: CardDescriptorTable = {
         }
       })
       card.bus.on('round-start', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         if (card.player.persisAttrib.get('德哈卡')) {
@@ -249,9 +249,7 @@ const data: CardDescriptorTable = {
           card.player.persisAttrib.set('德哈卡', 0)
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '德哈卡'),
   ],
   我叫小明: [
     autoBind('post-enter', async card => {
@@ -472,15 +470,9 @@ const data: CardDescriptorTable = {
     }),
   ],
   死亡之握: [
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '死亡之握-结束',
-      })
-      card.bus.begin()
+    autoBindUnique((card, desc) => {
       card.bus.on('round-end', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         for (const c of card.player.data.store.filter(
@@ -496,33 +488,23 @@ const data: CardDescriptorTable = {
             r.push(unit)
           }
           await card.obtain_unit(
-            card.player.game.gen.shuffle(r).slice(0, gold ? 2 : 1)
+            card.player.game.gen.shuffle(r).slice(0, desc.gold ? 2 : 1)
           )
         }
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
-    (card, gold) => {
-      const ret: Descriptor = reactive({
-        gold,
-        disabled: false,
-        unique: '死亡之握-刷新',
-      })
-      card.bus.begin()
+    }, '死亡之握-结束'),
+    autoBindUnique((card, desc) => {
       card.bus.on('refreshed', async () => {
-        if (ret.disabled) {
+        if (desc.disabled) {
           return
         }
         await card.obtain_unit(
           card.player.game.gen
             .shuffle(card.data.units.filter(u => !isHero(u)))
-            .slice(0, gold ? 2 : 1) // TODO: 可能要修改随机策略
+            .slice(0, desc.gold ? 2 : 1) // TODO: 可能要修改随机策略
         )
       })
-      ret.unbind = card.bus.end()
-      return ret
-    },
+    }, '死亡之握-刷新'),
   ],
 }
 
