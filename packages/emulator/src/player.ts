@@ -576,6 +576,7 @@ export class Player {
         await cs[0].add_desc(descs[i], cardt.desc[i])
       }
     }
+    cs[0].bindDef()
 
     await this.post('card-combined', {
       ...refP(this),
@@ -928,7 +929,7 @@ export class Player {
 
   bind_default() {
     this.bus.on('round-start', async () => {
-      this.attrib = new AttributeManager()
+      this.attrib.clean()
       if (this.data.upgrade_cost > 0) {
         this.data.upgrade_cost -= 1
       }

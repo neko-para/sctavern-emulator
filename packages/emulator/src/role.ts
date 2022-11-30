@@ -127,6 +127,7 @@ function 执政官(r: Role) {
       upgrade: true,
     })
     right.data.color = 'darkgold'
+    right.data.belong = 'none'
     for (const b of leftBinds) {
       await right.bind_desc(b)
     }

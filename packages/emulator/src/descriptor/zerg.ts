@@ -1,3 +1,4 @@
+import { reactive } from '@vue/reactivity'
 import {
   elited,
   getUnit,
@@ -82,7 +83,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -91,7 +92,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('card-selled', async ({ target }) => {
         if (ret.disabled) {
@@ -129,7 +130,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -138,7 +139,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('obtain-unit-post', async ({ units, way }) => {
         if (ret.disabled || way !== 'incubate') {
@@ -234,7 +235,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -243,7 +244,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('incubate', async ({ units }) => {
         if (ret.disabled) {
@@ -267,7 +268,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -276,7 +277,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.attrib.setView('斯托科夫', () => {
         if (ret.disabled) {
           return '禁用'
@@ -417,7 +418,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -426,7 +427,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('card-selled', async ({ target }) => {
         if (ret.disabled) {

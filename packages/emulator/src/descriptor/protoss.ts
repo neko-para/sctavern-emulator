@@ -1,3 +1,4 @@
+import { reactive } from '@vue/reactivity'
 import {
   canElite,
   elited,
@@ -34,16 +35,17 @@ function 集结X(
       }
     })
     const cleaner = card.bus.end()
-    return {
+    return reactive({
       text,
       gold,
 
       unbind() {
         cleaner()
       },
-    }
+    })
   }
 }
+
 function 集结(
   power: number,
   unit: UnitKey,
@@ -90,7 +92,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -100,7 +102,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.attrib.setView('折跃信标', () => (ret.disabled ? '停用' : '启用'))
       card.bus.begin()
       card.bus.on('wrap', async param => {
@@ -204,14 +206,14 @@ const data: CardDescriptorTable = {
   尤尔兰: [
     (card, gold, text) => {
       card.attrib.config('供能', gold ? 8 : 5)
-      return {
+      return reactive({
         text,
         gold,
 
         unbind() {
           card.attrib.set('供能', 0)
         },
-      }
+      })
     },
     autoBind('obtain-unit-post', async (card, gold, { units }) => {
       if (units.includes('水晶塔') || units.includes('虚空水晶塔')) {
@@ -230,7 +232,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -241,7 +243,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.attrib.config('光复艾尔', 1, 'max')
       card.attrib.setView('光复艾尔', () =>
         card.attrib.get('光复艾尔') ? (ret.disabled ? '停用' : '启用') : '禁用'
@@ -322,7 +324,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -331,7 +333,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('round-end', async () => {
         if (ret.disabled) {
@@ -357,7 +359,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -366,7 +368,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('round-end', async () => {
         if (ret.disabled) {

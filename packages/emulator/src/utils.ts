@@ -1,3 +1,4 @@
+import { reactive } from '@vue/reactivity'
 import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
@@ -60,14 +61,14 @@ export function autoBind<T extends keyof LogicBus>(
       await func(card, gold, param)
     })
     const cleaner = card.bus.end()
-    return {
+    return reactive({
       text,
       gold,
 
       unbind() {
         cleaner()
       },
-    }
+    })
   }
 }
 
@@ -81,14 +82,14 @@ export function autoBindPlayer<T extends keyof LogicBus>(
       await func(card, gold, param)
     })
     const cleaner = card.player.bus.end()
-    return {
+    return reactive({
       text,
       gold,
 
       unbind() {
         cleaner()
       },
-    }
+    })
   }
 }
 

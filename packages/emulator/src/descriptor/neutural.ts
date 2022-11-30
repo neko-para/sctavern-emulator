@@ -1,3 +1,4 @@
+import { reactive } from '@vue/reactivity'
 import {
   AllUpgrade,
   canElite,
@@ -41,14 +42,14 @@ function 黑暗容器_获得(
 
 function fake(): DescriptorGenerator {
   return (card, gold, text) => {
-    return {
+    return reactive({
       text,
       gold,
 
       unbind() {
         //
       },
-    }
+    })
   }
 }
 function 黑暗容器_复活(n: number): DescriptorGenerator {
@@ -228,7 +229,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -237,7 +238,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('round-end', async () => {
         if (ret.disabled) {
@@ -488,7 +489,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -497,7 +498,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('round-end', async () => {
         if (ret.disabled) {
@@ -527,7 +528,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret = {
+      const ret = reactive({
         text,
         gold,
         disabled: false,
@@ -536,7 +537,7 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
       card.bus.begin()
       card.bus.on('refreshed', async () => {
         if (ret.disabled) {

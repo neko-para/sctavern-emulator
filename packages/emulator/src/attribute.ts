@@ -33,7 +33,15 @@ export class AttributeManager {
     return this.has(name) ? this.attrib[name].value : def
   }
 
-  config(name: string, value: number, policy: CombinePolicy = 'add') {
+  config(
+    name: string,
+    value: number,
+    policy: CombinePolicy = 'add',
+    override = true
+  ) {
+    if (name in this.attrib && !override) {
+      return
+    }
     this.attrib[name] = {
       value,
       policy,
@@ -43,6 +51,12 @@ export class AttributeManager {
   set(name: string, value: number) {
     if (this.has(name)) {
       this.attrib[name].value = value
+    }
+  }
+
+  clean() {
+    for (const ak in this.attrib) {
+      this.attrib[ak].value = 0
     }
   }
 

@@ -1,3 +1,4 @@
+import { reactive } from '@vue/reactivity'
 import {
   elited,
   getCard,
@@ -40,13 +41,13 @@ function 任务<T extends string & keyof LogicBus>(
     bus.on(msg, async p => {
       if (n < count && pred(p)) {
         n += 1
-        await card.attrib.set('task', n)
+        card.attrib.set('task', n)
         if (n === count) {
           await reward(card, gold)
           await card.player.game.post('task-done', refC(card))
           if (policy === RenewPolicy.instant) {
             n = 0
-            await card.attrib.set('task', 0)
+            card.attrib.set('task', 0)
           }
         }
       }
@@ -55,19 +56,19 @@ function 任务<T extends string & keyof LogicBus>(
       case RenewPolicy.roundend:
         bus.on('round-end', async () => {
           n = 0
-          await card.attrib.set('task', 0)
+          card.attrib.set('task', 0)
         })
         break
     }
     const cleaner = bus.end()
-    return {
+    return reactive({
       text,
       gold,
 
       unbind() {
         cleaner()
       },
-    }
+    })
   }
 }
 
@@ -304,7 +305,7 @@ const data: CardDescriptorTable = {
       let cleaner = () => {
         //
       }
-      const ret: Descriptor = {
+      const ret: Descriptor = reactive({
         text,
         gold,
         disabled: false,
@@ -313,7 +314,8 @@ const data: CardDescriptorTable = {
         unbind() {
           cleaner()
         },
-      }
+      })
+      card.player.attrib.config('沃菲尔德', 0, 'add', false)
       card.attrib.setView('沃菲尔德', () => {
         if (ret.disabled) {
           return '禁用'
@@ -332,7 +334,6 @@ const data: CardDescriptorTable = {
         if (target.data.race !== 'T') {
           return
         }
-        card.player.attrib.config('沃菲尔德', 0)
         card.player.attrib.setView(
           '沃菲尔德',
           () =>
@@ -344,7 +345,7 @@ const data: CardDescriptorTable = {
         if (v >= (gold ? 2 : 1)) {
           return
         }
-        await card.player.attrib.set('沃菲尔德', v + 1)
+        card.player.attrib.set('沃菲尔德', v + 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
       cleaner = card.bus.end()

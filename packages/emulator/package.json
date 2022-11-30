@@ -11,8 +11,9 @@
     "typescript": "*"
   },
   "dependencies": {
-    "random": "*",
-    "@sctavern-emulator/data": "*"
+    "@sctavern-emulator/data": "*",
+    "@vue/reactivity": "^3.2.45",
+    "random": "*"
   },
   "type": "module"
 }

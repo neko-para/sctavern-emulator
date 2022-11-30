@@ -81,15 +81,15 @@ export class CardInstance {
         return this.attrib.views.value
       }),
       left: computed(() => {
-        if (this.data.pos > 0 && this.player.present[this.data.pos - 1]) {
-          return this.player.present[this.data.pos - 1]?.data || null
+        if (this.data.pos > 0 && this.player.data.present[this.data.pos - 1]) {
+          return this.player.data.present[this.data.pos - 1] || null
         } else {
           return null
         }
       }),
       right: computed(() => {
-        if (this.data.pos < 6 && this.player.present[this.data.pos + 1]) {
-          return this.player.present[this.data.pos + 1]?.data || null
+        if (this.data.pos < 6 && this.player.data.present[this.data.pos + 1]) {
+          return this.player.data.present[this.data.pos + 1] || null
         } else {
           return null
         }
@@ -140,6 +140,9 @@ export class CardInstance {
 
     if (cardt.attr.origin) {
       this.data.belong = 'origin'
+      this.attrib.setView('origin', () => {
+        return '属于原始虫群'
+      })
     } else if (cardt.attr.void) {
       this.data.belong = 'void'
       this.set_void()
@@ -156,10 +159,24 @@ export class CardInstance {
 
     if (cardt.attr.dark) {
       this.attrib.config('dark', 0, 'add')
-      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
     }
 
     this.bind()
+    this.bindDef()
+  }
+
+  bindDef() {
+    this.attrib.setView('power', () => {
+      if (this.data.race === 'P' || this.data.power > 0) {
+        return `能量强度: ${this.data.power}`
+      } else {
+        return ''
+      }
+    })
+
+    if (this.attrib.has('dark')) {
+      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
+    }
   }
 
   async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
