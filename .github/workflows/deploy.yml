@@ -13,10 +13,9 @@ jobs:
       - name: Build
         run: |
           npm install
-          cd packages/data
-          npm run build
-          cd ../web-client
-          npm run build
+          npx nx build data
+          npx nx build emulator
+          npx nx build web-client
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
