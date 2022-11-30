@@ -1,4 +1,11 @@
-import { elited, getCard, isBiological, isHero, isNormal, UnitKey } from '@sctavern-emulator/data'
+import {
+  elited,
+  getCard,
+  isBiological,
+  isHero,
+  isNormal,
+  UnitKey,
+} from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import {
   CardDescriptorTable,
@@ -6,14 +13,7 @@ import {
   DescriptorGenerator,
   LogicBus,
 } from '../types'
-import {
-  autoBind,
-  autoBindPlayer,
-  isCardInstance,
-  refC,
-  refP,
-  us,
-} from '../utils'
+import { autoBind, autoBindPlayer, isCardInstance, refC, us } from '../utils'
 
 enum RenewPolicy {
   never,
@@ -301,7 +301,9 @@ const data: CardDescriptorTable = {
       }
     }),
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret: Descriptor = {
         text,
         gold,

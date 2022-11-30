@@ -66,7 +66,7 @@ export class SlaveGame {
   }
 
   async poll() {
-    while (true) {
+    for (;;) {
       const item = await this.queue.pop()
       // @ts-ignore
       this.game.postInput(item.msg, item.param)
@@ -107,7 +107,7 @@ export class MasterGame {
   }
 
   async poll() {
-    while (true) {
+    for (;;) {
       const item = await this.queue.pop()
       const pros: Promise<void>[] = []
       for (const ad of this.adapter) {
@@ -124,7 +124,9 @@ class LocalLinkAdapter implements Adapter {
   to: LocalLinkAdapter | null
 
   constructor() {
-    this.onPosted = () => {}
+    this.onPosted = () => {
+      //
+    }
     this.to = null
   }
 
@@ -171,7 +173,9 @@ export class Client implements ClientRespond {
     this.replayLog = []
     this.replayPos = 0
 
-    this.step = async () => {}
+    this.step = async () => {
+      //
+    }
     this.stop = false
 
     game.bind(this)
@@ -211,19 +215,33 @@ export class Client implements ClientRespond {
     }
   }
 
-  async selected(choice: string) {}
+  async selected(choice: string) {
+    //
+  }
 
-  async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {}
+  async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {
+    //
+  }
 
-  async end_discover() {}
+  async end_discover() {
+    //
+  }
 
-  async begin_insert() {}
+  async begin_insert() {
+    //
+  }
 
-  async end_insert() {}
+  async end_insert() {
+    //
+  }
 
-  async begin_select() {}
+  async begin_select() {
+    //
+  }
 
-  async end_select() {}
+  async end_select() {
+    //
+  }
 
   async replay(
     replay: GameReplay,

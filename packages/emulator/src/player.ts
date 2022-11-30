@@ -1,18 +1,15 @@
-import { computed, ComputedRef, reactive } from '@vue/reactivity'
+import { computed, reactive } from '@vue/reactivity'
 import {
-  AllCard,
   AllUpgrade,
   Card,
   CardKey,
   getCard,
-  getRole,
   getUpgrade,
-  isNormal,
   Race,
   UnitKey,
   Upgrade,
   UpgradeKey,
-  RoleKey
+  RoleKey,
 } from '@sctavern-emulator/data'
 // import { RoleKey } from 'data'
 import { AttributeManager } from './attribute'
@@ -22,15 +19,7 @@ import { Emitter } from './emitter'
 import { Game } from './game'
 import { create_role, RoleData, RoleImpl } from './role'
 import { Descriptor, LogicBus, PlayerConfig } from './types'
-import {
-  autoBind,
-  isCardInstance,
-  isCardInstanceAttrib,
-  isNotCardInstance,
-  refC,
-  refP,
-  us,
-} from './utils'
+import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
 
 interface StoreAct {
   e: 'enter' | 'combine'
@@ -772,7 +761,7 @@ export class Player {
     this.bus.on('$unlock', async () => {
       this.data.locked = false
     })
-    this.bus.on('$select', async ({ choice, player }) => {
+    this.bus.on('$select', async ({ choice }) => {
       this.data.selected = choice
       await this.game.postOutput('selected', {
         choice,
@@ -938,7 +927,7 @@ export class Player {
   }
 
   bind_default() {
-    this.bus.on('round-start', async ({ round }) => {
+    this.bus.on('round-start', async () => {
       this.attrib = new AttributeManager()
       if (this.data.upgrade_cost > 0) {
         this.data.upgrade_cost -= 1

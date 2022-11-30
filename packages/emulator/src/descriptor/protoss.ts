@@ -10,7 +10,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
-import { autoBind, isCardInstance, refC, Shuffler, us } from '../utils'
+import { autoBind, isCardInstance, refC, us } from '../utils'
 
 function 集结X(
   power: number,
@@ -87,7 +87,9 @@ const data: CardDescriptorTable = {
   万叉奔腾: [集结(2, '狂热者', 1, 2)],
   折跃信标: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -225,7 +227,9 @@ const data: CardDescriptorTable = {
   ],
   光复艾尔: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -315,7 +319,9 @@ const data: CardDescriptorTable = {
   ],
   阿尔达瑞斯: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -348,7 +354,9 @@ const data: CardDescriptorTable = {
     }),
 
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,

@@ -1,11 +1,18 @@
-import { elited, getUnit, isBiological, isHero, isNormal, Unit } from '@sctavern-emulator/data'
+import {
+  elited,
+  getUnit,
+  isBiological,
+  isHero,
+  isNormal,
+  Unit,
+} from '@sctavern-emulator/data'
 import { CardDescriptorTable } from '../types'
 import { autoBind, isCardInstance, us } from '../utils'
 import { 科挂X } from './terran'
 
 const data: CardDescriptorTable = {
   虫卵: [
-    autoBind('round-start', async (card, gold) => {
+    autoBind('round-start', async card => {
       if (
         [card.left(), card.right()]
           .filter(isCardInstance)
@@ -72,7 +79,9 @@ const data: CardDescriptorTable = {
       )
     }),
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -117,7 +126,9 @@ const data: CardDescriptorTable = {
   ],
   孵化所: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -220,7 +231,9 @@ const data: CardDescriptorTable = {
   ],
   扎加拉: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -251,7 +264,9 @@ const data: CardDescriptorTable = {
         '斯托科夫',
         card.player.persisAttrib.get('斯托科夫')
       )
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -399,7 +414,9 @@ const data: CardDescriptorTable = {
       await card.player.incubate(card, us('被感染的女妖', gold ? 2 : 1))
     }),
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,

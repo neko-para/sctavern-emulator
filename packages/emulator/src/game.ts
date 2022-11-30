@@ -15,7 +15,7 @@ interface GameAttrib {
 
 export interface LogItem {
   msg: string
-  param: {}
+  param: Record<string, unknown>
 }
 
 export interface GameReplay extends GameConfig {

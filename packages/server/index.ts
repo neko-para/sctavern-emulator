@@ -1,4 +1,9 @@
-import { Adapter, LogItem, InputBus, MasterGame } from '@sctavern-emulator/emulator'
+import {
+  Adapter,
+  LogItem,
+  InputBus,
+  MasterGame,
+} from '@sctavern-emulator/emulator'
 import { WebSocketServer, WebSocket } from 'ws'
 
 class ServerAdapter implements Adapter {
@@ -15,7 +20,9 @@ class ServerAdapter implements Adapter {
   }
 
   constructor(conn: WebSocket) {
-    this.onPosted = () => {}
+    this.onPosted = () => {
+      //
+    }
 
     this.sock = conn
     this.sock.on('message', data => {

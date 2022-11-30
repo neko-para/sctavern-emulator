@@ -8,7 +8,6 @@ import {
   isBiological,
   isHero,
   isNormal,
-  Race,
   Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
@@ -46,7 +45,9 @@ function fake(): DescriptorGenerator {
       text,
       gold,
 
-      unbind() {},
+      unbind() {
+        //
+      },
     }
   }
 }
@@ -208,7 +209,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(us('天罚行者', Math.floor(d / 5)))
       await card.gain_darkness(d)
     }),
-    autoBind('round-end', async (card, gold) => {
+    autoBind('round-end', async card => {
       await card.obtain_unit(
         us(
           '天罚行者',
@@ -224,7 +225,9 @@ const data: CardDescriptorTable = {
       }
     }),
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -429,7 +432,7 @@ const data: CardDescriptorTable = {
   ],
   黑暗祭坛: [
     黑暗容器_获得('凤凰', 1, 2),
-    autoBind('round-end', async (card, gold) => {
+    autoBind('round-end', async card => {
       let mini = 9999999
       let exp: CardInstance | null = null
       for (const c of card.player.present.filter(isCardInstance)) {
@@ -482,7 +485,9 @@ const data: CardDescriptorTable = {
   ],
   死亡之握: [
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,
@@ -519,7 +524,9 @@ const data: CardDescriptorTable = {
       return ret
     },
     (card, gold, text) => {
-      let cleaner = () => {}
+      let cleaner = () => {
+        //
+      }
       const ret = {
         text,
         gold,

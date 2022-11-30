@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { getCard, type CardKey } from '@sctavern-emulator/data'
 import type { Client } from '@sctavern-emulator/emulator'
 import TemplateRefer from './TemplateRefer.vue'

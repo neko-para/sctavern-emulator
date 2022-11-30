@@ -1,18 +1,36 @@
-import { Card, CardKey, RoleKey, UnitKey, UpgradeKey } from '@sctavern-emulator/data'
+import {
+  Card,
+  CardKey,
+  RoleKey,
+  UnitKey,
+  UpgradeKey,
+} from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Emitter } from './emitter'
 
-type ApplyKey<T, I extends {}> = {
+type ApplyKey<T, I extends Record<string, unknown>> = {
   [key in keyof T]: T[key] & I
 }
 
 interface InputBusTemplate {
-  $upgrade: {}
-  $refresh: {}
-  $done: {}
-  $ability: {}
-  $lock: {}
-  $unlock: {}
+  $upgrade: {
+    //
+  }
+  $refresh: {
+    //
+  }
+  $done: {
+    //
+  }
+  $ability: {
+    //
+  }
+  $lock: {
+    //
+  }
+  $unlock: {
+    //
+  }
 
   $select: {
     choice: string
@@ -55,7 +73,9 @@ interface InputBusTemplate {
   '$obtain-card': {
     card: CardKey
   }
-  $imr: {}
+  $imr: {
+    //
+  }
 }
 
 export type InputBus = ApplyKey<InputBusTemplate, { player: number }>
@@ -78,7 +98,9 @@ type PlayerBusTemplate = {
     // 升级酒馆
     level: number
   }
-  refreshed: {} // 刷新商店
+  refreshed: {
+    // 刷新商店
+  }
 
   'card-destroyed': {
     // 摧毁卡牌
@@ -133,9 +155,15 @@ type CardBusTemplate = {
     upgrade: UpgradeKey
   }
 
-  'task-done': {}
-  'infr-changed': {} // 挂件切换
-  'fast-prod': {} // 快速生产
+  'task-done': {
+    //
+  }
+  'infr-changed': {
+    // 挂件切换
+  }
+  'fast-prod': {
+    // 快速生产
+  }
 
   regroup: {
     // 集结
@@ -147,8 +175,12 @@ type CardBusTemplate = {
     dark: number
   }
 
-  'post-enter': {}
-  'post-sell': {}
+  'post-enter': {
+    //
+  }
+  'post-sell': {
+    //
+  }
   seize: {
     // 夺取
     target: CardInstance
@@ -163,17 +195,25 @@ type CardBus = ApplyKey<
 export type LogicBus = GameBus & PlayerBus & CardBus & InputBus
 
 interface OutputBusTemplate {
-  refresh: {}
+  refresh: {
+    //
+  }
   selected: {
     choice: string
   }
-  'begin-insert': {}
-  'end-insert': {}
+  'begin-insert': {
+    //
+  }
+  'end-insert': {
+    //
+  }
   'begin-discover': {
     item: (Card | UpgradeKey)[]
     cancel: boolean
   }
-  'end-discover': {}
+  'end-discover': {
+    //
+  }
 }
 
 export type OutputBus = ApplyKey<OutputBusTemplate, { client: number }>

@@ -2,13 +2,11 @@
 import { ref, computed } from 'vue'
 import {
   Client,
-  LocalGame,
-  type GameReplay,
   SlaveGame,
   type Adapter,
   type InputBus,
   type LogItem,
-} from 'emulator'
+} from '@sctavern-emulator/emulator'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
 import PresentItem from './PresentItem.vue'
@@ -20,9 +18,7 @@ import {
   type Card,
   type CardKey,
   type UpgradeKey,
-  type RoleKey,
-} from 'data'
-import { applyConfigChange, compress, decompress } from './utils'
+} from '@sctavern-emulator/data'
 
 const props = defineProps<{
   target: string
@@ -50,7 +46,9 @@ class ClientAdapter implements Adapter {
   }
 
   constructor(url: string = 'ws://localhost:8080') {
-    this.onPosted = () => {}
+    this.onPosted = () => {
+      //
+    }
 
     this.sock = new WebSocket(url)
     this.sock.addEventListener('open', () => {
@@ -333,8 +331,8 @@ main()
             @click="client.requestAbility()"
             >{{ player.data.ability.name
             }}{{
-              player.data.ability.progress_cur !== -1
-                ? ` ${player.data.ability.progress_cur} / ${player.data.ability.progress_max}`
+              player.data.ability.prog_cur !== -1
+                ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
                 : ''
             }}</v-btn
           >

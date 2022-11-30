@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { CardInstance, Client } from '@sctavern-emulator/emulator'
-import { tr } from 'data'
+import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   card: CardInstanceAttrib | null

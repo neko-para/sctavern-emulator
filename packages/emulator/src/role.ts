@@ -1,5 +1,11 @@
 import { computed, reactive } from '@vue/reactivity'
-import { CardKey, getCard, getRole, isNormal, RoleKey, Roles } from 'data'
+import {
+  CardKey,
+  getCard,
+  getRole,
+  isNormal,
+  RoleKey,
+} from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Player } from './player'
 import { autoBind } from './utils'
@@ -51,11 +57,15 @@ export class RoleImpl implements Role {
       enpower: false,
     })
 
-    this.buy_cost = (card: CardKey) => 3
+    this.buy_cost = () => 3
     this.refresh_cost = () => 1
 
-    this.bought = async () => {}
-    this.refreshed = async () => {}
+    this.bought = async () => {
+      //
+    }
+    this.refreshed = async () => {
+      //
+    }
 
     this.ability = b(this)
   }
@@ -82,8 +92,10 @@ function ActPerRole(
   }
 }
 
-function 白板(r: Role) {
-  return async () => {}
+function 白板() {
+  return async () => {
+    //
+  }
 }
 
 function 执政官(r: Role) {
@@ -148,7 +160,9 @@ function 陆战队员(r: Role) {
 function 收割者(r: Role) {
   r.player.data.config.AlwaysInsert = true
   r.buy_cost = c => (getCard(c).attr.insert ? 2 : 3)
-  return async () => {}
+  return async () => {
+    //
+  }
 }
 
 function 感染虫(r: Role) {
@@ -234,7 +248,9 @@ function 工蜂(r: Role) {
       })
     }
   })
-  return async () => {}
+  return async () => {
+    //
+  }
 }
 
 function 副官(r: Role) {
@@ -256,7 +272,9 @@ function 副官(r: Role) {
   r.refreshed = async () => {
     r.data.prog_cur -= 1
   }
-  return async () => {}
+  return async () => {
+    //
+  }
 }
 
 function 追猎者(r: Role) {
@@ -281,7 +299,9 @@ function 追猎者(r: Role) {
       }
     }
   })
-  return async () => {}
+  return async () => {
+    //
+  }
 }
 
 const RoleSet: Record<RoleKey, RoleBind> = {

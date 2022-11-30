@@ -1,4 +1,4 @@
-import { reactive, computed, ComputedRef } from '@vue/reactivity'
+import { reactive, computed } from '@vue/reactivity'
 import {
   Card,
   CardKey,
@@ -10,9 +10,7 @@ import {
   Unit,
   UnitKey,
   UpgradeKey,
-  Upgrades,
 } from '@sctavern-emulator/data'
-// import { describe } from 'node:test'
 import { AttributeManager } from './attribute'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
@@ -23,7 +21,7 @@ import {
   DescriptorGenerator,
   ObtainUnitWay,
 } from './types'
-import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
+import { isCardInstance, isCardInstanceAttrib, refC, us } from './utils'
 
 export interface CardInstanceAttrib {
   pos: number
@@ -268,7 +266,7 @@ export class CardInstance {
             ...us('修理无人机', this.player.data.level + 3),
           ])
           break
-        case '黄金矿工':
+        case '黄金矿工': {
           await this.clear_desc()
           const descs = Descriptors.黄金矿工
           this.data.name = '黄金矿工'
@@ -281,6 +279,7 @@ export class CardInstance {
             console.log('WARN: Card Not Implement Yet')
           }
           break
+        }
         case '献祭': {
           const vo = (unit: Unit) => {
             if (unit.name === '莎拉·凯瑞甘' || unit.name === '刀锋女王') {
@@ -334,7 +333,9 @@ export class CardInstance {
                 text,
                 gold,
 
-                unbind() {},
+                unbind() {
+                  //
+                },
               }
             },
             ['新添加的单位也会被献祭', '新添加的单位也会被献祭']
@@ -380,7 +381,6 @@ export class CardInstance {
     this.data.desc_binder.push(binder)
     if (d.unique) {
       await this.player.add_unique(this, d)
-    } else {
     }
   }
 
@@ -424,7 +424,7 @@ export class CardInstance {
     await this.player.destroy(target)
   }
 
-  async regroup(id: number = 0) {
+  async regroup(id = 0) {
     await this.post('regroup', {
       ...refC(this),
       id,

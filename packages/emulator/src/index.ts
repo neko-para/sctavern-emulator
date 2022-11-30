@@ -3,9 +3,22 @@ import { Game, type LogItem, type GameReplay } from './game'
 import { Player } from './player'
 import { CardInstance, type CardInstanceAttrib } from './card'
 import { Shuffler } from './utils'
-import { Client, Adapter, SlaveGame, MasterGame, LocalGame } from './client'
+import {
+  type Adapter,
+  Client,
+  SlaveGame,
+  MasterGame,
+  LocalGame,
+} from './client'
 
-export type { LogItem, GameReplay, GameConfig, InputBus, CardInstanceAttrib }
+export type {
+  LogItem,
+  GameReplay,
+  GameConfig,
+  InputBus,
+  CardInstanceAttrib,
+  Adapter,
+}
 export {
   Game,
   Player,
@@ -13,7 +26,6 @@ export {
   Shuffler,
   Client,
   LocalGame,
-  Adapter,
   SlaveGame,
   MasterGame,
 }

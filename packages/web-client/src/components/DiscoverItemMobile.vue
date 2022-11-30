@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import type { Card, UpgradeKey } from '@sctavern-emulator/data'
 import { tr } from '@sctavern-emulator/data'
 import type { Client } from '@sctavern-emulator/emulator'
-import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
   item: Card | UpgradeKey

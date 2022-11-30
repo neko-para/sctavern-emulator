@@ -1,8 +1,8 @@
 export interface FuncBase {
-  (p: any): Promise<void>
+  (p: Record<string, unknown>): Promise<void>
 }
 
-export class Emitter<Msg extends Record<string, object>> {
+export class Emitter<Msg extends Record<string, Record<string, unknown>>> {
   tran: string
   child: (Emitter<Msg> | null)[]
   func: {
@@ -32,9 +32,9 @@ export class Emitter<Msg extends Record<string, object>> {
 
   on<M extends string & keyof Msg>(msg: M, func: (p: Msg[M]) => Promise<void>) {
     const ft = this.func[msg] || []
-    ft.push(func)
+    ft.push(func as FuncBase)
     this.func[msg] = ft
-    this.rec.push([msg, func])
+    this.rec.push([msg, func as FuncBase])
   }
 
   off<M extends string & keyof Msg>(
@@ -44,7 +44,9 @@ export class Emitter<Msg extends Record<string, object>> {
     this.func[msg] = this.func[msg]?.filter(f => f !== func) || []
   }
 
-  private getTran(param: any): [boolean, Emitter<Msg> | null] {
+  private getTran(
+    param: Record<string, unknown>
+  ): [boolean, Emitter<Msg> | null] {
     if (this.tran in param) {
       const sub = param[this.tran] as number | Emitter<Msg> | undefined
       if (typeof sub === 'number') {
