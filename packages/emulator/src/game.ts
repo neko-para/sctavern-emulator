@@ -92,10 +92,7 @@ export class Game {
     await this.post(msg, param)
   }
 
-  async postOutput<T extends string & keyof OutputBus>(
-    msg: T,
-    param: OutputBus[T]
-  ) {
+  async postOutput<T extends keyof OutputBus>(msg: T, param: OutputBus[T]) {
     await this.obus.emit(msg, param)
   }
 

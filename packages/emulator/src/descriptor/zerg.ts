@@ -7,7 +7,7 @@ import {
   isNormal,
   Unit,
 } from '@sctavern-emulator/data'
-import { CardDescriptorTable } from '../types'
+import { CardDescriptorTable, Descriptor } from '../types'
 import { autoBind, isCardInstance, us } from '../utils'
 import { 科挂X } from './terran'
 
@@ -79,19 +79,11 @@ const data: CardDescriptorTable = {
         )
       )
     }),
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '爆虫滚滚',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('card-selled', async ({ target }) => {
@@ -103,7 +95,7 @@ const data: CardDescriptorTable = {
           ...us('爆虫(精英)', target.find('跳虫(精英)').length),
         ])
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -126,19 +118,11 @@ const data: CardDescriptorTable = {
     }),
   ],
   孵化所: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '孵化所',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('obtain-unit-post', async ({ units, way }) => {
@@ -150,7 +134,7 @@ const data: CardDescriptorTable = {
           // 'incubate'
         )
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -231,19 +215,11 @@ const data: CardDescriptorTable = {
     }),
   ],
   扎加拉: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '扎加拉',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('incubate', async ({ units }) => {
@@ -255,29 +231,21 @@ const data: CardDescriptorTable = {
           await card.obtain_unit(['巢虫领主'])
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
   斯托科夫: [
-    (card, gold, text) => {
+    (card, gold) => {
+      const ret: Descriptor = reactive({
+        gold,
+        disabled: false,
+        unique: '斯托科夫',
+      })
       card.player.persisAttrib.config(
         '斯托科夫',
         card.player.persisAttrib.get('斯托科夫')
       )
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
-        gold,
-        disabled: false,
-        unique: '斯托科夫',
-
-        unbind() {
-          cleaner()
-        },
-      })
       card.attrib.setView('斯托科夫', () => {
         if (ret.disabled) {
           return '禁用'
@@ -303,7 +271,7 @@ const data: CardDescriptorTable = {
           )
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -367,7 +335,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   基因突变: [
-    (card, gold, text) => {
+    (card, gold) => {
       async function proc() {
         for (const c of card
           .around()
@@ -399,34 +367,22 @@ const data: CardDescriptorTable = {
       card.bus.begin()
       card.bus.on('post-enter', proc)
       card.bus.on('post-sell', proc)
-      const cleaner = card.bus.end()
-      return {
-        text,
+      return reactive({
         gold,
 
-        unbind() {
-          cleaner()
-        },
-      }
+        unbind: card.bus.end(),
+      })
     },
   ],
   机械感染: [
     autoBind('round-end', async (card, gold) => {
       await card.player.incubate(card, us('被感染的女妖', gold ? 2 : 1))
     }),
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '机械感染',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('card-selled', async ({ target }) => {
@@ -441,7 +397,7 @@ const data: CardDescriptorTable = {
           await card.obtain_unit(us('末日巨兽', 1))
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],

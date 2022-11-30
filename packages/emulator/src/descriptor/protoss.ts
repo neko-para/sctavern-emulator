@@ -10,7 +10,7 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
-import { CardDescriptorTable, DescriptorGenerator } from '../types'
+import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
 import { autoBind, isCardInstance, refC, us } from '../utils'
 
 function 集结X(
@@ -18,7 +18,7 @@ function 集结X(
   func: (card: CardInstance, gold: boolean) => Promise<void>,
   id = 0
 ): DescriptorGenerator {
-  return (card, gold, text) => {
+  return (card, gold) => {
     card.bus.begin()
     card.bus.on('round-end', async () => {
       const n = Math.min(2, Math.floor(card.data.power / power))
@@ -34,14 +34,10 @@ function 集结X(
         await func(card, gold)
       }
     })
-    const cleaner = card.bus.end()
     return reactive({
-      text,
       gold,
 
-      unbind() {
-        cleaner()
-      },
+      unbind: card.bus.end(),
     })
   }
 }
@@ -88,20 +84,12 @@ const data: CardDescriptorTable = {
   ],
   万叉奔腾: [集结(2, '狂热者', 1, 2)],
   折跃信标: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '折跃信标',
         uniqueNoGold: true,
-
-        unbind() {
-          cleaner()
-        },
       })
       card.attrib.setView('折跃信标', () => (ret.disabled ? '停用' : '启用'))
       card.bus.begin()
@@ -115,7 +103,7 @@ const data: CardDescriptorTable = {
           // ???
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -204,10 +192,9 @@ const data: CardDescriptorTable = {
   ],
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
   尤尔兰: [
-    (card, gold, text) => {
+    (card, gold) => {
       card.attrib.config('供能', gold ? 8 : 5)
       return reactive({
-        text,
         gold,
 
         unbind() {
@@ -228,21 +215,13 @@ const data: CardDescriptorTable = {
     }),
   ],
   光复艾尔: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         manualDisable: false,
         unique: '光复艾尔',
         uniqueNoGold: true,
-
-        unbind() {
-          cleaner()
-        },
       })
       card.attrib.config('光复艾尔', 1, 'max')
       card.attrib.setView('光复艾尔', () =>
@@ -275,7 +254,7 @@ const data: CardDescriptorTable = {
         ret.manualDisable = false
         await card.player.resort_unique('光复艾尔')
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -320,19 +299,11 @@ const data: CardDescriptorTable = {
     }),
   ],
   阿尔达瑞斯: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '阿尔达瑞斯',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('round-end', async () => {
@@ -343,7 +314,7 @@ const data: CardDescriptorTable = {
           await card.obtain_unit(us('英雄不朽者', gold ? 2 : 1))
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -354,20 +325,11 @@ const data: CardDescriptorTable = {
         ...us('阿塔尼斯', gold ? 2 : 0),
       ])
     }),
-
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '阿塔尼斯',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('round-end', async () => {
@@ -381,7 +343,7 @@ const data: CardDescriptorTable = {
           })
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],

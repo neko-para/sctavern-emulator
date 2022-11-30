@@ -236,7 +236,7 @@ export class Player {
     this.data.ability = this.role.data
   }
 
-  async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
+  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
     await this.game.post(msg, param)
   }
 

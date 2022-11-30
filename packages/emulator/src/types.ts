@@ -219,18 +219,23 @@ interface OutputBusTemplate {
 export type OutputBus = ApplyKey<OutputBusTemplate, { client: number }>
 
 export interface DescriptorGenerator {
-  (card: CardInstance, gold: boolean, text: [string, string]): Descriptor // 白球之类的导致不能单纯靠卡牌属性来判断是否为金色
+  (card: CardInstance, gold: boolean): Descriptor // 白球之类的导致不能单纯靠卡牌属性来判断是否为金色
 }
 
 export interface Descriptor {
-  text: [string, string]
   gold: boolean
   unique?: string
   uniqueNoGold?: boolean // 用于信标, 光复等提示, 无视金色的覆盖效果
   manualDisable?: boolean // 是否启用, 用于光复
   disabled?: boolean
 
-  unbind(): void
+  unbind?(): void
+}
+
+export interface DescriptorInfo {
+  text: string
+  desc: Descriptor
+  bind: (card: CardInstance) => Descriptor
 }
 
 export type CardDescriptorTable = {

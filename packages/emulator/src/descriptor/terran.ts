@@ -22,14 +22,14 @@ enum RenewPolicy {
   instant,
 }
 
-function 任务<T extends string & keyof LogicBus>(
+function 任务<T extends keyof LogicBus>(
   msg: T,
   count: number,
   reward: (card: CardInstance, gold: boolean) => Promise<void>,
   pred: (p: LogicBus[T]) => boolean = () => true,
   policy: RenewPolicy = RenewPolicy.never
 ): DescriptorGenerator {
-  return (card, gold, text) => {
+  return (card, gold) => {
     card.attrib.config('task', 0, 'discard')
     card.attrib.setView(
       '任务',
@@ -60,14 +60,10 @@ function 任务<T extends string & keyof LogicBus>(
         })
         break
     }
-    const cleaner = bus.end()
     return reactive({
-      text,
       gold,
 
-      unbind() {
-        cleaner()
-      },
+      unbind: bus.end(),
     })
   }
 }
@@ -301,19 +297,11 @@ const data: CardDescriptorTable = {
         }
       }
     }),
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
+    (card, gold) => {
       const ret: Descriptor = reactive({
-        text,
         gold,
         disabled: false,
         unique: '沃菲尔德',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.player.attrib.config('沃菲尔德', 0, 'add', false)
       card.attrib.setView('沃菲尔德', () => {
@@ -348,7 +336,7 @@ const data: CardDescriptorTable = {
         card.player.attrib.set('沃菲尔德', v + 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],

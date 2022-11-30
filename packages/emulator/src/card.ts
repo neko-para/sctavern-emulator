@@ -20,6 +20,7 @@ import {
   Descriptor,
   DescriptorGenerator,
   ObtainUnitWay,
+  DescriptorInfo,
 } from './types'
 import { isCardInstance, isCardInstanceAttrib, refC, us } from './utils'
 
@@ -37,8 +38,7 @@ export interface CardInstanceAttrib {
 
   belong: 'none' | 'origin' | 'void'
 
-  descs: Descriptor[]
-  desc_binder: ((card: CardInstance) => Descriptor)[]
+  descriptors: DescriptorInfo[]
 
   occupy: CardKey[]
 
@@ -73,8 +73,7 @@ export class CardInstance {
       units: [],
       upgrades: [],
       belong: 'none',
-      descs: [],
-      desc_binder: [],
+      descriptors: [],
       occupy: [],
 
       attribs: computed(() => {
@@ -179,7 +178,7 @@ export class CardInstance {
     }
   }
 
-  async post<T extends string & keyof LogicBus>(msg: T, param: LogicBus[T]) {
+  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
     await this.player.game.post(msg, param)
   }
 
@@ -332,10 +331,10 @@ export class CardInstance {
             () => `献祭的生命值: ${this.attrib.get('献祭')}`
           )
           this.add_desc(
-            (card, gold, text) => {
+            (card, gold) => {
               card.bus.begin()
               card.bus.on('obtain-unit-prev', async param => {
-                await card.attrib.set(
+                card.attrib.set(
                   '献祭',
                   card.attrib.get('献祭') +
                     param.units
@@ -346,14 +345,9 @@ export class CardInstance {
                 )
                 param.units = []
               })
-              return {
-                text,
+              return reactive({
                 gold,
-
-                unbind() {
-                  //
-                },
-              }
+              })
             },
             ['新添加的单位也会被献祭', '新添加的单位也会被献祭']
           )
@@ -392,10 +386,13 @@ export class CardInstance {
     return taked
   }
 
-  async bind_desc(binder: (card: CardInstance) => Descriptor) {
+  async bind_desc(binder: (card: CardInstance) => Descriptor, text: string) {
     const d = binder(this)
-    this.data.descs.push(d)
-    this.data.desc_binder.push(binder)
+    this.data.descriptors.push({
+      text,
+      desc: d,
+      bind: binder,
+    })
     if (d.unique) {
       await this.player.add_unique(this, d)
     }
@@ -404,19 +401,19 @@ export class CardInstance {
   async add_desc(desc: DescriptorGenerator, text: [string, string]) {
     const gold = this.data.color !== 'normal'
     const binder = (card: CardInstance) => {
-      return desc(card, gold, text)
+      return desc(card, gold)
     }
-    await this.bind_desc(binder)
+    await this.bind_desc(binder, text[gold ? 1 : 0])
   }
 
   async clear_desc() {
-    for (const d of this.data.descs) {
-      d.unbind()
-      if (d.unique) {
-        await this.player.del_unique(d)
+    for (const d of this.data.descriptors) {
+      d.desc.unbind && d.desc.unbind()
+      if (d.desc.unique) {
+        await this.player.del_unique(d.desc)
       }
     }
-    this.data.descs = []
+    this.data.descriptors = []
   }
 
   async seize(

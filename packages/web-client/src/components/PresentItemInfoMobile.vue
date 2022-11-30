@@ -42,8 +42,8 @@ const Color = {
         <v-card>
           <v-card-text>
             <pre style="white-space: break-spaces">{{
-              card.descs
-                .map(v => v.text[v.gold ? 1 : 0].replace(/<([^>]+?)>/g, '$1'))
+              card.descriptors
+                .map(v => v.text.replace(/<([^>]+?)>/g, '$1'))
                 .join('\n')
             }}</pre>
           </v-card-text>

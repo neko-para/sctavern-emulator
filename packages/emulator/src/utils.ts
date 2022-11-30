@@ -47,27 +47,19 @@ export function isCardInstanceAttrib(
   return !!card
 }
 
-export function isNotCardInstance(card: CardInstance | null): card is null {
-  return !card
-}
-
 export function autoBind<T extends keyof LogicBus>(
   msg: T,
   func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
 ): DescriptorGenerator {
-  return (card, gold, text) => {
+  return (card, gold) => {
     card.bus.begin()
     card.bus.on(msg, async param => {
       await func(card, gold, param)
     })
-    const cleaner = card.bus.end()
     return reactive({
-      text,
       gold,
 
-      unbind() {
-        cleaner()
-      },
+      unbind: card.bus.end(),
     })
   }
 }
@@ -76,19 +68,15 @@ export function autoBindPlayer<T extends keyof LogicBus>(
   msg: T,
   func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
 ): DescriptorGenerator {
-  return (card, gold, text) => {
+  return (card, gold) => {
     card.player.bus.begin()
     card.player.bus.on(msg, async param => {
       await func(card, gold, param)
     })
-    const cleaner = card.player.bus.end()
     return reactive({
-      text,
       gold,
 
-      unbind() {
-        cleaner()
-      },
+      unbind: card.player.bus.end(),
     })
   }
 }

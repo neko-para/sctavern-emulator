@@ -13,7 +13,7 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
-import { CardDescriptorTable, DescriptorGenerator } from '../types'
+import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
 import { autoBind, autoBindPlayer, isCardInstance, us } from '../utils'
 
 function 供养(n: number, unit: UnitKey): DescriptorGenerator {
@@ -41,14 +41,9 @@ function 黑暗容器_获得(
 }
 
 function fake(): DescriptorGenerator {
-  return (card, gold, text) => {
+  return (card, gold) => {
     return reactive({
-      text,
       gold,
-
-      unbind() {
-        //
-      },
     })
   }
 }
@@ -225,19 +220,11 @@ const data: CardDescriptorTable = {
         await card.obtain_unit(us('德哈卡分身', gold ? 4 : 2))
       }
     }),
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '德哈卡',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('round-end', async () => {
@@ -259,10 +246,10 @@ const data: CardDescriptorTable = {
               3
             )
           )
-          await card.player.persisAttrib.set('德哈卡', 0)
+          card.player.persisAttrib.set('德哈卡', 0)
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],
@@ -485,19 +472,11 @@ const data: CardDescriptorTable = {
     }),
   ],
   死亡之握: [
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '死亡之握-结束',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('round-end', async () => {
@@ -521,22 +500,14 @@ const data: CardDescriptorTable = {
           )
         }
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
-    (card, gold, text) => {
-      let cleaner = () => {
-        //
-      }
-      const ret = reactive({
-        text,
+    (card, gold) => {
+      const ret: Descriptor = reactive({
         gold,
         disabled: false,
         unique: '死亡之握-刷新',
-
-        unbind() {
-          cleaner()
-        },
       })
       card.bus.begin()
       card.bus.on('refreshed', async () => {
@@ -549,7 +520,7 @@ const data: CardDescriptorTable = {
             .slice(0, gold ? 2 : 1) // TODO: 可能要修改随机策略
         )
       })
-      cleaner = card.bus.end()
+      ret.unbind = card.bus.end()
       return ret
     },
   ],

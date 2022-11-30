@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CardInstance } from '@sctavern-emulator/emulator'
+import type { CardInstanceAttrib } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   card: CardInstanceAttrib
@@ -13,8 +13,8 @@ const props = defineProps<{
     </template>
     <div class="d-flex flex-column">
       <pre>{{
-        card.descs
-          .map(v => v.text[v.gold ? 1 : 0].replace(/<([^>]+?)>/g, '$1'))
+        card.descriptors
+          .map(v => v.text.replace(/<([^>]+?)>/g, '$1'))
           .join('\n')
       }}</pre>
     </div>
