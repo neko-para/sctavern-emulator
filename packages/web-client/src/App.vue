@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoleKey } from 'data'
+import type { RoleKey } from '@sctavern-emulator/data'
 import LocalGame from './components/LocalGame.vue'
 import LocalGameMobile from './components/LocalGameMobile.vue'
 import RemoteGame from './components/RemoteGame.vue'

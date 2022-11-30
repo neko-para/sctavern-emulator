@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "ES2015",
+    "declaration": true,
+    "incremental": true,
+    "outDir": "./dist/",
+    "tsBuildInfoFile": "../../tmp/buildcache/server",
+    "types": ["node"],
+  },
+  "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts", "dist"],
+  "include": ["**/*.ts"]
+}

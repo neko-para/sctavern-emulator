@@ -1,4 +1,5 @@
 node_modules
-index.js
-pubdata.*
-types.js
+src/pubdata.*
+*.js
+*.d.ts
+*.tsbuildinfo

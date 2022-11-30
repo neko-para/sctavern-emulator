@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CardInstanceAttrib, Client } from 'emulator'
-import type { UnitKey } from 'data'
+import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
+import type { UnitKey } from '@sctavern-emulator/data'
 
 const props = defineProps<{
   card: CardInstanceAttrib

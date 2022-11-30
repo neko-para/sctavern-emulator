@@ -6,7 +6,7 @@ import {
   type CardInstanceAttrib,
   type GameReplay,
   SlaveGame,
-} from 'emulator'
+} from '@sctavern-emulator/emulator'
 import StoreItem from './StoreItemMobile.vue'
 import HandItem from './HandItemMobile.vue'
 import PresentItem from './PresentItemMobile.vue'
@@ -19,7 +19,7 @@ import {
   type Card,
   type UpgradeKey,
   type RoleKey,
-} from 'data'
+} from '@sctavern-emulator/data'
 import { applyConfigChange, compress, decompress } from './utils'
 
 const props = defineProps<{

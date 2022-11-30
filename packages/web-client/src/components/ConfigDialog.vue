@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { type RoleKey, AllRole, order } from 'data'
-import { Shuffler } from 'emulator'
+import { type RoleKey, AllRole, order } from '@sctavern-emulator/data'
+import { Shuffler } from '@sctavern-emulator/emulator'
 import { applyConfigChange } from './utils'
 
 const packConfig = ref<Record<string, boolean>>({})

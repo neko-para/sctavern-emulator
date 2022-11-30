@@ -1,4 +1,4 @@
-import { Card, CardKey, RoleKey, UnitKey, UpgradeKey } from 'data'
+import { Card, CardKey, RoleKey, UnitKey, UpgradeKey } from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Emitter } from './emitter'
 

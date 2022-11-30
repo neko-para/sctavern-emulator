@@ -1,4 +1,4 @@
-import { UnitKey } from 'data'
+import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'

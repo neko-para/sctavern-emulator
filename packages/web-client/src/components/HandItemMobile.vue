@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { getCard, type CardKey } from 'data'
-import type { Client } from 'emulator'
+import { ref } from 'vue'
+import { getCard, type CardKey, tr } from '@sctavern-emulator/data'
+import type { Client } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   card: CardKey | null

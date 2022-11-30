@@ -1,6 +1,6 @@
-const { parse } = require('@ltd/j-toml')
-const { pinyin } = require('pinyin')
-const fs = require('fs/promises')
+import { parse } from '@ltd/j-toml'
+import { pinyin } from 'pinyin'
+import fs from 'fs/promises'
 
 async function searchDataRecursive(res, path) {
   for (const d of await fs.readdir(path)) {

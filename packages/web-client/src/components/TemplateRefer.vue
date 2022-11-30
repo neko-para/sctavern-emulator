@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { getCard, type CardKey } from 'data'
+import { getCard, type CardKey } from '@sctavern-emulator/data'
 
 const props = defineProps<{
   card: CardKey

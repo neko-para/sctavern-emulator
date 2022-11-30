@@ -1,5 +1,5 @@
 import { reactive } from '@vue/reactivity'
-import { RoleKey } from 'data'
+import { RoleKey } from '@sctavern-emulator/data'
 import { Emitter } from './emitter'
 import { Player, PlayerAttrib } from './player'
 import { Pool } from './pool'

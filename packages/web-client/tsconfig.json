@@ -4,10 +4,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sctavern-emulator/emulator": ["../emulator/src/index.ts"],
+      "@sctavern-emulator/data": ["../data/src/index.ts"],
     }
   },
-
   "references": [
     {
       "path": "./tsconfig.config.json"
