@@ -5,7 +5,7 @@
     "module": "ES2015",
     "declaration": true,
     "incremental": true,
-    "outDir": "./src",
+    "outDir": "./dist",
     "tsBuildInfoFile": "../../tmp/buildcache/data",
     "types": ["node"]
   },
