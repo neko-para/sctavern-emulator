@@ -117,6 +117,5 @@ export function us(u: UnitKey, n: number): UnitKey[] {
 }
 
 export async function postItem<T>(into: Postable<T>, item: LogItem) {
-  // @ts-ignore
-  into.post(item.msg, item.param)
+  await into.post(item.msg as keyof T, item.param as T[keyof T])
 }
