@@ -1,7 +1,7 @@
 import { Card, CardKey, UpgradeKey } from '@sctavern-emulator/data'
-import { Emitter } from './emitter'
-import { Game } from './game'
-import { Player } from './player'
+import { Emitter } from './emitter.js'
+import { Game } from './game.js'
+import { Player } from './player.js'
 import {
   GameConfig,
   GameReplay,
@@ -9,8 +9,8 @@ import {
   LogicBus,
   LogItem,
   OutputBus,
-} from './types'
-import { postItem } from './utils'
+} from './types.js'
+import { postItem } from './utils.js'
 
 interface IClient {
   pos: number

@@ -4,7 +4,7 @@ import {
   getCard,
   AllCard,
 } from '@sctavern-emulator/data'
-import { Shuffler } from './utils'
+import { Shuffler } from './utils.js'
 
 type PossibleLevel = 1 | 2 | 3 | 4 | 5 | 6
 

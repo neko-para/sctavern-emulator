@@ -7,13 +7,8 @@ import {
   isNormal,
   UnitKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from '../card'
-import {
-  CardDescriptorTable,
-  Descriptor,
-  DescriptorGenerator,
-  LogicBus,
-} from '../types'
+import { CardInstance } from '../card.js'
+import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types.js'
 import {
   autoBind,
   autoBindPlayer,
@@ -21,7 +16,7 @@ import {
   isCardInstance,
   refC,
   us,
-} from '../utils'
+} from '../utils.js'
 
 enum RenewPolicy {
   never,

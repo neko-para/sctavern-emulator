@@ -1,15 +1,15 @@
 import { reactive } from '@vue/reactivity'
 import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
-import { CardInstance, CardInstanceAttrib } from './card'
-import { Player } from './player'
+import { CardInstance, CardInstanceAttrib } from './card.js'
+import { Player } from './player.js'
 import {
   Descriptor,
   DescriptorGenerator,
   LogicBus,
   LogItem,
   Postable,
-} from './types'
+} from './types.js'
 
 export class Shuffler {
   gen: Random

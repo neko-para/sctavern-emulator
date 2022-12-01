@@ -6,9 +6,9 @@ import {
   isNormal,
   RoleKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from './card'
-import { Player } from './player'
-import { autoBind } from './utils'
+import { CardInstance } from './card.js'
+import { Player } from './player.js'
+import { autoBind } from './utils.js'
 
 export interface RoleData {
   name: string

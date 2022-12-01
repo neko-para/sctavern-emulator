@@ -7,9 +7,9 @@ import {
   isNormal,
   Unit,
 } from '@sctavern-emulator/data'
-import { CardDescriptorTable, Descriptor } from '../types'
-import { autoBind, autoBindUnique, isCardInstance, us } from '../utils'
-import { 科挂X } from './terran'
+import { CardDescriptorTable } from '../types.js'
+import { autoBind, autoBindUnique, isCardInstance, us } from '../utils.js'
+import { 科挂X } from './terran.js'
 
 const data: CardDescriptorTable = {
   虫卵: [

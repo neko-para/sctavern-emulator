@@ -5,7 +5,7 @@ import {
   UpgradeKey,
   RoleKey,
   PossibleKey,
-} from './pubdata'
+} from './pubdata.js'
 
 export type Race = 'T' | 'P' | 'Z' | 'N' | 'G'
 export type Pack =

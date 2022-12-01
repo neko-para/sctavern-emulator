@@ -1,9 +1,9 @@
 import { reactive } from '@vue/reactivity'
-import { Emitter } from './emitter'
-import { Player, PlayerAttrib } from './player'
-import { Pool } from './pool'
-import { GameConfig, LogicBus, LogItem, OutputBus, Postable } from './types'
-import { Shuffler } from './utils'
+import { Emitter } from './emitter.js'
+import { Player, PlayerAttrib } from './player.js'
+import { Pool } from './pool.js'
+import { GameConfig, LogicBus, LogItem, OutputBus, Postable } from './types.js'
+import { Shuffler } from './utils.js'
 
 interface GameAttrib {
   round: number

@@ -1,15 +1,15 @@
-import type { GameConfig, GameReplay, InputBus, LogItem } from './types'
-import { Game } from './game'
-import { Player } from './player'
-import { CardInstance, type CardInstanceAttrib } from './card'
-import { Shuffler } from './utils'
+import type { GameConfig, GameReplay, InputBus, LogItem } from './types.js'
+import { Game } from './game.js'
+import { Player } from './player.js'
+import { CardInstance, type CardInstanceAttrib } from './card.js'
+import { Shuffler } from './utils.js'
 import {
   type Adapter,
   Client,
   SlaveGame,
   MasterGame,
   LocalGame,
-} from './client'
+} from './client.js'
 
 export type {
   LogItem,

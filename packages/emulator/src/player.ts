@@ -11,15 +11,20 @@ import {
   UpgradeKey,
   RoleKey,
 } from '@sctavern-emulator/data'
-// import { RoleKey } from 'data'
-import { AttributeManager } from './attribute'
-import { CardInstance, CardInstanceAttrib } from './card'
-import { Descriptors } from './descriptor'
-import { Emitter } from './emitter'
-import { Game } from './game'
-import { create_role, RoleData, RoleImpl } from './role'
-import { Descriptor, InputBus, LogicBus, PlayerConfig } from './types'
-import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
+import { Descriptors } from './descriptor/index.js'
+import { AttributeManager } from './attribute.js'
+import { CardInstance, CardInstanceAttrib } from './card.js'
+import { Emitter } from './emitter.js'
+import { Game } from './game.js'
+import { create_role, RoleData, RoleImpl } from './role.js'
+import { Descriptor, InputBus, LogicBus, PlayerConfig } from './types.js'
+import {
+  isCardInstance,
+  isCardInstanceAttrib,
+  refC,
+  refP,
+  us,
+} from './utils.js'
 
 interface ActionItem {
   name: string

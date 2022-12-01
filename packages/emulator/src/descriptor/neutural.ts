@@ -12,15 +12,15 @@ import {
   Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from '../card'
-import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
+import { CardInstance } from '../card.js'
+import { CardDescriptorTable, DescriptorGenerator } from '../types.js'
 import {
   autoBind,
   autoBindPlayer,
   autoBindUnique,
   isCardInstance,
   us,
-} from '../utils'
+} from '../utils.js'
 
 function 供养(n: number, unit: UnitKey): DescriptorGenerator {
   return autoBind('post-sell', async card => {

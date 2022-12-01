@@ -2,7 +2,7 @@
   "name": "@sctavern-emulator/emulator",
   "version": "1.0.0",
   "description": "Emulator Core",
-  "main": "./src/index.js",
+  "main": "./dist/src/index.js",
   "scripts": {},
   "author": "nekosu",
   "license": "MIT",

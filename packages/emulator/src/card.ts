@@ -11,24 +11,24 @@ import {
   UnitKey,
   UpgradeKey,
 } from '@sctavern-emulator/data'
-import { AttributeManager } from './attribute'
-import { Descriptors } from './descriptor'
-import { Emitter } from './emitter'
-import { Player } from './player'
+import { Descriptors } from './descriptor/index.js'
+import { AttributeManager } from './attribute.js'
+import { Emitter } from './emitter.js'
+import { Player } from './player.js'
 import {
   LogicBus,
   Descriptor,
   DescriptorGenerator,
   ObtainUnitWay,
   DescriptorInfo,
-} from './types'
+} from './types.js'
 import {
   autoBind,
   isCardInstance,
   isCardInstanceAttrib,
   refC,
   us,
-} from './utils'
+} from './utils.js'
 
 export interface CardInstanceAttrib {
   pos: number

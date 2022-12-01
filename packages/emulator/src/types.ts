@@ -5,8 +5,8 @@ import {
   UnitKey,
   UpgradeKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from './card'
-import { Emitter } from './emitter'
+import { CardInstance } from './card.js'
+import { Emitter } from './emitter.js'
 
 type ApplyKey<T, I extends Record<string, unknown>> = {
   [key in keyof T]: T[key] & I

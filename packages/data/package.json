@@ -1,6 +1,6 @@
 {
     "name": "@sctavern-emulator/data",
-    "main": "./src/index.js",
+    "main": "./dist/src/index.js",
     "scripts": {
         "prebuild": "node generate.js pubdata.ts"
     },

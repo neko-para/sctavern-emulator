@@ -9,9 +9,9 @@ import {
   isNormal,
   UnitKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from '../card'
-import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
-import { autoBind, autoBindUnique, isCardInstance, refC, us } from '../utils'
+import { CardInstance } from '../card.js'
+import { CardDescriptorTable, DescriptorGenerator } from '../types.js'
+import { autoBind, autoBindUnique, isCardInstance, refC, us } from '../utils.js'
 
 function 集结X(
   power: number,

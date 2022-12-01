@@ -12,7 +12,7 @@ import type {
   SArmor,
   SplitResult,
   SplitResultRefer,
-} from './types'
+} from './types.js'
 import {
   data as raw,
   AllCard,
@@ -20,7 +20,7 @@ import {
   AllTerm,
   AllUpgrade,
   AllRole,
-} from './pubdata'
+} from './pubdata.js'
 import type {
   CardKey,
   TermKey,
@@ -28,7 +28,7 @@ import type {
   UpgradeKey,
   RoleKey,
   PossibleKey,
-} from './pubdata'
+} from './pubdata.js'
 const { card, term, unit, upgrade, role, attr, tr, order } = raw
 
 export const Cards: Map<CardKey, Card> = new Map()
