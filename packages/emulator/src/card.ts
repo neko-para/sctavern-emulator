@@ -22,7 +22,13 @@ import {
   ObtainUnitWay,
   DescriptorInfo,
 } from './types'
-import { isCardInstance, isCardInstanceAttrib, refC, us } from './utils'
+import {
+  autoBind,
+  isCardInstance,
+  isCardInstanceAttrib,
+  refC,
+  us,
+} from './utils'
 
 export interface CardInstanceAttrib {
   pos: number
@@ -97,10 +103,12 @@ export class CardInstance {
         return [this.data.left, this.data.right].filter(isCardInstanceAttrib)
       }),
       value: computed(() => {
-        return this.data.units
-          .map(getUnit)
-          .map(u => u.value)
-          .reduce((a, b) => a + b, 0)
+        return (
+          this.data.units
+            .map(getUnit)
+            .map(u => u.value)
+            .reduce((a, b) => a + b, 0) + this.attrib.get('献祭价值')
+        )
       }),
       self_power: computed(() => {
         return (
@@ -324,31 +332,40 @@ export class CardInstance {
               .map(u => u.health + (u.shield || 0))
               .reduce((a, b) => a + b, 0) * 1.5
 
+          const vsum = this.data.units
+            .filter((u, i) => idx !== i)
+            .map(getUnit)
+            .map(u => u.value)
+            .reduce((a, b) => a + b, 0)
+
           this.data.units = [this.data.units[idx]]
           this.attrib.config('献祭', sum)
+          this.attrib.config('献祭价值', vsum)
           this.attrib.setView(
             '献祭',
             () => `献祭的生命值: ${this.attrib.get('献祭')}`
           )
           this.add_desc(
-            (card, gold) => {
-              card.bus.begin()
-              card.bus.on('obtain-unit-prev', async param => {
-                card.attrib.set(
-                  '献祭',
-                  card.attrib.get('献祭') +
-                    param.units
-                      .map(getUnit)
-                      .map(u => u.health + (u.shield || 0))
-                      .reduce((a, b) => a + b, 0) *
-                      1.5
-                )
-                param.units = []
-              })
-              return reactive({
-                gold,
-              })
-            },
+            autoBind('obtain-unit-prev', async (card, gold, param) => {
+              card.attrib.set(
+                '献祭',
+                card.attrib.get('献祭') +
+                  param.units
+                    .map(getUnit)
+                    .map(u => u.health + (u.shield || 0))
+                    .reduce((a, b) => a + b, 0) *
+                    1.5
+              )
+              card.attrib.set(
+                '献祭价值',
+                card.attrib.get('献祭价值') +
+                  param.units
+                    .map(getUnit)
+                    .map(u => u.value)
+                    .reduce((a, b) => a + b, 0)
+              )
+              param.units = []
+            }),
             ['新添加的单位也会被献祭', '新添加的单位也会被献祭']
           )
         }
