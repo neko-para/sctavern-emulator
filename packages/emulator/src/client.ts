@@ -1,8 +1,16 @@
 import { Card, CardKey, UpgradeKey } from '@sctavern-emulator/data'
 import { Emitter } from './emitter'
-import { Game, GameReplay, LogItem } from './game'
+import { Game } from './game'
 import { Player } from './player'
-import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
+import {
+  GameConfig,
+  GameReplay,
+  InputBus,
+  LogicBus,
+  LogItem,
+  OutputBus,
+} from './types'
+import { postItem } from './utils'
 
 interface ClientRespond {
   pos: number
@@ -68,8 +76,7 @@ export class SlaveGame {
   async poll() {
     for (;;) {
       const item = await this.queue.pop()
-      // @ts-ignore
-      this.game.postInput(item.msg, item.param)
+      postItem(this.game, item)
     }
   }
 
@@ -111,8 +118,7 @@ export class MasterGame {
       const item = await this.queue.pop()
       const pros: Promise<void>[] = []
       for (const ad of this.adapter) {
-        // @ts-ignore
-        pros.push(ad.post(item.msg, item.param))
+        pros.push(postItem(ad, item))
       }
       await Promise.all(pros)
     }
@@ -197,21 +203,21 @@ export class Client implements ClientRespond {
 
   async replay_discover() {
     while (this.peekNextReplayItem()?.msg === '$select') {
-      await this.postItem(this.nextReplayItem())
+      await postItem(this, this.nextReplayItem())
     }
     if (this.peekNextReplayItem()?.msg === '$discover-choice') {
       await this.step()
-      await this.postItem(this.nextReplayItem())
+      await postItem(this, this.nextReplayItem())
     }
   }
 
   async replay_insert() {
     while (this.peekNextReplayItem()?.msg === '$select') {
-      await this.postItem(this.nextReplayItem())
+      await postItem(this, this.nextReplayItem())
     }
     if (this.peekNextReplayItem()?.msg === '$insert-choice') {
       await this.step()
-      await this.postItem(this.nextReplayItem())
+      await postItem(this, this.nextReplayItem())
     }
   }
 
@@ -255,17 +261,12 @@ export class Client implements ClientRespond {
     this.stop = false
     while (this.replayPos < this.replayLog.length && !this.stop) {
       const item = this.replayLog[this.replayPos++]
-      await this.postItem(item)
+      await postItem(this, item)
       if (this.stop) {
         break
       }
       await this.step()
     }
-  }
-
-  async postItem(item: LogItem) {
-    // @ts-ignore
-    await this.post(item.msg, item.param)
   }
 
   async requestHand({

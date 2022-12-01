@@ -1,9 +1,8 @@
 import { reactive } from '@vue/reactivity'
-import { RoleKey } from '@sctavern-emulator/data'
 import { Emitter } from './emitter'
 import { Player, PlayerAttrib } from './player'
 import { Pool } from './pool'
-import { GameConfig, InputBus, LogicBus, OutputBus } from './types'
+import { GameConfig, LogicBus, LogItem, OutputBus, Postable } from './types'
 import { Shuffler } from './utils'
 
 interface GameAttrib {
@@ -13,19 +12,7 @@ interface GameAttrib {
   player: (PlayerAttrib | null)[]
 }
 
-export interface LogItem {
-  msg: string
-  param: Record<string, unknown>
-}
-
-export interface GameReplay extends GameConfig {
-  pack: string[]
-  seed: string
-  role: RoleKey[]
-  log: LogItem[]
-}
-
-export class Game {
+export class Game implements Postable<LogicBus> {
   bus: Emitter<LogicBus>
   obus: Emitter<OutputBus>
 
@@ -82,14 +69,6 @@ export class Game {
       })
     }
     await this.bus.emit(msg, param)
-  }
-
-  async postInput<T extends keyof InputBus>(msg: T, param: LogicBus[T]) {
-    this.log.push({
-      msg,
-      param,
-    })
-    await this.post(msg, param)
   }
 
   async postOutput<T extends keyof OutputBus>(msg: T, param: OutputBus[T]) {

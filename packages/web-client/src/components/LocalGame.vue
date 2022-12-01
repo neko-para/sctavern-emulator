@@ -15,7 +15,6 @@ import {
   AllCard,
   getCard,
   type Card,
-  type CardKey,
   type UpgradeKey,
   type RoleKey,
 } from '@sctavern-emulator/data'

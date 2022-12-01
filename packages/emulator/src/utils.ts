@@ -3,7 +3,13 @@ import { UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
-import { Descriptor, DescriptorGenerator, LogicBus } from './types'
+import {
+  Descriptor,
+  DescriptorGenerator,
+  LogicBus,
+  LogItem,
+  Postable,
+} from './types'
 
 export class Shuffler {
   gen: Random
@@ -108,4 +114,9 @@ export function autoBindUnique(
 
 export function us(u: UnitKey, n: number): UnitKey[] {
   return Array(n).fill(u)
+}
+
+export async function postItem<T>(into: Postable<T>, item: LogItem) {
+  // @ts-ignore
+  into.post(item.msg, item.param)
 }
