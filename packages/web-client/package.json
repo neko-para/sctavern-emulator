@@ -11,10 +11,10 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@sctavern-emulator/data": "*",
+    "@sctavern-emulator/emulator": "*",
     "@mdi/font": "5.9.55",
     "buffer": "^6.0.3",
-    "data": "*",
-    "emulator": "*",
     "pako": "^2.1.0",
     "roboto-fontface": "*",
     "vue": "^3.2.41",
