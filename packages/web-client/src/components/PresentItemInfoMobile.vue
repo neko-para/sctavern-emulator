@@ -88,26 +88,12 @@ const Color = {
     </div>
     <div class="d-flex">
       <v-btn
-        :disabled="model || !client.player.data.presentActs[pos].gE"
+        v-for="(act, i) in client.player.data.presentActs[pos]"
+        :key="`Act-${i}`"
         variant="text"
-        @click="
-          client.requestPresent({
-            act: client.player.data.presentActs[pos].g,
-            pos,
-          })
-        "
-        >升级</v-btn
-      >
-      <v-btn
-        :disabled="model || !client.player.data.presentActs[pos].sE"
-        variant="text"
-        @click="
-          client.requestPresent({
-            act: client.player.data.presentActs[pos].s,
-            pos,
-          })
-        "
-        >出售</v-btn
+        :disabled="model || !act.enable"
+        @click="client.post(act.message, { player: client.pos, place: pos })"
+        >{{ act.name }}</v-btn
       >
     </div>
   </v-card>

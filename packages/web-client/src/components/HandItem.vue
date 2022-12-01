@@ -37,27 +37,15 @@ const elv = ref(5)
         <template-refer :card="card"></template-refer>
         <span class="text-h5 ml-auto mt-2 mr-2">{{ cardInfo.level }}</span>
       </div>
-      <div class="d-flex">
+      <div class="d-flex mt-auto">
         <v-btn
-          :disabled="model || !client.player.data.handActs[pos].eE"
+          v-for="(act, i) in client.player.data.handActs[pos]"
+          :key="`Act-${i}`"
           variant="flat"
-          :color="
-            client.player.data.handActs[pos].e === 'combine' ? 'yellow' : ''
-          "
-          @click="
-            client.requestHand({ act: client.player.data.handActs[pos].e, pos })
-          "
-          >{{
-            client.player.data.handActs[pos].e === 'combine' ? '三连' : '进场'
-          }}</v-btn
-        >
-        <v-btn
-          :disabled="model || !client.player.data.handActs[pos].sE"
-          variant="flat"
-          @click="
-            client.requestHand({ act: client.player.data.handActs[pos].s, pos })
-          "
-          >出售</v-btn
+          :color="act.name === '三连' ? 'yellow' : ''"
+          :disabled="model || !act.enable"
+          @click="client.post(act.message, { player: client.pos, place: pos })"
+          >{{ act.name }}</v-btn
         >
       </div>
     </template>

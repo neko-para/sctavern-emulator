@@ -12,7 +12,7 @@ import {
 } from './types'
 import { postItem } from './utils'
 
-interface ClientRespond {
+interface IClient {
   pos: number
 
   selected(choice: string): Promise<void>
@@ -80,7 +80,7 @@ export class SlaveGame {
     }
   }
 
-  bind(client: ClientRespond): void {
+  bind(client: IClient): void {
     const bus = new Emitter<OutputBus>('', [])
     this.game.obus.child[client.pos] = bus
 
@@ -162,7 +162,7 @@ export class LocalGame {
   }
 }
 
-export class Client implements ClientRespond {
+export class Client implements IClient {
   game: SlaveGame
   pos: number
   player: Player
@@ -203,6 +203,7 @@ export class Client implements ClientRespond {
 
   async replay_discover() {
     while (this.peekNextReplayItem()?.msg === '$select') {
+      await this.step()
       await postItem(this, this.nextReplayItem())
     }
     if (this.peekNextReplayItem()?.msg === '$discover-choice') {
@@ -213,6 +214,7 @@ export class Client implements ClientRespond {
 
   async replay_insert() {
     while (this.peekNextReplayItem()?.msg === '$select') {
+      await this.step()
       await postItem(this, this.nextReplayItem())
     }
     if (this.peekNextReplayItem()?.msg === '$insert-choice') {
@@ -241,14 +243,6 @@ export class Client implements ClientRespond {
     //
   }
 
-  async begin_select() {
-    //
-  }
-
-  async end_select() {
-    //
-  }
-
   async replay(
     replay: GameReplay,
     step: () => Promise<boolean> = async () => false
@@ -256,7 +250,7 @@ export class Client implements ClientRespond {
     this.replayLog = replay.log
     this.replayPos = 0
     this.step = async () => {
-      this.stop = await step()
+      this.stop = this.stop || (await step())
     }
     this.stop = false
     while (this.replayPos < this.replayLog.length && !this.stop) {

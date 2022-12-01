@@ -34,31 +34,13 @@ const cardInfo = computed(() => {
       </div>
       <div class="d-flex justify-space-around w-100" v-else>
         <v-btn
-          :disabled="model || !client.player.data.storeActs[pos].eE"
+          v-for="(act, i) in client.player.data.storeActs[pos]"
+          :key="`Act-${i}`"
           variant="flat"
-          :color="
-            client.player.data.storeActs[pos].e === 'combine' ? 'yellow' : ''
-          "
-          @click="
-            client.requestStore({
-              act: client.player.data.storeActs[pos].e,
-              pos,
-            })
-          "
-          >{{
-            client.player.data.storeActs[pos].e === 'combine' ? '三连' : '进场'
-          }}</v-btn
-        >
-        <v-btn
-          :disabled="model || !client.player.data.storeActs[pos].vE"
-          variant="flat"
-          @click="
-            client.requestStore({
-              act: client.player.data.storeActs[pos].v,
-              pos,
-            })
-          "
-          >暂存</v-btn
+          :color="act.name === '三连' ? 'yellow' : ''"
+          :disabled="model || !act.enable"
+          @click="client.post(act.message, { player: client.pos, place: pos })"
+          >{{ act.name }}</v-btn
         >
       </div>
     </template>

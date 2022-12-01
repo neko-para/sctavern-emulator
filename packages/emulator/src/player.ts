@@ -18,28 +18,14 @@ import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { create_role, RoleData, RoleImpl } from './role'
-import { Descriptor, LogicBus, PlayerConfig } from './types'
+import { Descriptor, InputBus, LogicBus, PlayerConfig } from './types'
 import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
 
-interface StoreAct {
-  e: 'enter' | 'combine'
-  eE: boolean
-  v: 'cache'
-  vE: boolean
-}
-
-interface HandAct {
-  e: 'enter' | 'combine'
-  eE: boolean
-  s: 'sell'
-  sE: boolean
-}
-
-interface PresentAct {
-  g: 'upgrade'
-  gE: boolean
-  s: 'sell'
-  sE: boolean
+interface ActionItem {
+  name: string
+  message: keyof InputBus
+  accelerator: string
+  enable: boolean
 }
 
 export interface PlayerAttrib {
@@ -52,15 +38,18 @@ export interface PlayerAttrib {
 
   selected: string
   locked: boolean
+  doned: boolean
 
   config: PlayerConfig
 
+  globalActs: ActionItem[]
+
   store: (CardKey | null)[]
-  storeActs: StoreAct[]
+  storeActs: ActionItem[][]
   hand: (CardKey | null)[]
-  handActs: HandAct[]
+  handActs: ActionItem[][]
   present: (CardInstanceAttrib | null)[]
-  presentActs: PresentAct[]
+  presentActs: ActionItem[][]
 
   ability: RoleData
 
@@ -104,6 +93,7 @@ export class Player {
 
       selected: 'none',
       locked: false,
+      doned: false,
 
       config: {
         MaxUnitPerCard: 200,
@@ -117,82 +107,112 @@ export class Player {
         MaxGas: 6,
       },
 
+      globalActs: computed<ActionItem[]>(() => [
+        {
+          name: '升级',
+          message: '$upgrade',
+          accelerator: 'w',
+          enable: this.can_tavern_upgrade(),
+        },
+        {
+          name: '刷新',
+          message: '$refresh',
+          accelerator: 'r',
+          enable: this.can_refresh(),
+        },
+        {
+          name: this.data.locked ? '解锁' : '锁定',
+          message: this.data.locked ? '$unlock' : '$lock',
+          accelerator: 'c',
+          enable: true,
+        },
+        {
+          name: '下一回合',
+          message: '$done',
+          accelerator: 'z',
+          enable: !this.data.doned,
+        },
+      ]),
+
       store: Array(3).fill(null),
-      storeActs: computed<StoreAct[]>(() => {
+      storeActs: computed<ActionItem[][]>(() => {
         return this.data.store.map(k => {
-          if (!k) {
-            return {
-              e: 'enter',
-              eE: false,
-              v: 'cache',
-              vE: false,
-            }
-          } else {
+          const res: ActionItem[] = []
+          if (k) {
             if (this.can_hand_combine(k)) {
-              return {
-                e: 'combine',
-                eE: this.can_buy_combine(k),
-                v: 'cache',
-                vE: this.can_buy_cache(k),
-              }
+              res.push({
+                name: '三连',
+                message: '$buy-combine',
+                accelerator: 'e',
+                enable: this.can_buy_combine(k),
+              })
             } else {
-              return {
-                e: 'enter',
-                eE: this.can_buy_enter(k),
-                v: 'cache',
-                vE: this.can_buy_cache(k),
-              }
+              res.push({
+                name: '进场',
+                message: '$buy-enter',
+                accelerator: 'e',
+                enable: this.can_buy_enter(k),
+              })
             }
+            res.push({
+              name: '暂存',
+              message: '$buy-cache',
+              accelerator: 'v',
+              enable: this.can_buy_cache(k),
+            })
           }
+          return res
         })
       }),
       hand: Array(6).fill(null),
-      handActs: computed<HandAct[]>(() => {
+      handActs: computed<ActionItem[][]>(() => {
         return this.data.hand.map(k => {
-          if (!k) {
-            return {
-              e: 'enter',
-              eE: false,
-              s: 'sell',
-              sE: false,
-            }
-          } else {
+          const res: ActionItem[] = []
+          if (k) {
             if (this.can_hand_combine(k)) {
-              return {
-                e: 'combine',
-                eE: true,
-                s: 'sell',
-                sE: true,
-              }
+              res.push({
+                name: '三连',
+                message: '$hand-combine',
+                accelerator: 'e',
+                enable: true,
+              })
             } else {
-              return {
-                e: 'enter',
-                eE: this.can_hand_enter(),
-                s: 'sell',
-                sE: true,
-              }
+              res.push({
+                name: '进场',
+                message: '$hand-enter',
+                accelerator: 'e',
+                enable: this.can_hand_enter(),
+              })
             }
+            res.push({
+              name: '出售',
+              message: '$hand-sell',
+              accelerator: 's',
+              enable: true,
+            })
           }
+          return res
         })
       }),
       present: Array(7).fill(null),
-      presentActs: computed<PresentAct[]>(() => {
+      presentActs: computed<ActionItem[][]>(() => {
         return this.data.present.map(ca => {
-          if (!ca) {
-            return {
-              g: 'upgrade',
-              gE: false,
-              s: 'sell',
-              sE: false,
-            }
-          } else {
-            return {
-              g: 'upgrade',
-              gE: this.can_pres_upgrade(ca),
-              s: 'sell',
-              sE: true,
-            }
+          const res: ActionItem[] = []
+          if (ca) {
+            res.push({
+              name: '升级',
+              message: '$present-upgrade',
+              accelerator: 'g',
+              enable: this.can_pres_upgrade(ca),
+            })
+            res.push({
+              name: '出售',
+              message: '$present-sell',
+              accelerator: 's',
+              enable: true,
+            })
           }
+          return res
         })
       }),
 
@@ -748,6 +768,7 @@ export class Player {
       await this.role.refreshed()
     })
     this.bus.on('$done', async () => {
+      this.data.doned = true
       await this.game.add_done()
     })
     this.bus.on('$ability', async () => {
@@ -929,6 +950,7 @@ export class Player {
 
   bind_default() {
     this.bus.on('round-start', async () => {
+      this.data.doned = false
       this.attrib.clean()
       if (this.data.upgrade_cost > 0) {
         this.data.upgrade_cost -= 1

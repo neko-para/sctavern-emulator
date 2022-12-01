@@ -124,86 +124,39 @@ function handleKey(ev: KeyboardEvent) {
       }
       break
     }
-    case 'w':
-      client.requestUpgrade()
-      return
-    case 'c':
-      if (player.data.locked) {
-        client.requestUnlock()
-      } else {
-        client.requestLock()
+    default: {
+      for (const act of player.data.globalActs) {
+        if (ev.key === act.accelerator && act.enable) {
+          client.post(act.message, {
+            player: player.pos,
+          })
+        }
       }
-      return
-    case 'z':
-      client.requestNext()
-      return
-    case 'r':
-      client.requestRefresh()
-      return
-  }
-  const m = /^[HSP](\d)$/.exec(selected.value)
-  if (!m) {
-    return
-  }
-  const pos = Number(m[1])
-  switch (selected.value[0]) {
-    case 'H':
-      if (!player.data.hand[pos]) {
+      const m = /^([HSP])(\d)$/.exec(selected.value)
+      if (!m) {
         return
       }
-      switch (ev.key) {
-        case 'e':
-          client.requestHand({
-            pos,
-            act: player.data.handActs[pos].e,
+      const stype = m[1] as 'H' | 'S' | 'P'
+      const pos = Number(m[2])
+      const acts = (() => {
+        switch (stype) {
+          case 'H':
+            return player.data.handActs[pos]
+          case 'S':
+            return player.data.storeActs[pos]
+          case 'P':
+            return player.data.presentActs[pos]
+        }
+      })()
+      for (const act of acts) {
+        if (ev.key === act.accelerator && act.enable) {
+          client.post(act.message, {
+            player: player.pos,
+            place: pos,
           })
-          return
-        case 's':
-          client.requestHand({
-            pos,
-            act: player.data.handActs[pos].s,
-          })
-          return
+        }
       }
-      break
-    case 'S':
-      if (!player.data.store[pos]) {
-        return
-      }
-      switch (ev.key) {
-        case 'e':
-          client.requestStore({
-            pos,
-            act: player.data.storeActs[pos].e,
-          })
-          return
-        case 'v':
-          client.requestStore({
-            pos,
-            act: player.data.storeActs[pos].v,
-          })
-          return
-      }
-      break
-    case 'P':
-      if (!player.present[pos]) {
-        return
-      }
-      switch (ev.key) {
-        case 'g':
-          client.requestPresent({
-            pos,
-            act: player.data.presentActs[pos].g,
-          })
-          return
-        case 's':
-          client.requestPresent({
-            pos,
-            act: player.data.presentActs[pos].s,
-          })
-          return
-      }
-      break
+    }
   }
 }
 
@@ -248,33 +201,12 @@ main()
         >
         <div class="d-flex">
           <v-btn
+            v-for="(act, i) in player.data.globalActs"
+            :key="`GlobalAct-${i}`"
             class="mr-1"
-            :disabled="model || !player.can_tavern_upgrade()"
-            @click="client.requestUpgrade()"
-            >升级</v-btn
-          >
-          <v-btn
-            class="mr-1"
-            :disabled="model || !player.can_refresh()"
-            @click="client.requestRefresh()"
-            >刷新</v-btn
-          >
-          <v-btn
-            v-if="player.data.locked"
-            class="mr-1"
-            :disabled="model"
-            @click="client.requestUnlock()"
-            >解锁</v-btn
-          >
-          <v-btn
-            v-else
-            class="mr-1"
-            :disabled="model"
-            @click="client.requestLock()"
-            >锁定</v-btn
-          >
-          <v-btn class="mr-1" :disabled="model" @click="client.requestNext()"
-            >下一回合</v-btn
+            :disabled="model || !act.enable"
+            @click="client.post(act.message, { player: player.pos })"
+            >{{ act.name }}</v-btn
           >
         </div>
         <div class="d-flex mt-1">
