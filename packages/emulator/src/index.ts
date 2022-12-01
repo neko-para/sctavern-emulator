@@ -1,5 +1,5 @@
-import type { GameConfig, InputBus } from './types'
-import { Game, type LogItem, type GameReplay } from './game'
+import type { GameConfig, GameReplay, InputBus, LogItem } from './types'
+import { Game } from './game'
 import { Player } from './player'
 import { CardInstance, type CardInstanceAttrib } from './card'
 import { Shuffler } from './utils'
