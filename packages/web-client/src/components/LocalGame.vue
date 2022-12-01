@@ -118,7 +118,7 @@ function handleKey(ev: KeyboardEvent) {
     case '6':
     case '7': {
       const pos = Number(ev.key) - 1
-      if (player.present[pos]) {
+      if (player.data.present[pos]) {
         client.selectChoose(`P${pos}`)
       } else {
         client.selectChoose('none')
@@ -156,15 +156,13 @@ function handleKey(ev: KeyboardEvent) {
         case 'e':
           client.requestHand({
             pos,
-            act: player.can_hand_combine(player.data.hand[pos] as CardKey)
-              ? 'combine'
-              : 'enter',
+            act: player.data.handActs[pos].e,
           })
           return
         case 's':
           client.requestHand({
             pos,
-            act: 'sell',
+            act: player.data.handActs[pos].s,
           })
           return
       }
@@ -177,15 +175,13 @@ function handleKey(ev: KeyboardEvent) {
         case 'e':
           client.requestStore({
             pos,
-            act: player.can_buy_combine(player.data.store[pos] as CardKey)
-              ? 'combine'
-              : 'enter',
+            act: player.data.storeActs[pos].e,
           })
           return
         case 'v':
           client.requestStore({
             pos,
-            act: 'cache',
+            act: player.data.storeActs[pos].v,
           })
           return
       }
@@ -198,13 +194,13 @@ function handleKey(ev: KeyboardEvent) {
         case 'g':
           client.requestPresent({
             pos,
-            act: 'upgrade',
+            act: player.data.presentActs[pos].g,
           })
           return
         case 's':
           client.requestPresent({
             pos,
-            act: 'sell',
+            act: player.data.presentActs[pos].s,
           })
           return
       }
