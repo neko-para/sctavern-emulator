@@ -963,6 +963,9 @@ export class Player {
         this.data.gas += 1
       }
       if (!this.data.locked) {
+        this.game.pool.drop(
+          (this.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
+        )
         this.data.store.fill(null)
       }
       this.data.locked = false

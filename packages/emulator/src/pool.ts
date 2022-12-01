@@ -1,4 +1,9 @@
-import { type Card, type CardKey, getCard, AllCard } from '@sctavern-emulator/data'
+import {
+  type Card,
+  type CardKey,
+  getCard,
+  AllCard,
+} from '@sctavern-emulator/data'
 import { Shuffler } from './utils'
 
 type PossibleLevel = 1 | 2 | 3 | 4 | 5 | 6
