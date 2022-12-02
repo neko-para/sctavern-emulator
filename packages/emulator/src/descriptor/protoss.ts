@@ -10,7 +10,7 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
-import { CardDescriptorTable, Descriptor, DescriptorGenerator } from '../types'
+import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import { autoBind, autoBindUnique, isCardInstance, refC, us } from '../utils'
 
 function 集结X(

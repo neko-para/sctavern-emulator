@@ -8,12 +8,7 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
-import {
-  CardDescriptorTable,
-  Descriptor,
-  DescriptorGenerator,
-  LogicBus,
-} from '../types'
+import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
 import {
   autoBind,
   autoBindPlayer,

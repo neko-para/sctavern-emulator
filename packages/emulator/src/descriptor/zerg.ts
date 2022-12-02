@@ -7,7 +7,7 @@ import {
   isNormal,
   Unit,
 } from '@sctavern-emulator/data'
-import { CardDescriptorTable, Descriptor } from '../types'
+import { CardDescriptorTable } from '../types'
 import { autoBind, autoBindUnique, isCardInstance, us } from '../utils'
 import { 科挂X } from './terran'
 
