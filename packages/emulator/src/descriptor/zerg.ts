@@ -98,7 +98,7 @@ const data: CardDescriptorTable = {
   ],
   凶残巨兽: [
     autoBind('post-sell', async (card, gold) => {
-      await card.player.inject(us('雷兽', gold ? 1 : 2))
+      await card.player.inject(us('雷兽', gold ? 2 : 1))
     }),
   ],
   注卵虫后: [
