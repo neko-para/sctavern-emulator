@@ -12,15 +12,16 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/web-client/dist"
+        "outputPath": "packages/web-client/dist",
+        "configFile": "packages/web-client/vite.config.ts"
       }
     },
     "serve": {
       "executor": "@nrwl/vite:dev-server",
       "defaultConfiguration": "development",
       "options": {
-          "buildTarget": "web-client:build",
-          "port": 5173
+        "buildTarget": "web-client:build",
+        "configFile": "packages/web-client/vite.config.ts"
       }
     },
     "lint": {

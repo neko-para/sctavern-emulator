@@ -15,7 +15,7 @@ jobs:
           npm install
           npx nx build data
           npx nx build emulator
-          npx nx build web-client
+          npx nx run web-client:build
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
