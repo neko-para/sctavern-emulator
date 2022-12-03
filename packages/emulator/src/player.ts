@@ -98,7 +98,7 @@ export class Player {
       config: {
         MaxUnitPerCard: 200,
         MaxUpgradePerCard: 5,
-        AlwaysInsert: role === '收割者',
+        AlwaysInsert: false,
 
         StoreCount: [0, 3, 4, 4, 5, 5, 6],
         UpgradeCost: [0, 5, 7, 8, 9, 11, 0],
@@ -139,26 +139,26 @@ export class Player {
         return this.data.store.map(k => {
           const res: ActionItem[] = []
           if (k) {
-            if (this.can_hand_combine(k)) {
+            if (this.can_combine(k)) {
               res.push({
                 name: '三连',
                 message: '$buy-combine',
                 accelerator: 'e',
-                enable: this.can_buy_combine(k),
+                enable: this.can_buy(k),
               })
             } else {
               res.push({
                 name: '进场',
                 message: '$buy-enter',
                 accelerator: 'e',
-                enable: this.can_buy_enter(k),
+                enable: this.can_buy(k),
               })
             }
             res.push({
               name: '暂存',
               message: '$buy-cache',
               accelerator: 'v',
-              enable: this.can_buy_cache(k),
+              enable: this.can_buy(k) && this.can_cache(),
             })
           }
           return res
@@ -169,7 +169,7 @@ export class Player {
         return this.data.hand.map(k => {
           const res: ActionItem[] = []
           if (k) {
-            if (this.can_hand_combine(k)) {
+            if (this.can_combine(k)) {
               res.push({
                 name: '三连',
                 message: '$hand-combine',
@@ -181,7 +181,7 @@ export class Player {
                 name: '进场',
                 message: '$hand-enter',
                 accelerator: 'e',
-                enable: this.can_hand_enter(),
+                enable: this.can_enter(),
               })
             }
             res.push({
@@ -802,7 +802,7 @@ export class Player {
     })
     this.bus.on('$buy-enter', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy_enter(ck)) {
+      if (!ck || !this.can_buy(ck) || !this.can_enter()) {
         return
       }
       this.data.mineral -= this.role.buy_cost(ck)
@@ -813,7 +813,7 @@ export class Player {
     })
     this.bus.on('$buy-cache', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy_cache(ck)) {
+      if (!ck || !this.can_buy(ck) || !this.can_cache()) {
         return
       }
       this.data.mineral -= this.role.buy_cost(ck)
@@ -824,7 +824,7 @@ export class Player {
     })
     this.bus.on('$buy-combine', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy_combine(ck)) {
+      if (!ck || !this.can_buy(ck) || !this.can_combine(ck)) {
         return
       }
       this.data.mineral -= this.role.buy_cost(ck)
@@ -834,23 +834,20 @@ export class Player {
       await this.role.bought() // 虽然但是, 对于原版来说可能三连不算购买(比如副官)
     })
     this.bus.on('$hand-enter', async ({ place }) => {
-      if (!this.data.hand[place] || !this.can_hand_enter()) {
+      const ck = this.data.hand[place]
+      if (!ck || !this.can_enter()) {
         return
       }
-      const c = this.data.hand[place] as CardKey
       this.data.hand[place] = null
-      await this.enter(getCard(c))
+      await this.enter(getCard(ck))
     })
     this.bus.on('$hand-combine', async ({ place }) => {
-      if (
-        !this.data.hand[place] ||
-        !this.can_hand_combine(this.data.hand[place] as CardKey)
-      ) {
+      const ck = this.data.hand[place]
+      if (!ck || !this.can_combine(ck)) {
         return
       }
-      const c = this.data.hand[place] as CardKey
       this.data.hand[place] = null
-      await this.combine(getCard(c))
+      await this.combine(getCard(ck))
     })
     this.bus.on('$hand-sell', async ({ place }) => {
       if (!this.data.hand[place]) {
@@ -987,32 +984,25 @@ export class Player {
     return this.role.buy_cost(ck)
   }
 
-  can_buy_enter(ck: CardKey) {
-    return this.data.mineral >= this.cost_of(ck) && this.can_hand_enter()
+  can_buy(ck: CardKey) {
+    return this.data.mineral >= this.cost_of(ck)
   }
 
-  can_buy_cache(ck: CardKey) {
-    return (
-      this.data.mineral >= this.cost_of(ck) &&
-      this.data.hand.filter(x => x).length < 6
-    )
-  }
-
-  can_buy_combine(ck: CardKey) {
-    return this.data.mineral >= this.cost_of(ck) && this.can_hand_combine(ck)
-  }
-
-  can_hand_enter() {
+  can_enter() {
     return this.data.present.filter(c => !isCardInstanceAttrib(c)).length > 0
   }
 
-  can_hand_combine(ck: CardKey) {
+  can_combine(ck: CardKey) {
     return (
       this.data.present
         .filter(isCardInstanceAttrib)
         .filter(card => card.name === ck)
         .filter(c => c.color === 'normal').length >= 2
     )
+  }
+
+  can_cache() {
+    return this.data.hand.filter(x => x).length < 6
   }
 
   can_pres_upgrade(c: CardInstanceAttrib) {
