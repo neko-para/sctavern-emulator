@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RoleKey } from '@sctavern-emulator/data'
 import LocalGame from './components/LocalGame.vue'
-import LocalGameMobile from './components/LocalGameMobile.vue'
 import RemoteGame from './components/RemoteGame.vue'
 
 const params = new URLSearchParams(window.location.search.substring(1))
@@ -26,23 +25,20 @@ const mobile =
 <template>
   <div class="d-flex h-100">
     <template v-if="pos !== null">
-      <remote-game target="ws://localhost:8080" :pos="pos"></remote-game>
+      <remote-game
+        target="ws://localhost:8080"
+        :pos="pos"
+        :mobile="mobile"
+      ></remote-game>
     </template>
-    <template v-else-if="!mobile">
+    <template v-else>
       <local-game
         :pack="packs"
         :seed="seed"
         :role="role"
         :replay="replay"
+        :mobile="mobile"
       ></local-game>
-    </template>
-    <template v-else>
-      <local-game-mobile
-        :pack="packs"
-        :seed="seed"
-        :role="role"
-        :replay="replay"
-      ></local-game-mobile>
     </template>
   </div>
 </template>

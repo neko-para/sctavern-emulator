@@ -4,6 +4,10 @@ import { type RoleKey, AllRole, order } from '@sctavern-emulator/data'
 import { Shuffler } from '@sctavern-emulator/emulator'
 import { applyConfigChange } from './utils'
 
+const props = defineProps<{
+  mobile: boolean
+}>()
+
 const packConfig = ref<Record<string, boolean>>({})
 const seedConfig = ref(Math.floor(Math.random() * 1000000).toString())
 const roleConfig = ref<RoleKey>('白板')
@@ -28,7 +32,12 @@ function genSeed() {
 </script>
 
 <template>
-  <v-dialog v-model="packDlg" class="w-25">
+  <v-dialog
+    v-model="packDlg"
+    :class="{
+      'w-50': !mobile,
+    }"
+  >
     <template v-slot:activator="{ props }">
       <v-btn v-bind="props">配置</v-btn>
     </template>
