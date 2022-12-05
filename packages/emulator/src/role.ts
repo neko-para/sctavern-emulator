@@ -757,6 +757,9 @@ function 思旺(r: IRole) {
     if (!(card instanceof CardInstance)) {
       return
     }
+    if (card.data.name === '机械工厂') {
+      return
+    }
     const n = (await card.filter(isMachine)).length
     if (n === 0) {
       return
