@@ -144,21 +144,21 @@ export class Player {
                 name: '三连',
                 message: '$buy-combine',
                 accelerator: 'e',
-                enable: this.can_buy(k),
+                enable: this.can_buy(k, 'combine'),
               })
             } else {
               res.push({
                 name: '进场',
                 message: '$buy-enter',
                 accelerator: 'e',
-                enable: this.can_buy(k),
+                enable: this.can_buy(k, 'enter'),
               })
             }
             res.push({
               name: '暂存',
               message: '$buy-cache',
               accelerator: 'v',
-              enable: this.can_buy(k) && this.can_cache(),
+              enable: this.can_buy(k, 'cache') && this.can_cache(),
             })
           }
           return res
@@ -217,7 +217,12 @@ export class Player {
       }),
 
       ability: {
-        name: '',
+        data: {
+          type: 'role',
+          name: '白板',
+          ability: '',
+          desc: '',
+        },
         prog_cur: -1,
         prog_max: 0,
         enable: false,
