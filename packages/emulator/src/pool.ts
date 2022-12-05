@@ -23,10 +23,12 @@ type HeapType = {
 
 export class Pool {
   rheap: HeapType
+  pack: Record<string, boolean>
   gen: Shuffler
 
   constructor(pack: Record<string, boolean>, gen: Shuffler) {
     this.rheap = {}
+    this.pack = pack
     this.gen = gen
 
     AllCard.map(c => getCard(c)).forEach(card => {

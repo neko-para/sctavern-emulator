@@ -458,9 +458,8 @@ function 科学球(r: IRole) {
       r.data.prog_cur > 0
   ) as unknown as boolean
   r.data.extra = computed<string[]>(() => {
-    return (Object.keys(record) as UnitKey[])
-      .map(k => `${k}: ${record[k]}`)
-      // .join('\n')
+    return (Object.keys(record) as UnitKey[]).map(k => `${k}: ${record[k]}`)
+    // .join('\n')
   }) as unknown as string[]
   r.player.bus.on('card-entered', async ({ target }) => {
     const units = target.data.units
@@ -579,7 +578,9 @@ function 拟态虫(r: IRole) {
       })
       const tl = Math.min(6, role.player.data.level + 1)
       const cardt = role.player.game.shuffle(
-        AllCard.map(getCard).filter(c => c.level === tl)
+        AllCard.map(getCard)
+          .filter(c => c.level === tl)
+          .filter(c => role.player.game.pool.pack[c.pack])
       )[0]
       const units: UnitKey[] = []
       for (const u in cardt.unit) {
