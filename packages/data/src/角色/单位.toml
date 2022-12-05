@@ -181,3 +181,30 @@ speed = 0
 [unit.sarmor]
 name = "星灵等离子护盾"
 defense = 0
+
+
+[[unit]]
+name = "奥丁"
+race = "T"
+value = 2000
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
+health = 3200
+[[unit.weapon]]
+name = "T800型火炮"
+damage = "40, vs 重甲 80"
+range = 7
+speed = 1.07
+target = "G"
+multiple = 2
+[[unit.weapon]]
+name = "地狱火飞弹发射器"
+damage = 15
+range = 10
+speed = 0.89
+target = "A"
+multiple = 4
+[unit.armor]
+name = "人类战车钢板"
+defense = 3
+speed = 2.62

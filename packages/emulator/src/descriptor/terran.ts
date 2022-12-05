@@ -102,7 +102,7 @@ function 科挂(
   })
 }
 
-function 反应堆(unit: UnitKey): DescriptorGenerator {
+export function 反应堆(unit: UnitKey): DescriptorGenerator {
   return autoBind('round-end', async (card, gold) => {
     if (card.data.infr[0] === 'reactor') {
       await card.obtain_unit(us(unit, gold ? 2 : 1))
