@@ -168,6 +168,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(us('热辣贝蒂', gold ? 2 : 1))
     }),
   ],
+  不法之徒: [],
 }
 
 export { data }

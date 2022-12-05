@@ -161,3 +161,13 @@ desc = [
 pool = false
 [card.attr]
 type = "building"
+
+[[card]]
+name = "不法之徒"
+race = "T"
+pack = "核心"
+level = 1
+unit = { "泰凯斯" = 1 }
+desc = []
+pool = false
+[card.attr]

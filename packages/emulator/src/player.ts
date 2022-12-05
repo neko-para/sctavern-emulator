@@ -640,15 +640,24 @@ export class Player {
   async sell(card: CardInstance) {
     const around = card.around()
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
+    const pos = card.data.pos
+    const left = card.left()
+    const right = card.right()
+    card.left = () => left
+    card.right = () => right
     this.unput(card)
     card.data.pos = -1
-    await this.post('post-sell', refC(card))
+    await this.post('post-sell', {
+      ...refC(card),
+      pos,
+    })
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
     await this.post('card-selled', {
       ...refP(this),
       target: card,
       flag: false,
+      pos,
     })
     await this.obtain_resource({
       mineral: 1,
@@ -664,10 +673,6 @@ export class Player {
     this.unput(card)
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
-    await this.post('card-destroyed', {
-      ...refP(this),
-      target: card,
-    })
     for (const c of around) {
       await c.gain_darkness(dark)
     }

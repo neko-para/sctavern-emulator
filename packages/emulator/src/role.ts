@@ -16,6 +16,8 @@ import { CardInstance } from './card'
 import { Player } from './player'
 import { autoBind, us } from './utils'
 import { Descriptors } from './descriptor'
+import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
+import { DescriptorGenerator } from './types'
 
 export interface RoleData {
   data: Role
@@ -162,9 +164,7 @@ function 陆战队员(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 2
-    }
+    role => role.player.data.mineral >= 2
   )
 }
 
@@ -239,9 +239,7 @@ function 阿巴瑟(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 2
-    }
+    role => role.player.data.mineral >= 2
   )
 }
 
@@ -559,10 +557,179 @@ function 行星要塞(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 3
-    }
+    role => role.player.data.mineral >= 3
   )
+}
+
+function 拟态虫(r: IRole) {
+  return ActPerRole(
+    r,
+    1,
+    async role => {
+      const card = role.player.current_selected()
+      if (!(card instanceof CardInstance)) {
+        return false
+      }
+      if (card.data.pos === role.player.persisAttrib.get('拟态虫', -1)) {
+        return false
+      }
+      role.player.persisAttrib.config('拟态虫', card.data.pos)
+      await role.player.obtain_resource({
+        mineral: -3,
+      })
+      const tl = Math.min(6, role.player.data.level + 1)
+      const cardt = role.player.game.shuffle(
+        AllCard.map(getCard).filter(c => c.level === tl)
+      )[0]
+      const units: UnitKey[] = []
+      for (const u in cardt.unit) {
+        const unit = u as UnitKey
+        if (isNormal(unit)) {
+          units.push(...us(unit, cardt.unit[unit] || 0))
+        }
+      }
+      await card.obtain_unit(units)
+      return true
+    },
+    role => role.player.data.mineral >= 3
+  )
+}
+
+function 探机(r: IRole) {
+  r.player.bus.on('card-entered', async ({ target }) => {
+    await target.obtain_unit(['水晶塔'])
+  })
+  return ActPerRole(
+    r,
+    1,
+    async role => {
+      const card = role.player.current_selected()
+      if (!(card instanceof CardInstance)) {
+        return false
+      }
+      if (role.player.data.mineral < 1) {
+        return false
+      }
+      const pos = card.find('水晶塔')
+      if (pos.length === 0) {
+        return false
+      }
+      await card.replace_unit(pos.slice(0, 1), '虚空水晶塔')
+      return true
+    },
+    role => role.player.data.mineral >= 1
+  )
+}
+
+function 泰凯斯(r: IRole) {
+  r.player.bus.on('round-enter', async ({ round }) => {
+    if (round === 1) {
+      await r.player.obtain_resource({
+        mineral: -3,
+      })
+      const card = (await r.player.enter(getCard('不法之徒'))) as CardInstance
+      let reactor: [DescriptorGenerator, [string, string]] | null = null
+      const tasks: [DescriptorGenerator, string][] = [
+        [
+          任务('refreshed', 4, async card => {
+            card.player.data.upgrade_cost = Math.max(
+              0,
+              card.player.data.upgrade_cost - 4
+            )
+            await card.obtain_unit(['反应堆'])
+            card.data.level = 2
+            reactor = [
+              反应堆('陆战队员'),
+              ['反应堆生产陆战队员', '反应堆生产陆战队员'],
+            ]
+            pop()
+          }),
+          '任务: 刷新4次酒馆\n奖励: 酒馆升级费用降低4并获得反应堆, 生产陆战队员',
+        ],
+        [
+          任务('card-entered', 2, async card => {
+            await card.obtain_unit(us('陆战队员', 4))
+            card.data.level = 3
+            pop()
+          }),
+          '任务: 进场2张卡牌\n奖励: 获得4个陆战队员',
+        ],
+        [
+          任务('refreshed', 4, async card => {
+            await card.obtain_upgrade('强化药剂')
+            await card.player.discover(
+              card.player.game.pool.discover(
+                c => c.level === card.player.data.level,
+                3
+              )
+            )
+            card.data.level = 4
+            pop()
+          }),
+          '任务: 刷新4次酒馆\n奖励: 获得强化药剂升级, 获得当前酒馆等级的卡牌',
+        ],
+        [
+          任务('refreshed', 6, async card => {
+            await card.player.discover(
+              card.player.game.pool.discover(
+                c => c.level === card.player.data.level,
+                3
+              )
+            )
+            card.data.level = 5
+            reactor = [
+              反应堆('陆战队员(精英)'),
+              ['反应堆生产陆战队员(精英)', '反应堆生产陆战队员(精英)'],
+            ]
+            pop()
+          }),
+          '任务: 刷新6次酒馆\n奖励: 获得当前酒馆等级的卡牌, 反应堆生产陆战队员(精英)',
+        ],
+        [
+          任务('card-entered', 4, async card => {
+            await card.player.obtain_resource({
+              mineral: 4,
+            })
+            await card.obtain_unit(us('攻城坦克', 2))
+            card.data.level = 6
+            pop()
+          }),
+          '任务: 进场4张卡牌\n奖励: 获得4晶体矿和2攻城坦克',
+        ],
+        [
+          任务('card-entered', 6, async card => {
+            await card.obtain_unit(['奥丁'])
+            card.data.level = 7
+            pop()
+          }),
+          '任务: 进场6张卡牌\n奖励: 获得1奥丁',
+        ],
+        [
+          任务(
+            'card-entered',
+            4,
+            async card => {
+              await card.obtain_unit(['雷神'])
+            },
+            () => true,
+            RenewPolicy.instant
+          ),
+          '任务: 进场4张卡牌\n奖励: 获得1雷神',
+        ],
+      ]
+      const pop = () => {
+        const task = tasks.shift()
+        if (task) {
+          card.clear_desc()
+          if (reactor) {
+            card.add_desc(reactor[0], reactor[1])
+          }
+          card.add_desc(task[0], [task[1], task[1]])
+        }
+      }
+      pop()
+    }
+  })
 }
 
 const RoleSet: Record<RoleKey, RoleBind> = {
@@ -584,6 +751,9 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   科学球,
   母舰核心,
   行星要塞,
+  拟态虫,
+  探机,
+  泰凯斯,
 }
 
 export function create_role(p: Player, r: RoleKey) {

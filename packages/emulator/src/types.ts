@@ -102,10 +102,6 @@ type PlayerBusTemplate = {
     // 刷新商店
   }
 
-  'card-destroyed': {
-    // 摧毁卡牌
-    target: CardInstance
-  }
   'card-entered': {
     // 进场卡牌
     target: CardInstance
@@ -118,6 +114,7 @@ type PlayerBusTemplate = {
     // 出售卡牌
     target: CardInstance
     flag: boolean // 仅用于光复艾尔, 防止重复回收, 考虑换其它方法
+    pos: number
   }
 
   incubate: {
@@ -179,7 +176,7 @@ type CardBusTemplate = {
     //
   }
   'post-sell': {
-    //
+    pos: number // 用于供养等, 定位
   }
   seize: {
     // 夺取

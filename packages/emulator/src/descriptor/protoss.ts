@@ -53,7 +53,11 @@ function 集结(
   return 集结X(
     power,
     async (card, gold) => {
-      await card.obtain_unit(us(unit, gold ? gc : nc), way)
+      if (way === 'normal') {
+        await card.obtain_unit(us(unit, gold ? gc : nc))
+      } else {
+        await card.player.wrap(us(unit, gold ? gc : nc))
+      }
     },
     id
   )
