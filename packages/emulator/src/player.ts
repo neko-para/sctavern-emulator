@@ -641,6 +641,10 @@ export class Player {
     const around = card.around()
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     const pos = card.data.pos
+    const left = card.left()
+    const right = card.right()
+    card.left = () => left
+    card.right = () => right
     this.unput(card)
     card.data.pos = -1
     await this.post('post-sell', {
