@@ -24,8 +24,8 @@ import {
 } from '../utils'
 
 function 供养(n: number, unit: UnitKey): DescriptorGenerator {
-  return autoBind('post-sell', async card => {
-    const right = card.right()
+  return autoBind('post-sell', async (card, gold, { pos }) => {
+    const right = card.player.present[pos + 1]
     if (!isCardInstance(right)) {
       return
     }
