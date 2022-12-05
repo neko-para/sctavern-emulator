@@ -18,13 +18,13 @@ import {
   us,
 } from '../utils'
 
-enum RenewPolicy {
+export enum RenewPolicy {
   never,
   roundend,
   instant,
 }
 
-function 任务<T extends keyof LogicBus>(
+export function 任务<T extends keyof LogicBus>(
   msg: T,
   count: number,
   reward: (card: CardInstance, gold: boolean) => Promise<void>,

@@ -44,6 +44,41 @@ name = "星灵等离子护盾"
 defense = 0
 
 [[unit]]
+name = "毒气炮塔"
+race = "N"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑"]
+health = 250
+[unit.armor]
+name = "人类建筑钢板"
+defense = 1
+speed = 0
+
+
+[[unit]]
+name = "凯达琳巨石"
+race = "P"
+value = 400
+utype = "normal"
+tag = ["重甲", "建筑"]
+health = 200
+shield = 100
+[[unit.weapon]]
+name = "凯达琳光束"
+damage = 100
+range = 13
+speed = 2.14
+target = "GA"
+[unit.armor]
+name = "星灵护板"
+defense = 1
+speed = 0
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
 name = "岗哨机枪"
 race = "N"
 value = 100
@@ -60,3 +95,89 @@ target = "GA"
 name = "人类建筑钢板"
 defense = 1
 speed = 0
+
+[[unit]]
+name = "行星要塞"
+race = "N"
+value = 1200
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑", "英雄单位"]
+health = 1500
+[[unit.weapon]]
+name = "伊比克斯火炮"
+damage = 40
+range = 7
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类建筑钢板"
+defense = 3
+speed = 0
+
+[[unit]]
+name = "星门"
+race = "P"
+value = 0
+utype = "normal"
+tag = []
+health = 0
+
+[[unit]]
+name = "作战指挥中心"
+race = "T"
+value = 1500
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑", "英雄单位"]
+health = 1500
+[[unit.weapon]]
+name = "爆炸弹幕"
+damage = 100
+range = 12
+speed = 2.86
+target = "GA"
+multiple = 4
+[unit.armor]
+name = "人类建筑钢板"
+defense = 0
+speed = 0
+
+[[unit]]
+name = "风暴对地导弹塔"
+race = "T"
+value = 75
+utype = "normal"
+tag = ["重甲", "机械单位", "建筑"]
+health = 150
+[[unit.weapon]]
+name = "岗哨机枪"
+damage = 15
+range = 20
+speed = 7.14
+target = "G"
+multiple = 8
+[unit.armor]
+name = "人类建筑钢板"
+defense = 0
+speed = 0
+
+[[unit]]
+name = "粒子光炮"
+race = "N"
+value = 2000
+utype = "normal"
+tag = ["重甲", "建筑", "英雄单位"]
+health = 1000
+shield = 500
+[[unit.weapon]]
+name = "粒子光炮"
+damage = 150
+range = 15
+speed = 2.86
+target = "G"
+[unit.armor]
+name = "星灵护板"
+defense = 1
+speed = 0
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0

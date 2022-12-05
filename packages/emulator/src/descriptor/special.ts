@@ -1,5 +1,23 @@
+import { AllCard, getCard, isBuilding } from '@sctavern-emulator/data'
+import { CardInstance } from '../card'
 import { CardDescriptorTable } from '../types'
-import { autoBind, fake } from '../utils'
+import { autoBind, autoBindPlayer, autoBindUnique, fake, us } from '../utils'
+import { RenewPolicy, 任务 } from './terran'
+
+function 制造(
+  count: number,
+  result: (card: CardInstance, gold: boolean) => Promise<void>
+) {
+  return autoBind('round-end', async (card, gold) => {
+    const cnt = card.find('零件').length
+    let n = Math.floor(cnt / count)
+    await card.remove_unit(card.find('零件', n * count))
+    while (n > 0) {
+      n -= 1
+      await result(card, gold)
+    }
+  })
+}
 
 const data: CardDescriptorTable = {
   黄金矿工: [
@@ -15,6 +33,140 @@ const data: CardDescriptorTable = {
     }),
   ],
   母舰核心: [fake(), fake()],
+  毒气炮塔: [
+    autoBind('round-end', async (card, gold) => {
+      const cnt = card.find('自动机炮').length
+      const r = gold ? 2 : 3
+      const n = Math.floor(cnt / r)
+      await card.remove_unit(card.find('自动机炮', n * r))
+      await card.obtain_unit(us('毒气炮塔', n))
+    }),
+    autoBind('post-sell', async (card, gold) => {
+      await card.player.obtain_resource({
+        mineral: gold ? 2 : 1,
+      })
+    }),
+  ],
+  凯达琳巨石: [
+    autoBind('round-end', async (card, gold) => {
+      const cnt = card.find('自动机炮').length
+      const r = gold ? 4 : 5
+      const n = Math.floor(cnt / r)
+      await card.remove_unit(card.find('自动机炮', n * r))
+      await card.obtain_unit(us('凯达琳巨石', n))
+    }),
+    autoBind('round-end', async card => {
+      await card.obtain_unit(us('自动机炮', card.player.count_present().P))
+    }),
+  ],
+  岗哨机枪: [
+    autoBind('round-end', async card => {
+      const cnt = card.find('自动机炮').length
+      await card.remove_unit(card.find('自动机炮'))
+      await card.obtain_unit(us('岗哨机枪', cnt * 2))
+    }),
+    autoBind('card-entered', async (card, gold) => {
+      await card.obtain_unit(us('岗哨机枪', gold ? 3 : 2))
+    }),
+  ],
+  行星要塞: [
+    autoBind('round-end', async (card, gold) => {
+      const cnt = card.find('自动机炮').length
+      const r = gold ? 4 : 5
+      const n = Math.floor(cnt / r)
+      await card.remove_unit(card.find('自动机炮', n * r))
+      await card.obtain_unit(us('行星要塞', n))
+    }),
+    autoBindUnique(async (card, desc) => {
+      card.attrib.setView('行星要塞', () => (desc.disabled ? '停用' : '启用'))
+      card.bus.on('card-selled', async ({ target }) => {
+        if (desc.disabled) {
+          return
+        }
+        if (target.data.race !== 'N') {
+          return
+        }
+        await card.obtain_unit(await target.filter(isBuilding))
+      })
+    }, '行星要塞'),
+  ],
+  星门: [
+    autoBind('round-end', async (card, gold) => {
+      await card.obtain_unit(us('零件', gold ? 2 : 1))
+      await card.replace_unit(card.find('自动机炮'), '零件')
+    }),
+    制造(6, async card => {
+      await card.obtain_unit(['星门'])
+    }),
+  ],
+  自动机炮: [
+    autoBind('round-end', async (card, gold) => {
+      await card.obtain_unit(us('自动机炮', gold ? 2 : 1))
+    }),
+    autoBind('post-sell', async card => {
+      const ar = card.around()
+      if (ar.length === 0) {
+        return
+      }
+      await ar[0].obtain_unit(us('自动机炮', card.find('自动机炮').length))
+    }),
+  ],
+  作战中心: [
+    制造(6, async card => {
+      await card.obtain_unit(['作战指挥中心'])
+    }),
+    任务(
+      'card-entered',
+      2,
+      async (card, gold) => {
+        await card.obtain_unit(us('零件', gold ? 2 : 1))
+      },
+      () => true,
+      RenewPolicy.roundend
+    ),
+  ],
+  导弹基地: [
+    autoBind('round-end', async card => {
+      const cnt = card.find('自动机炮').length
+      await card.remove_unit(card.find('自动机炮'))
+      await card.obtain_unit(us('风暴对地导弹塔', cnt * 2))
+    }),
+    autoBindPlayer('task-done', async (card, gold) => {
+      await card.obtain_unit(us('风暴对地导弹塔', gold ? 3 : 2))
+    }),
+  ],
+  粒子光炮: [
+    autoBind('round-end', async (card, gold) => {
+      for (const c of card.around()) {
+        const idxs = c.find('自动机炮', gold ? 2 : 1)
+        await c.remove_unit(idxs)
+        await card.obtain_unit(us('自动机炮', idxs.length))
+      }
+      await card.replace_unit(card.find('自动机炮'), '零件')
+    }),
+    制造(9, async card => {
+      await card.obtain_unit(['粒子光炮'])
+    }),
+  ],
+  再生钢: [
+    autoBind('round-end', async card => {
+      const cnt = card.find('自动机炮').length
+      const n = Math.floor(cnt / 2)
+      await card.remove_unit(card.find('自动机炮', n * 2))
+      await card.obtain_unit(us('热辣贝蒂', n))
+    }),
+    autoBind('obtain-upgrade', async (card, gold) => {
+      await card.player.discover(
+        card.player.game
+          .shuffle(AllCard.map(getCard).filter(c => c.attr.type === 'building'))
+          .slice(0, 3),
+        {
+          nodrop: true,
+        }
+      )
+      await card.obtain_unit(us('热辣贝蒂', gold ? 2 : 1))
+    }),
+  ],
 }
 
 export { data }

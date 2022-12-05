@@ -5,7 +5,148 @@ pack = "核心"
 level = 1
 unit = { "母舰核心" = 1, "狂热者" = 1, "虚空水晶塔" = 2,  "追猎者" = 2 }
 desc = ["玩家进行两次三连此卡牌变为母舰", "三连时, 获得数量等你酒馆等级的虚空辉光舰"]
-
 pool = false
 [card.attr]
 
+[[card]]
+name = "毒气炮塔"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每{3|2}自动机炮变为毒气炮塔",
+  "出售时, 获得{1|2}晶体矿"
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "凯达琳巨石"
+race = "P"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每{5|4}自动机炮变为1凯达琳巨石",
+  "每回合结束时, 每有一张神族卡牌, 此卡牌获得1自动机炮",
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "岗哨机枪"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每个自动机炮变为2岗哨机枪",
+  "任意卡牌进场时, 此卡牌获得{2|3}岗哨机枪"
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "行星要塞"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每{5|4}自动机炮变为1行星要塞",
+  "唯一: 任意中立卡牌出售时, 获得其中所有的非特殊建筑单位",
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "星门"
+race = "P"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 获得{1|2}零件并将每1自动机炮变为1零件",
+  "制造(6): 获得1星门",
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "自动机炮"
+race = "Z"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 获得{1|2}自动机炮",
+  "出售时, 相邻(优先左侧)卡牌获得此卡牌的所有自动机炮"
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "作战中心"
+race = "T"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "制造(6): 获得1作战指挥中心",
+  '''
+任务: 进场2张卡牌
+奖励: 获得{1|2}零件
+每回合结束时, 重置任务'''
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "导弹基地"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每个自动机炮变为2风暴对地导弹塔",
+  "任意任务完成时, 获得{2|3}风暴对地导弹塔"
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "粒子光炮"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 抽取相邻两侧卡牌{1|2}自动机炮并将每1自动机炮变为1零件",
+  "制造(9): 获得1粒子光炮",
+]
+pool = false
+[card.attr]
+type = "building"
+
+[[card]]
+name = "再生钢"
+race = "N"
+pack = "核心"
+level = 1
+unit = { "自动机炮" = 1 }
+desc = [
+  "每回合结束时, 将每2自动机炮变为1热辣贝蒂",
+  "获得升级时, 发现1张建筑卡并获得2热辣贝蒂",
+]
+pool = false
+[card.attr]
+type = "building"

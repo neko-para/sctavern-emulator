@@ -512,7 +512,7 @@ speed = 3.15
 [[unit]]
 name = "热辣贝蒂"
 race = "T"
-value = 0
+value = 500
 utype = "normal"
 tag = ["重甲", "机械单位", "建筑"]
 rmrk = "若由思旺召唤, 则持续32秒, 含有召唤标签"

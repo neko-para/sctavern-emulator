@@ -291,6 +291,7 @@ export class Player {
     option?: {
       target?: CardInstance
       cancel?: boolean
+      nodrop?: boolean
     }
   ): Promise<boolean> {
     const choice = await this.queryDiscover(item, !!option?.cancel)
@@ -304,7 +305,9 @@ export class Player {
       await this.obtain_card(cho)
       item.splice(choice, 1)
     }
-    this.game.pool.drop(item.filter(i => typeof i !== 'string') as Card[])
+    if (!option?.nodrop) {
+      this.game.pool.drop(item.filter(i => typeof i !== 'string') as Card[])
+    }
     return true
   }
 
@@ -522,7 +525,9 @@ export class Player {
       pos = await this.queryInsert()
     }
     const card = new CardInstance(this, cardt)
-    card.data.occupy.push(cardt.name)
+    if (cardt.pool) {
+      card.data.occupy.push(cardt.name)
+    }
     this.put(card, pos)
 
     for (const k in cardt.unit) {

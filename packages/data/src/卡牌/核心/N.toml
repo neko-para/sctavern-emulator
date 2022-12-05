@@ -321,14 +321,3 @@ rmrk = '''多张黄金矿工效果可以叠加
 更改为此卡面描述时, 不修改名称, 星级和种族'''
 pool = false
 [card.attr]
-
-[[card]]
-name = "岗哨机枪"
-race = "N"
-pack = "核心"
-level = 1
-unit = {}
-desc = ["建筑卡", "每回合结束时, 将每个自动机炮变为2岗哨机枪", "任意卡牌进场时, 获得{2|3}岗哨机枪"]
-
-pool = false
-[card.attr]

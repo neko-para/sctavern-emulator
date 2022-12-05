@@ -85,6 +85,9 @@ export function isPsionic(key: UnitKey) {
 export function isHero(key: UnitKey) {
   return getUnit(key).tag.includes('英雄单位')
 }
+export function isBuilding(key: UnitKey) {
+  return getUnit(key).tag.includes('建筑')
+}
 export function isNormal(key: UnitKey) {
   return getUnit(key).utype === 'normal'
 }

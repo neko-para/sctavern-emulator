@@ -1,5 +1,6 @@
 import { computed, reactive } from '@vue/reactivity'
 import {
+  AllCard,
   AllUpgrade,
   CardKey,
   getCard,
@@ -134,6 +135,8 @@ function 执政官(r: Role) {
     for (const b of leftBinds) {
       await right.bind_desc(b.bind, b.text, b.data)
     }
+    right.attrib.cleanView()
+    right.bindDef()
     return true
   })
 }
@@ -476,6 +479,38 @@ function 母舰核心(r: Role) {
   }
 }
 
+function 行星要塞(r: Role) {
+  r.player.bus.on('card-entered', async ({ target }) => {
+    if (target.data.belong === 'building') {
+      await target.obtain_unit(us('自动机炮', target.player.data.level + 1))
+    }
+  })
+  return ActPerRole(
+    r,
+    1,
+    async role => {
+      if (role.player.data.mineral < 3) {
+        return false
+      }
+      await role.player.obtain_resource({
+        mineral: -3,
+      })
+      await role.player.discover(
+        role.player.game
+          .shuffle(AllCard.map(getCard).filter(c => c.attr.type === 'building'))
+          .slice(0, 3),
+        {
+          nodrop: true,
+        }
+      )
+      return true
+    },
+    role => {
+      return role.player.data.mineral >= 3
+    }
+  )
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -493,6 +528,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   雷诺,
   阿塔尼斯,
   母舰核心,
+  行星要塞,
 }
 
 export function create_role(p: Player, r: RoleKey) {

@@ -42,7 +42,7 @@ export interface CardInstanceAttrib {
   units: UnitKey[]
   upgrades: UpgradeKey[]
 
-  belong: 'none' | 'origin' | 'void'
+  belong: 'none' | 'origin' | 'void' | 'building'
 
   descriptors: DescriptorInfo[]
 
@@ -147,22 +147,12 @@ export class CardInstance {
 
     if (cardt.attr.origin) {
       this.data.belong = 'origin'
-      this.attrib.setView('origin', () => {
-        return '属于原始虫群'
-      })
     } else if (cardt.attr.void) {
       this.data.belong = 'void'
       this.set_void()
+    } else if (cardt.attr.type === 'building') {
+      this.data.belong = 'building'
     }
-
-    this.attrib.setView('power', () => {
-      const p = this.data.power
-      if (this.data.race === 'P' || p > 0) {
-        return `能量强度: ${p}`
-      } else {
-        return ''
-      }
-    })
 
     if (cardt.attr.dark) {
       this.attrib.config('dark', 0, 'add')
@@ -183,6 +173,19 @@ export class CardInstance {
 
     if (this.attrib.has('dark')) {
       this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
+    }
+
+    switch (this.data.belong) {
+      case 'origin':
+        this.attrib.setView('origin', () => {
+          return '属于原始虫群'
+        })
+        break
+      case 'building':
+        this.attrib.setView('building', () => {
+          return '建筑卡'
+        })
+        break
     }
   }
 

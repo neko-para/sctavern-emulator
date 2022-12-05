@@ -65,6 +65,7 @@ export interface Card {
     origin?: boolean
     dark?: boolean
     void?: boolean
+    type?: 'building' | 'support'
   }
   rmrk?: string
 }
