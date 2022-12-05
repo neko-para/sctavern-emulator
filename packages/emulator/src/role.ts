@@ -460,9 +460,13 @@ function 科学球(r: IRole) {
       r.data.prog_cur > 0
   ) as unknown as boolean
   r.data.extra = computed<string>(() => {
-    return (Object.keys(record) as UnitKey[])
-      .map(k => `${k}: ${record[k]}`)
-      .join('\n')
+    const chunk = 5
+    const arr = (Object.keys(record) as UnitKey[]).map(
+      k => `${k}: ${record[k]}`
+    )
+    return Array.from({ length: Math.ceil(arr.length / chunk) }, (v, i) =>
+      arr.slice(i * chunk, i * chunk + chunk).join('\t')
+    ).join('\n')
   }) as unknown as string
   r.player.bus.on('card-entered', async ({ target }) => {
     const units = target.data.units

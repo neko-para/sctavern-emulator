@@ -296,7 +296,6 @@ export class CardInstance {
         case '黄金矿工': {
           await this.clear_desc()
           const descs = Descriptors.黄金矿工
-          this.data.name = '黄金矿工'
           this.data.color = 'gold'
           if (descs) {
             for (let i = 0; i < descs.length; i++) {
