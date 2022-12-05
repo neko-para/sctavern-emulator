@@ -29,7 +29,7 @@ interface IRole {
 
   ability(): Promise<void>
 
-  buy_cost(card: CardKey): number
+  buy_cost(card: CardKey, act: 'enter' | 'combine' | 'cache'): number
   refresh_cost(): number
 
   bought(): Promise<void>
@@ -46,7 +46,7 @@ export class RoleImpl implements IRole {
 
   ability: () => Promise<void>
 
-  buy_cost: (card: CardKey) => number
+  buy_cost: (card: CardKey, act: 'enter' | 'combine' | 'cache') => number
   refresh_cost: () => number
 
   bought: () => Promise<void>
@@ -328,8 +328,8 @@ function 使徒(r: IRole) {
       r.data.enpower = false
     }
   }
-  r.buy_cost = () => {
-    return r.data.enpower ? 1 : 3
+  r.buy_cost = (ck, act) => {
+    return r.data.enpower && act !== 'combine' ? 1 : 3
   }
   r.player.bus.on('round-start', async () => {
     r.data.prog_cur = 0

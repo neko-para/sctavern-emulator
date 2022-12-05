@@ -808,10 +808,10 @@ export class Player {
     })
     this.bus.on('$buy-enter', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck) || !this.can_enter()) {
+      if (!ck || !this.can_buy(ck, 'enter') || !this.can_enter()) {
         return
       }
-      this.data.mineral -= this.role.buy_cost(ck)
+      this.data.mineral -= this.role.buy_cost(ck, 'enter')
       await this.enter(getCard(ck))
       this.data.store[place] = null
 
@@ -819,10 +819,10 @@ export class Player {
     })
     this.bus.on('$buy-cache', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck) || !this.can_cache()) {
+      if (!ck || !this.can_buy(ck, 'cache') || !this.can_cache()) {
         return
       }
-      this.data.mineral -= this.role.buy_cost(ck)
+      this.data.mineral -= this.role.buy_cost(ck, 'cache')
       this.data.hand[this.data.hand.findIndex(v => v === null)] = ck
       this.data.store[place] = null
 
@@ -830,10 +830,10 @@ export class Player {
     })
     this.bus.on('$buy-combine', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck) || !this.can_combine(ck)) {
+      if (!ck || !this.can_buy(ck, 'combine') || !this.can_combine(ck)) {
         return
       }
-      this.data.mineral -= this.role.buy_cost(ck)
+      this.data.mineral -= this.role.buy_cost(ck, 'combine')
       await this.combine(getCard(this.data.store[place] as CardKey))
       this.data.store[place] = null
 
@@ -986,12 +986,8 @@ export class Player {
     })
   }
 
-  cost_of(ck: CardKey) {
-    return this.role.buy_cost(ck)
-  }
-
-  can_buy(ck: CardKey) {
-    return this.data.mineral >= this.cost_of(ck)
+  can_buy(ck: CardKey, act: 'enter' | 'combine' | 'cache') {
+    return this.data.mineral >= this.role.buy_cost(ck, act)
   }
 
   can_enter() {
