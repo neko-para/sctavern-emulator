@@ -162,9 +162,7 @@ function 陆战队员(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 2
-    }
+    role => role.player.data.mineral >= 2
   )
 }
 
@@ -239,9 +237,7 @@ function 阿巴瑟(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 2
-    }
+    role => role.player.data.mineral >= 2
   )
 }
 
@@ -563,9 +559,67 @@ function 行星要塞(r: IRole) {
       )
       return true
     },
-    role => {
-      return role.player.data.mineral >= 3
-    }
+    role => role.player.data.mineral >= 3
+  )
+}
+
+function 拟态虫(r: IRole) {
+  return ActPerRole(
+    r,
+    1,
+    async role => {
+      const card = role.player.current_selected()
+      if (!(card instanceof CardInstance)) {
+        return false
+      }
+      if (card.data.pos === role.player.persisAttrib.get('拟态虫', -1)) {
+        return false
+      }
+      role.player.persisAttrib.config('拟态虫', card.data.pos)
+      await role.player.obtain_resource({
+        mineral: -3,
+      })
+      const tl = Math.min(6, role.player.data.level + 1)
+      const cardt = role.player.game.shuffle(
+        AllCard.map(getCard).filter(c => c.level === tl)
+      )[0]
+      const units: UnitKey[] = []
+      for (const u in cardt.unit) {
+        const unit = u as UnitKey
+        if (isNormal(unit)) {
+          units.push(...us(unit, cardt.unit[unit] || 0))
+        }
+      }
+      await card.obtain_unit(units)
+      return true
+    },
+    role => role.player.data.mineral >= 3
+  )
+}
+
+function 探机(r: IRole) {
+  r.player.bus.on('card-entered', async ({ target }) => {
+    await target.obtain_unit(['水晶塔'])
+  })
+  return ActPerRole(
+    r,
+    1,
+    async role => {
+      const card = role.player.current_selected()
+      if (!(card instanceof CardInstance)) {
+        return false
+      }
+      if (role.player.data.mineral < 1) {
+        return false
+      }
+      const pos = card.find('水晶塔')
+      if (pos.length === 0) {
+        return false
+      }
+      await card.replace_unit(pos.slice(0, 1), '虚空水晶塔')
+      return true
+    },
+    role => role.player.data.mineral >= 1
   )
 }
 
@@ -588,6 +642,8 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   科学球,
   母舰核心,
   行星要塞,
+  拟态虫,
+  探机,
 }
 
 export function create_role(p: Player, r: RoleKey) {

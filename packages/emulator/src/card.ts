@@ -163,18 +163,6 @@ export class CardInstance {
   }
 
   bindDef() {
-    this.attrib.setView('power', () => {
-      if (this.data.race === 'P' || this.data.power > 0) {
-        return `能量强度: ${this.data.power}`
-      } else {
-        return ''
-      }
-    })
-
-    if (this.attrib.has('dark')) {
-      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
-    }
-
     switch (this.data.belong) {
       case 'origin':
         this.attrib.setView('origin', () => {
@@ -186,6 +174,18 @@ export class CardInstance {
           return '建筑卡'
         })
         break
+    }
+
+    this.attrib.setView('power', () => {
+      if (this.data.race === 'P' || this.data.power > 0) {
+        return `能量强度: ${this.data.power}`
+      } else {
+        return ''
+      }
+    })
+
+    if (this.attrib.has('dark')) {
+      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
     }
   }
 
