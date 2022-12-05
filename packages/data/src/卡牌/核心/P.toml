@@ -108,6 +108,7 @@ pool = true
 
 [[card]]
 name = "重回战场"
+pinyin = "chzc"
 race = "P"
 pack = "核心"
 level = 3

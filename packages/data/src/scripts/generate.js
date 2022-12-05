@@ -49,9 +49,11 @@ async function main() {
     result[k].forEach(obj => {
       obj.type = k
       if (k === 'card') {
-        obj.pinyin = pinyin(obj.name, { style: 'first_letter', segment: true })
-          .map(([s]) => s[0])
-          .reduce((a, b) => a + b, '')
+        obj.pinyin =
+          obj.pinyin ||
+          pinyin(obj.name, { style: 'first_letter', segment: true })
+            .map(([s]) => s[0])
+            .reduce((a, b) => a + b, '')
       }
     })
   })
