@@ -37,17 +37,24 @@ const player = computed(() => {
             @click="client.post(act.message, { player: player.pos })"
             >{{ act.name }}</v-btn
           >
-          <v-btn
-            :disabled="status.model || !player.data.ability.enable"
-            :color="player.data.ability.enpower ? 'white' : ''"
-            @click="client.requestAbility()"
-            >{{ player.data.ability.name
-            }}{{
-              player.data.ability.prog_cur !== -1
-                ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
-                : ''
-            }}</v-btn
-          >
+
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props: p }">
+              <v-btn
+                v-bind="p"
+                :disabled="status.model || !player.data.ability.enable"
+                :color="player.data.ability.enpower ? 'white' : ''"
+                @click="client.requestAbility()"
+                >{{ player.data.ability.data.ability
+                }}{{
+                  player.data.ability.prog_cur !== -1
+                    ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
+                    : ''
+                }}</v-btn
+              >
+            </template>
+            <pre>{{ player.role.data.data.desc }}</pre>
+          </v-tooltip>
         </div>
         <slot></slot>
         <div id="HandRegion">

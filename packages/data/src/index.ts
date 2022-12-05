@@ -40,7 +40,7 @@ export const Roles: Map<RoleKey, Role> = new Map()
 export { attr, tr, order }
 export { AllCard, AllUnit, AllTerm, AllUpgrade, AllRole }
 export { CardKey, TermKey, UnitKey, UpgradeKey, RoleKey, PossibleKey }
-export { Race, Card, Term, Unit, Upgrade, Weapon, Armor, SArmor }
+export { Race, Card, Term, Unit, Upgrade, Role, Weapon, Armor, SArmor }
 export { SplitResult, SplitResultRefer }
 
 card.forEach(c => Cards.set(c.name, c))

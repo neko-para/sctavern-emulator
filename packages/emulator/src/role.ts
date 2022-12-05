@@ -6,6 +6,7 @@ import {
   getCard,
   getRole,
   isNormal,
+  Role,
   RoleKey,
   UnitKey,
 } from '@sctavern-emulator/data'
@@ -15,14 +16,14 @@ import { autoBind, us } from './utils'
 import { Descriptors } from './descriptor'
 
 export interface RoleData {
-  name: string
+  data: Role
   prog_cur: number
   prog_max: number
   enable: boolean
   enpower: boolean
 }
 
-interface Role {
+interface IRole {
   player: Player
   data: RoleData
 
@@ -36,10 +37,10 @@ interface Role {
 }
 
 interface RoleBind {
-  (role: Role): () => Promise<void>
+  (role: IRole): () => Promise<void>
 }
 
-export class RoleImpl implements Role {
+export class RoleImpl implements IRole {
   player: Player
   data: RoleData
 
@@ -51,10 +52,10 @@ export class RoleImpl implements Role {
   bought: () => Promise<void>
   refreshed: () => Promise<void>
 
-  constructor(p: Player, b: RoleBind, n: string) {
+  constructor(p: Player, b: RoleBind, r: Role) {
     this.player = p
     this.data = reactive({
-      name: n,
+      data: r,
       prog_cur: -1,
       prog_max: 0,
       enable: false,
@@ -76,10 +77,10 @@ export class RoleImpl implements Role {
 }
 
 function ActPerRole(
-  r: Role,
+  r: IRole,
   c: number,
-  a: (r: Role) => Promise<boolean>,
-  e: (r: Role) => boolean = () => true
+  a: (r: IRole) => Promise<boolean>,
+  e: (r: IRole) => boolean = () => true
 ) {
   r.data.prog_max = c
   r.player.bus.on('round-enter', async () => {
@@ -102,7 +103,7 @@ function 白板() {
   }
 }
 
-function 执政官(r: Role) {
+function 执政官(r: IRole) {
   return ActPerRole(r, 1, async role => {
     const left = role.player.current_selected()
     if (!(left instanceof CardInstance)) {
@@ -141,7 +142,7 @@ function 执政官(r: Role) {
   })
 }
 
-function 陆战队员(r: Role) {
+function 陆战队员(r: IRole) {
   return ActPerRole(
     r,
     1,
@@ -164,7 +165,7 @@ function 陆战队员(r: Role) {
   )
 }
 
-function 收割者(r: Role) {
+function 收割者(r: IRole) {
   r.player.data.config.AlwaysInsert = true
   r.buy_cost = c => (getCard(c).attr.insert ? 2 : 3)
   return async () => {
@@ -172,7 +173,7 @@ function 收割者(r: Role) {
   }
 }
 
-function 感染虫(r: Role) {
+function 感染虫(r: IRole) {
   return ActPerRole(r, 1, async role => {
     const card = role.player.current_selected()
     if (!(card instanceof CardInstance)) {
@@ -199,7 +200,7 @@ function 感染虫(r: Role) {
   })
 }
 
-function SCV(r: Role) {
+function SCV(r: IRole) {
   return ActPerRole(r, 1, async role => {
     const card = role.player.current_selected()
     if (!(card instanceof CardInstance)) {
@@ -213,7 +214,7 @@ function SCV(r: Role) {
   })
 }
 
-function 阿巴瑟(r: Role) {
+function 阿巴瑟(r: IRole) {
   return ActPerRole(
     r,
     1,
@@ -241,7 +242,7 @@ function 阿巴瑟(r: Role) {
   )
 }
 
-function 工蜂(r: Role) {
+function 工蜂(r: IRole) {
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round % 2 === 1) {
       if (r.player.data.gas < 6) {
@@ -260,7 +261,7 @@ function 工蜂(r: Role) {
   }
 }
 
-function 副官(r: Role) {
+function 副官(r: IRole) {
   r.data.prog_max = 1
   r.refresh_cost = () => {
     return r.data.prog_cur > 0 ? 0 : 1
@@ -284,7 +285,7 @@ function 副官(r: Role) {
   }
 }
 
-function 追猎者(r: Role) {
+function 追猎者(r: IRole) {
   r.data.prog_max = 5
   r.player.persisAttrib.config('追猎者', 0)
   r.bought = async () => {
@@ -311,7 +312,7 @@ function 追猎者(r: Role) {
   }
 }
 
-function 使徒(r: Role) {
+function 使徒(r: IRole) {
   r.data.prog_max = 2
   r.bought = async () => {
     if (r.data.prog_cur === -1) {
@@ -338,7 +339,7 @@ function 使徒(r: Role) {
   }
 }
 
-function 矿骡(r: Role) {
+function 矿骡(r: IRole) {
   r.player.bus.on('round-enter', async () => {
     if (r.player.persisAttrib.get('矿骡')) {
       r.data.enable = false
@@ -359,7 +360,7 @@ function 矿骡(r: Role) {
   }
 }
 
-function 斯台特曼(r: Role) {
+function 斯台特曼(r: IRole) {
   r.player.bus.on('card-entered', async ({ target }) => {
     await r.player.discover(
       r.player.game.shuffle(AllUpgrade.filter(x => x !== '献祭')).slice(0, 3),
@@ -385,7 +386,7 @@ function 斯台特曼(r: Role) {
   }
 }
 
-function 雷诺(r: Role) {
+function 雷诺(r: IRole) {
   r.data.enable = true
 
   return async () => {
@@ -407,7 +408,7 @@ function 雷诺(r: Role) {
   }
 }
 
-function 阿塔尼斯(r: Role) {
+function 阿塔尼斯(r: IRole) {
   r.data.prog_max = 9
   r.data.prog_cur = 0
   r.player.bus.on('card-entered', async ({ target }) => {
@@ -445,7 +446,7 @@ function 阿塔尼斯(r: Role) {
   }
 }
 
-function 母舰核心(r: Role) {
+function 母舰核心(r: IRole) {
   r.data.prog_max = 2
   r.data.prog_cur = 0
   r.player.bus.on('round-enter', async ({ round }) => {
@@ -479,7 +480,7 @@ function 母舰核心(r: Role) {
   }
 }
 
-function 行星要塞(r: Role) {
+function 行星要塞(r: IRole) {
   r.player.bus.on('card-entered', async ({ target }) => {
     if (target.data.belong === 'building') {
       await target.obtain_unit(us('自动机炮', target.player.data.level + 1))
@@ -532,5 +533,5 @@ const RoleSet: Record<RoleKey, RoleBind> = {
 }
 
 export function create_role(p: Player, r: RoleKey) {
-  return new RoleImpl(p, RoleSet[r], getRole(r).ability)
+  return new RoleImpl(p, RoleSet[r], getRole(r))
 }
