@@ -33,6 +33,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   母舰核心: [fake(), fake()],
+  观察样本: [],
   毒气炮塔: [
     autoBind('round-end', async (card, gold) => {
       const cnt = card.find('自动机炮').length

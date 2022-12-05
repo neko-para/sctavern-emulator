@@ -5,9 +5,11 @@ import {
   CardKey,
   getCard,
   getRole,
+  getUnit,
   isNormal,
   Role,
   RoleKey,
+  Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from './card'
@@ -21,6 +23,7 @@ export interface RoleData {
   prog_max: number
   enable: boolean
   enpower: boolean
+  extra?: string
 }
 
 interface IRole {
@@ -446,6 +449,56 @@ function 阿塔尼斯(r: IRole) {
   }
 }
 
+function 科学球(r: IRole) {
+  const record = reactive<Partial<Record<UnitKey, number>>>({})
+  r.data.prog_max = 2
+  r.data.prog_cur = 2
+  r.data.enable = computed<boolean>(
+    () =>
+      r.player.data.gas >= 1 &&
+      !r.player.attrib.get('科学球') &&
+      r.data.prog_cur > 0
+  ) as unknown as boolean
+  r.data.extra = computed<string>(() => {
+    return (Object.keys(record) as UnitKey[])
+      .map(k => `${k}: ${record[k]}`)
+      .join('\n')
+  }) as unknown as string
+  r.player.bus.on('card-entered', async ({ target }) => {
+    const units = target.data.units
+      .map((u, i) => [getUnit(u), i] as [Unit, number])
+      .sort(([ua, ia], [ub, ib]) => {
+        if (ua.value === ub.value) {
+          return ia - ib
+        } else {
+          return ub.value - ua.value
+        }
+      })
+    if (units.length > 0) {
+      record[units[0][0].name] = (record[units[0][0].name] || 0) + 1
+    }
+  })
+  return async () => {
+    if (
+      !r.player.can_enter() ||
+      r.player.data.gas < 1 ||
+      r.player.attrib.get('科学球') ||
+      r.data.prog_cur === 0
+    ) {
+      return
+    }
+    r.data.prog_cur -= 1
+    await r.player.obtain_resource({
+      gas: -1,
+    })
+    r.player.attrib.config('科学球', 1)
+    const c = await r.player.enter(getCard('观察样本'))
+    await c?.obtain_unit(
+      (Object.keys(record) as UnitKey[]).map(k => us(k, record[k] || 0)).flat(1)
+    )
+  }
+}
+
 function 母舰核心(r: IRole) {
   r.data.prog_max = 2
   r.data.prog_cur = 0
@@ -528,6 +581,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   斯台特曼,
   雷诺,
   阿塔尼斯,
+  科学球,
   母舰核心,
   行星要塞,
 }

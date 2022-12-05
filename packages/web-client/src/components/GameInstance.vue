@@ -42,9 +42,15 @@ const player = computed(() => {
             <template v-slot:activator="{ props: p }">
               <v-btn
                 v-bind="p"
-                :disabled="status.model || !player.data.ability.enable"
-                :color="player.data.ability.enpower ? 'white' : ''"
-                @click="client.requestAbility()"
+                :disabled="status.model"
+                :color="
+                  player.data.ability.enpower
+                    ? 'red'
+                    : player.data.ability.enable
+                    ? ''
+                    : 'grey'
+                "
+                @click="player.data.ability.enable && client.requestAbility()"
                 >{{ player.data.ability.data.ability
                 }}{{
                   player.data.ability.prog_cur !== -1
@@ -53,7 +59,8 @@ const player = computed(() => {
                 }}</v-btn
               >
             </template>
-            <pre>{{ player.role.data.data.desc }}</pre>
+            <pre>{{ player.data.ability.data.desc }}</pre>
+            <pre>{{ player.data.ability.extra }}</pre>
           </v-tooltip>
         </div>
         <slot></slot>

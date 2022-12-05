@@ -521,10 +521,10 @@ export class Player {
     this.bus.child[card.data.pos] = null
   }
 
-  async enter(cardt: Card) {
+  async enter(cardt: Card): Promise<CardInstance | null> {
     let pos = this.data.first_hole
     if (pos === -1) {
-      return false
+      return null
     }
     if (cardt.attr.insert || this.data.config.AlwaysInsert) {
       pos = await this.queryInsert()
@@ -555,7 +555,7 @@ export class Player {
 
     await this.post('post-enter', refC(card))
 
-    return true
+    return card
   }
 
   async combine(cardt: Card) {

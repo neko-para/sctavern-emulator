@@ -9,6 +9,17 @@ pool = false
 [card.attr]
 
 [[card]]
+name = "观察样本"
+race = "N"
+pack = "核心"
+level = 1
+unit = {}
+desc = []
+pool = false
+[card.attr]
+gold = true
+
+[[card]]
 name = "毒气炮塔"
 race = "N"
 pack = "核心"
