@@ -138,7 +138,7 @@ const data: CardDescriptorTable = {
         )
       }
     }),
-    autoBind('post-enter', async (card, gold) => {
+    autoBind('post-sell', async (card, gold) => {
       await card.player.wrap(us('不朽者', gold ? 2 : 1))
     }),
   ],
