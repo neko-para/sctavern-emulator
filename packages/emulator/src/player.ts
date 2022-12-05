@@ -260,7 +260,7 @@ export class Player {
     await this.game.post(msg, param)
   }
 
-  find_name(name: CardKey) {
+  find_name(name: string) {
     return this.present
       .filter(isCardInstance)
       .filter(card => card.data.name === name)
@@ -631,7 +631,8 @@ export class Player {
     const around = card.around()
     const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
     this.unput(card)
-    await this.post('post-sell', refC(card, true))
+    card.data.pos = -1
+    await this.post('post-sell', refC(card))
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
     await this.post('card-selled', {
@@ -831,7 +832,7 @@ export class Player {
       await this.combine(getCard(this.data.store[place] as CardKey))
       this.data.store[place] = null
 
-      await this.role.bought() // 虽然但是, 对于原版来说可能三连不算购买(比如副官)
+      // await this.role.bought()
     })
     this.bus.on('$hand-enter', async ({ place }) => {
       const ck = this.data.hand[place]

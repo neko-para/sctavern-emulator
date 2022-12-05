@@ -1,14 +1,17 @@
 import { computed, reactive } from '@vue/reactivity'
 import {
+  AllUpgrade,
   CardKey,
   getCard,
   getRole,
   isNormal,
   RoleKey,
+  UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Player } from './player'
-import { autoBind } from './utils'
+import { autoBind, us } from './utils'
+import { Descriptors } from './descriptor'
 
 export interface RoleData {
   name: string
@@ -129,7 +132,7 @@ function 执政官(r: Role) {
     right.data.color = 'darkgold'
     right.data.belong = 'none'
     for (const b of leftBinds) {
-      await right.bind_desc(b.bind, b.text)
+      await right.bind_desc(b.bind, b.text, b.data)
     }
     return true
   })
@@ -305,6 +308,174 @@ function 追猎者(r: Role) {
   }
 }
 
+function 使徒(r: Role) {
+  r.data.prog_max = 2
+  r.bought = async () => {
+    if (r.data.prog_cur === -1) {
+      return
+    }
+    if (r.data.prog_cur < r.data.prog_max) {
+      r.data.prog_cur += 1
+      if (r.data.prog_cur === r.data.prog_max) {
+        r.data.enpower = true
+      }
+    } else if (r.data.prog_cur === r.data.prog_max) {
+      r.data.prog_cur = -1
+      r.data.enpower = false
+    }
+  }
+  r.buy_cost = () => {
+    return r.data.enpower ? 1 : 3
+  }
+  r.player.bus.on('round-start', async () => {
+    r.data.prog_cur = 0
+  })
+  return async () => {
+    //
+  }
+}
+
+function 矿骡(r: Role) {
+  r.player.bus.on('round-enter', async () => {
+    if (r.player.persisAttrib.get('矿骡')) {
+      r.data.enable = false
+      await r.player.obtain_resource({
+        mineral: 2 - r.player.data.mineral_max,
+      })
+      r.player.persisAttrib.config('矿骡', 0)
+    } else {
+      r.data.enable = true
+    }
+  })
+  return async () => {
+    r.player.persisAttrib.config('矿骡', 1)
+    r.data.enable = false
+    await r.player.obtain_resource({
+      mineral: Math.max(0, r.player.data.mineral_max - r.player.data.mineral),
+    })
+  }
+}
+
+function 斯台特曼(r: Role) {
+  r.player.bus.on('card-entered', async ({ target }) => {
+    await r.player.discover(
+      r.player.game.shuffle(AllUpgrade.filter(x => x !== '献祭')).slice(0, 3),
+      {
+        target,
+      }
+    )
+  })
+  r.player.bus.on('tavern-upgraded', async () => {
+    await r.player.obtain_resource({
+      gas: 1,
+    })
+  })
+  r.player.bus.on('round-start', async ({ round }) => {
+    if (round > 1) {
+      await r.player.obtain_resource({
+        gas: -1,
+      })
+    }
+  })
+  return async () => {
+    //
+  }
+}
+
+function 雷诺(r: Role) {
+  r.data.enable = true
+
+  return async () => {
+    const card = r.player.current_selected()
+    if (!(card instanceof CardInstance)) {
+      return
+    }
+    if (card.data.color !== 'normal' || card.data.level >= 6) {
+      return
+    }
+    card.data.color = 'gold'
+    const descs = card.data.descriptors
+    await card.clear_desc()
+    for (const d of descs) {
+      await card.add_desc(d.data.desc, d.data.text)
+    }
+    await card.obtain_upgrade('金光闪闪')
+    r.data.enable = false
+  }
+}
+
+function 阿塔尼斯(r: Role) {
+  r.data.prog_max = 9
+  r.data.prog_cur = 0
+  r.player.bus.on('card-entered', async ({ target }) => {
+    if (r.data.prog_cur === -1) {
+      return
+    }
+    if (target.data.race !== 'P') {
+      return
+    }
+    r.data.prog_cur += 1
+    if (r.data.prog_cur === r.data.prog_max) {
+      r.data.prog_cur = -1
+      const cardt = getCard('阿塔尼斯')
+      const units: UnitKey[] = []
+      for (const k in cardt.unit) {
+        units.push(...Array(cardt.unit[k as UnitKey]).fill(k))
+      }
+      await target.obtain_unit(units)
+
+      const descs = Descriptors[cardt.name]
+      if (descs) {
+        for (let i = 0; i < descs.length; i++) {
+          await target.add_desc(descs[i], cardt.desc[i])
+        }
+      } else {
+        console.log('WARN: Card Not Implement Yet')
+      }
+
+      target.data.name = '大主教的卫队'
+      target.data.color = 'darkgold'
+    }
+  })
+  return async () => {
+    //
+  }
+}
+
+function 母舰核心(r: Role) {
+  r.data.prog_max = 2
+  r.data.prog_cur = 0
+  r.player.bus.on('round-enter', async ({ round }) => {
+    if (round === 1) {
+      await r.player.obtain_resource({
+        mineral: -3,
+      })
+      await r.player.enter(getCard('母舰核心'))
+    }
+  })
+  r.player.bus.on('card-combined', async () => {
+    const cs = r.player.find_name(r.data.enpower ? '母舰' : '母舰核心')
+    const c = cs.length > 0 ? cs[0] : null
+    if (r.data.prog_cur < r.data.prog_max && r.data.prog_cur !== -1) {
+      r.data.prog_cur += 1
+      if (r.data.prog_cur === r.data.prog_max) {
+        r.data.enpower = true
+        r.data.prog_cur = -1
+        if (c) {
+          c.data.name = '母舰'
+          await c.replace_unit(c.find('母舰核心', 1), '母舰')
+        }
+      }
+    }
+    if (c) {
+      await c.obtain_unit(us('虚空辉光舰', r.player.data.level))
+    }
+  })
+  return async () => {
+    //
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -316,6 +487,12 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   工蜂,
   副官,
   追猎者,
+  使徒,
+  矿骡,
+  斯台特曼,
+  雷诺,
+  阿塔尼斯,
+  母舰核心,
 }
 
 export function create_role(p: Player, r: RoleKey) {

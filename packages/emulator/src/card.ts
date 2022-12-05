@@ -403,12 +403,20 @@ export class CardInstance {
     return taked
   }
 
-  async bind_desc(binder: (card: CardInstance) => Descriptor, text: string) {
+  async bind_desc(
+    binder: (card: CardInstance) => Descriptor,
+    text: string,
+    data: {
+      desc: DescriptorGenerator
+      text: [string, string]
+    }
+  ) {
     const d = binder(this)
     this.data.descriptors.push({
       text,
       desc: d,
       bind: binder,
+      data,
     })
     if (d.unique) {
       await this.player.add_unique(this, d)
@@ -420,7 +428,10 @@ export class CardInstance {
     const binder = (card: CardInstance) => {
       return desc(card, gold)
     }
-    await this.bind_desc(binder, text[gold ? 1 : 0])
+    await this.bind_desc(binder, text[gold ? 1 : 0], {
+      desc,
+      text,
+    })
   }
 
   async clear_desc() {

@@ -236,6 +236,10 @@ export interface DescriptorInfo {
   text: string
   desc: Descriptor
   bind: (card: CardInstance) => Descriptor
+  data: {
+    desc: DescriptorGenerator
+    text: [string, string]
+  }
 }
 
 export type CardDescriptorTable = {

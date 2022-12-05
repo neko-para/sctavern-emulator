@@ -18,6 +18,7 @@ import {
   autoBind,
   autoBindPlayer,
   autoBindUnique,
+  fake,
   isCardInstance,
   us,
 } from '../utils'
@@ -46,13 +47,6 @@ function 黑暗容器_获得(
   })
 }
 
-function fake(): DescriptorGenerator {
-  return (card, gold) => {
-    return reactive({
-      gold,
-    })
-  }
-}
 function 黑暗容器_复活(n: number): DescriptorGenerator {
   return fake()
 }
@@ -351,18 +345,6 @@ const data: CardDescriptorTable = {
   ],
   刀锋女王: [fake()],
   虚空构造体: [fake()], // TODO: show void attribute
-  黄金矿工: [
-    autoBind('round-start', async card => {
-      await card.player.obtain_resource({
-        mineral: 1,
-      })
-    }),
-    autoBind('post-sell', async card => {
-      await card.player.obtain_resource({
-        mineral: 2,
-      })
-    }),
-  ],
   死亡舰队: [黑暗容器_获得('毁灭者', 1, 2), 黑暗容器_复活(10)],
   虚空裂痕: [
     黑暗容器_获得('百夫长', 1, 2),
@@ -391,7 +373,7 @@ const data: CardDescriptorTable = {
         return
       }
       await card.obtain_upgrade(
-        card.player.game.gen.shuffle(AllUpgrade.map(u => u))[0]
+        card.player.game.gen.shuffle(AllUpgrade.filter(x => x !== '献祭'))[0]
       )
     }),
     autoBind('round-end', async card => {

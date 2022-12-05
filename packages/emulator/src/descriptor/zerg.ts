@@ -32,6 +32,7 @@ const data: CardDescriptorTable = {
   ],
   虫群先锋: [
     autoBind('round-end', async (card, gold) => {
+      console.log(gold)
       await card.obtain_unit(us('跳虫', gold ? 4 : 2))
     }),
   ],

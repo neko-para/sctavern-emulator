@@ -28,10 +28,10 @@ export class Shuffler {
   }
 }
 
-export function refC(card: CardInstance, direct = false) {
+export function refC(card: CardInstance) {
   return {
     player: card.player.pos,
-    card: direct ? card.bus : card.data.pos,
+    card: card.data.pos === -1 ? card.bus : card.data.pos,
   }
 }
 
@@ -109,6 +109,14 @@ export function autoBindUnique(
       pc()
     }
     return ret
+  }
+}
+
+export function fake(): DescriptorGenerator {
+  return (card, gold) => {
+    return reactive({
+      gold,
+    })
   }
 }
 
