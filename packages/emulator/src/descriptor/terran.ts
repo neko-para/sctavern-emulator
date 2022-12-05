@@ -413,7 +413,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       await card.obtain_unit(
         us(
-          '劫掠者(皇家卫队)',
+          '恶蝠游骑兵',
           Math.floor(
             card.player.present
               .filter(isCardInstance)

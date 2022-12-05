@@ -350,7 +350,7 @@ const data: CardDescriptorTable = {
           return
         }
         if (
-          target.data.value >= 4000 &&
+          target.data.value >= 3600 &&
           target.data.name !== '虫卵' &&
           target.data.race === 'Z'
         ) {

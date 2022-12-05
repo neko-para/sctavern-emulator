@@ -575,12 +575,11 @@ function 拟态虫(r: IRole) {
       }
       role.player.persisAttrib.config('拟态虫', card.data.pos)
       await role.player.obtain_resource({
-        mineral: -3,
+        mineral: -2,
       })
-      const tl = Math.min(6, role.player.data.level + 1)
       const cardt = role.player.game.shuffle(
         AllCard.map(getCard)
-          .filter(c => c.level === tl)
+          .filter(c => c.level === role.player.data.level)
           .filter(c => role.player.game.pool.pack[c.pack])
       )[0]
       const units: UnitKey[] = []
@@ -593,7 +592,7 @@ function 拟态虫(r: IRole) {
       await card.obtain_unit(units)
       return true
     },
-    role => role.player.data.mineral >= 3
+    role => role.player.data.mineral >= 2
   )
 }
 

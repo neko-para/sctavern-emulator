@@ -5,7 +5,7 @@ value = 500
 utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "重型单位", "英雄单位"]
 health = 800
-shield = 400
+shield = 600
 [[unit.weapon]]
 name = "净化光束"
 damage = 24
