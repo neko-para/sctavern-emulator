@@ -734,6 +734,9 @@ function 泰凯斯(r: IRole) {
       pop()
     }
   })
+  return async () => {
+    //
+  }
 }
 
 const RoleSet: Record<RoleKey, RoleBind> = {
