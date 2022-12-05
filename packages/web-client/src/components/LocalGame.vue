@@ -3,7 +3,12 @@ import { ref, reactive, computed } from 'vue'
 import { LocalGame, type GameReplay } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import ConfigDialog from './ConfigDialog.vue'
-import { AllCard, getCard, type RoleKey } from '@sctavern-emulator/data'
+import {
+  AllCard,
+  getCard,
+  type Card,
+  type RoleKey,
+} from '@sctavern-emulator/data'
 import { applyConfigChange, compress, decompress } from './utils'
 import type { ClientStatus } from './types'
 import { WebClient } from './WebClient'
@@ -53,7 +58,19 @@ const obtainCardKey = ref('')
 
 const obtainCardChoice = computed(() => {
   return AllCard.map(getCard)
-    .filter(c => c.pinyin.indexOf(obtainCardKey.value) !== -1)
+    .map(
+      (c, i) =>
+        [c, c.pinyin.indexOf(obtainCardKey.value), i] as [Card, number, number]
+    )
+    .filter(([c, x]) => x !== -1)
+    .sort((a, b) => {
+      if (a[1] !== b[1]) {
+        return a[1] - b[1]
+      } else {
+        return a[2] - b[2]
+      }
+    })
+    .map(([c]) => c)
     .slice(0, 10)
 })
 
