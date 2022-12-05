@@ -15,6 +15,10 @@ const props = defineProps<{
 const player = computed(() => {
   return props.client.player
 })
+
+const heroExtraList = computed(() => {
+  return props.client.player.data.ability.extra
+})
 </script>
 
 <template>
@@ -60,7 +64,18 @@ const player = computed(() => {
               >
             </template>
             <pre>{{ player.data.ability.data.desc }}</pre>
-            <pre>{{ player.data.ability.extra }}</pre>
+            <!-- <pre>{{ player.data.ability.extra }}</pre> -->
+            <div class="heroExtra" v-if="heroExtraList">
+              <ul
+                :style="{
+                  height: `${(heroExtraList.length / 2) * 22.4}px`,
+                }"
+              >
+                <li v-for="(s, i) in heroExtraList" :key="i">
+                  {{ s }}
+                </li>
+              </ul>
+            </div>
           </v-tooltip>
         </div>
         <slot></slot>
@@ -134,5 +149,19 @@ const player = computed(() => {
 }
 .enterSelect {
   font-weight: 600;
+}
+.heroExtra {
+}
+.heroExtra ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  width: 400px;
+}
+.heroExtra ul > li {
+  flex: 1;
+  height: 22.4px;
 }
 </style>

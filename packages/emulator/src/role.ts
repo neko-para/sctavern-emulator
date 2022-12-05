@@ -23,7 +23,7 @@ export interface RoleData {
   prog_max: number
   enable: boolean
   enpower: boolean
-  extra?: string
+  extra?: string[]
 }
 
 interface IRole {
@@ -459,11 +459,11 @@ function 科学球(r: IRole) {
       !r.player.attrib.get('科学球') &&
       r.data.prog_cur > 0
   ) as unknown as boolean
-  r.data.extra = computed<string>(() => {
+  r.data.extra = computed<string[]>(() => {
     return (Object.keys(record) as UnitKey[])
       .map(k => `${k}: ${record[k]}`)
-      .join('\n')
-  }) as unknown as string
+      // .join('\n')
+  }) as unknown as string[]
   r.player.bus.on('card-entered', async ({ target }) => {
     const units = target.data.units
       .map((u, i) => [getUnit(u), i] as [Unit, number])
