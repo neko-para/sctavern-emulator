@@ -63,7 +63,7 @@ const elv = ref(5)
       <div class="d-flex ma-1">
         <span class="text-h5">{{ card.value }}</span>
       </div>
-      <div class="d-flex">
+      <div class="d-flex h-100">
         <div class="d-flex flex-column">
           <span
             class="mx-1"
@@ -72,27 +72,27 @@ const elv = ref(5)
           >
             {{ a }}
           </span>
+          <div class="d-flex mt-auto ml-1">
+            <div class="d-flex flex-column align-self-end">
+              <span v-for="(s, i) in allUnit.slice(0, 5)" :key="`Unit-${i}`">{{
+                s
+              }}</span>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props: p }">
+                  <span style="cursor: pointer" v-bind="p"
+                    >{{ card.units.length }} /
+                    {{ client.player.data.config.MaxUnitPerCard }}</span
+                  >
+                </template>
+                <pre>{{ allUnit.join('\n') }}</pre>
+              </v-tooltip>
+            </div>
+          </div>
         </div>
         <div class="d-flex flex-column ml-auto mr-1">
           <span v-for="(u, i) in card.upgrades" :key="`Upgrade-${i}`">{{
             u
           }}</span>
-        </div>
-      </div>
-      <div class="d-flex mt-auto ml-1">
-        <div class="d-flex flex-column align-self-end">
-          <span v-for="(s, i) in allUnit.slice(0, 5)" :key="`Unit-${i}`">{{
-            s
-          }}</span>
-          <v-tooltip location="top">
-            <template v-slot:activator="{ props: p }">
-              <span style="cursor: pointer" v-bind="p"
-                >{{ card.units.length }} /
-                {{ client.player.data.config.MaxUnitPerCard }}</span
-              >
-            </template>
-            <pre>{{ allUnit.join('\n') }}</pre>
-          </v-tooltip>
         </div>
       </div>
       <div class="d-flex">
