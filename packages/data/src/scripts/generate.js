@@ -48,7 +48,7 @@ async function main() {
   ;['card', 'unit', 'term', 'upgrade', 'role'].forEach(k => {
     result[k].forEach(obj => {
       obj.type = k
-      if (k === 'card') {
+      if (k === 'card' || k === 'unit') {
         obj.pinyin =
           obj.pinyin ||
           pinyin(obj.name, { style: 'first_letter', segment: true })

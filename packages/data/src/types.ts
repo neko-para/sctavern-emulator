@@ -100,6 +100,7 @@ export interface SArmor {
 
 export interface Unit {
   name: UnitKey
+  pinyin: string
   type: 'unit'
   race: Race
   utype: UnitType

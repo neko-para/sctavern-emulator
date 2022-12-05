@@ -1016,6 +1016,12 @@ export class Player {
       }
       this.data.hand[this.data.hand.findIndex(v => v === null)] = card
     })
+    this.bus.on('$obtain-unit', async ({ place, units }) => {
+      if (!this.data.present[place]) {
+        return
+      }
+      this.present[place]?.obtain_unit(units)
+    })
     this.bus.on('$imr', async () => {
       await this.obtain_resource({
         mineral: 100,

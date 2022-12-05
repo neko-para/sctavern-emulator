@@ -1,4 +1,4 @@
-import { Card, CardKey, UpgradeKey } from '@sctavern-emulator/data'
+import { Card, CardKey, UnitKey, UpgradeKey } from '@sctavern-emulator/data'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { Player } from './player'
@@ -428,6 +428,14 @@ export class Client implements IClient {
   async requestObtainCard(card: CardKey) {
     await this.post('$obtain-card', {
       card,
+      player: this.pos,
+    })
+  }
+
+  async requestObtainUnit(place: number, units: UnitKey[]) {
+    await this.post('$obtain-unit', {
+      place,
+      units,
       player: this.pos,
     })
   }

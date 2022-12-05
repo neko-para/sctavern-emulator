@@ -73,6 +73,10 @@ type InputBusTemplate = {
   '$obtain-card': {
     card: CardKey
   }
+  '$obtain-unit': {
+    place: number
+    units: UnitKey[]
+  }
   $imr: {
     //
   }

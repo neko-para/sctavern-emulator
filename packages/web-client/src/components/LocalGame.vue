@@ -5,9 +5,13 @@ import GameInstanceChooser from './GameInstanceChooser.vue'
 import ConfigDialog from './ConfigDialog.vue'
 import {
   AllCard,
+  AllUnit,
   getCard,
+  getUnit,
   type Card,
   type RoleKey,
+  type Unit,
+  type UnitKey,
 } from '@sctavern-emulator/data'
 import { applyConfigChange, compress, decompress } from './utils'
 import type { ClientStatus } from './types'
@@ -75,8 +79,39 @@ const obtainCardChoice = computed(() => {
     .slice(0, 10)
 })
 
+const obtainUnitDlg = ref(false)
+const obtainUnitKey = ref('')
+const obtainUnitCountStr = ref('1')
+const obtainUnitCount = computed<number>(() => {
+  return Number(obtainUnitCountStr.value) || 0
+})
+
+const obtainUnitChoice = computed(() => {
+  return AllUnit.map(getUnit)
+    .map(
+      (u, i) =>
+        [u, u.pinyin.indexOf(obtainUnitKey.value), i] as [Unit, number, number]
+    )
+    .filter(([u, x]) => x !== -1)
+    .sort((a, b) => {
+      if (a[1] !== b[1]) {
+        return a[1] - b[1]
+      } else {
+        return a[2] - b[2]
+      }
+    })
+    .map(([u]) => u)
+    .slice(0, 10)
+})
+
 function handleKey(ev: KeyboardEvent) {
-  if (status.model || expDlg.value || impDlg.value || obtainCardDlg.value) {
+  if (
+    status.model ||
+    expDlg.value ||
+    impDlg.value ||
+    obtainCardDlg.value ||
+    obtainUnitDlg.value
+  ) {
     return
   }
   switch (ev.key) {
@@ -222,6 +257,59 @@ main()
     </v-card>
   </v-dialog>
 
+  <v-dialog
+    v-model="obtainUnitDlg"
+    :class="{
+      'w-50': !mobile,
+    }"
+  >
+    <v-card>
+      <v-card-text>
+        <div class="d-flex">
+          <v-text-field
+            autofocus
+            v-model="obtainUnitKey"
+            @keyup.enter="
+              obtainUnitChoice.length > 0 &&
+                client.status.selected[0] === 'P' &&
+                client.requestObtainUnit(
+                  Number(client.status.selected.substring(1)),
+                  Array(Number(obtainUnitCount)).fill(
+                    obtainUnitChoice[0].name
+                  ) as UnitKey[]
+                )
+            "
+          ></v-text-field>
+          <v-text-field
+            label="数量"
+            :rules="[v => /^\d+$/.test(v) || '必须为数字']"
+            v-model="obtainUnitCountStr"
+          ></v-text-field>
+        </div>
+        <div class="d-flex flex-column">
+          <v-btn
+            variant="flat"
+            v-for="(c, i) in obtainUnitChoice"
+            :class="{
+              enterSelect: i === 0,
+            }"
+            :key="`OUChoice-${i}`"
+            @click="
+              client.status.selected[0] === 'P' &&
+                client.requestObtainUnit(
+                  Number(client.status.selected.substring(1)),
+                  Array(Number(obtainUnitCount)).fill(
+                    obtainUnitChoice[i].name
+                  ) as UnitKey[]
+                )
+            "
+            >{{ c.pinyin }} {{ c.name }}</v-btn
+          >
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
   <game-instance-chooser :mobile="mobile" :status="status" :client="client">
     <div
       class="d-flex justify-space-between"
@@ -234,11 +322,14 @@ main()
       <v-btn :disabled="status.model" @click="impDlg = true">导入</v-btn>
       <config-dialog :mobile="mobile"></config-dialog>
 
-      <v-btn :disabled="status.model" @click="obtainCardDlg = true"
-        >获取卡牌</v-btn
+      <v-btn :disabled="status.model" @click="obtainCardDlg = true">卡牌</v-btn>
+      <v-btn
+        :disabled="status.model || client.status.selected[0] !== 'P'"
+        @click="obtainUnitDlg = true"
+        >单位</v-btn
       >
       <v-btn :disabled="status.model" @click="client.requestResource()"
-        >获得资源</v-btn
+        >资源</v-btn
       >
     </div>
   </game-instance-chooser>
