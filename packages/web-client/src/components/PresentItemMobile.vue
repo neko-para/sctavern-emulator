@@ -6,6 +6,7 @@ const props = defineProps<{
   model: boolean
   pos: number
   insert: boolean
+  deploy: boolean
   selected: boolean
   client: Client
 }>()
@@ -39,6 +40,17 @@ const Color = {
         variant="text"
         @click="
           client.insertChoose({
+            pos,
+          })
+        "
+        >这里</v-btn
+      >
+      <v-btn
+        class="ml-auto"
+        v-if="deploy"
+        variant="text"
+        @click="
+          client.deployChoose({
             pos,
           })
         "

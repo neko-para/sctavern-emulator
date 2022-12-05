@@ -171,3 +171,63 @@ unit = { "泰凯斯" = 1 }
 desc = []
 pool = false
 [card.attr]
+
+[[card]]
+name = "生化实验室"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ["部署时, 将指定卡牌的5生物单位变为5被感染的陆战队员并注卵"]
+pool = false
+[card.attr]
+type = "support"
+
+[[card]]
+name = "紧急回收"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ["部署时, 摧毁指定卡牌, 将其中的非英雄单位转移到相邻非虫卵牌中(优先左侧卡牌)"]
+pool = false
+[card.attr]
+type = "support"
+
+[[card]]
+name = "星灵科技"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ['''
+部署时, 为指定非神族卡牌添加描述:
+每回合结束时, 折跃1陆战队员
+三连后还原''']
+pool = false
+[card.attr]
+type = "support"
+
+[[card]]
+name = "尖端科技"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ['''
+部署时, 指定卡牌获得轨道空降升级
+其能让单位能空降到敌人后方''']
+pool = false
+[card.attr]
+type = "support"
+
+[[card]]
+name = "超负荷"
+race = "N"
+pack = "核心"
+level = 0
+unit = {}
+desc = ["部署时, 摧毁指定卡牌, 并再次触发它的进场特效"]
+pool = false
+[card.attr]
+type = "support"

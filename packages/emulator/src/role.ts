@@ -477,7 +477,7 @@ function 科学球(r: IRole) {
   })
   return async () => {
     if (
-      !r.player.can_enter() ||
+      !r.player.can_enter('观察样本') ||
       r.player.data.gas < 1 ||
       r.player.attrib.get('科学球') ||
       r.data.prog_cur === 0
@@ -736,6 +736,19 @@ function 泰凯斯(r: IRole) {
   }
 }
 
+function 诺娃(r: IRole) {
+  r.player.bus.on('round-enter', async () => {
+    await r.player.discover(
+      r.player.game
+        .shuffle(AllCard.map(getCard).filter(c => c.attr.type === 'support'))
+        .slice(0, 2)
+    )
+  })
+  return async () => {
+    //
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -758,6 +771,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   拟态虫,
   探机,
   泰凯斯,
+  诺娃,
 }
 
 export function create_role(p: Player, r: RoleKey) {

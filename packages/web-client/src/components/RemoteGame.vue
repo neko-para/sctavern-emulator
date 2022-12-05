@@ -14,6 +14,7 @@ const props = defineProps<{
 const status = reactive<ClientStatus>({
   model: false,
   discover: false,
+  deploy: false,
   insert: false,
   selected: 'none',
   discoverItems: [],

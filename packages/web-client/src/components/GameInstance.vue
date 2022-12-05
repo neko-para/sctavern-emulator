@@ -133,6 +133,7 @@ const heroExtraList = computed(() => {
           :model="status.model"
           :pos="i"
           :insert="status.insert"
+          :deploy="status.deploy"
           :selected="status.selected === `P${i}`"
           :client="client"
         ></present-item>

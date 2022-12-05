@@ -31,6 +31,17 @@ export class WebClient extends Client {
     this.status.model = false
   }
 
+  async begin_deploy() {
+    this.status.deploy = true
+    this.status.model = true
+    await super.replay_deploy()
+  }
+
+  async end_deploy() {
+    this.status.deploy = false
+    this.status.model = false
+  }
+
   async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {
     this.status.discover = true
     this.status.discoverItems = item

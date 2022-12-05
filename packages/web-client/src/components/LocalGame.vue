@@ -24,6 +24,7 @@ const props = defineProps<{
 const status = reactive<ClientStatus>({
   model: false,
   discover: false,
+  deploy: false,
   insert: false,
   selected: 'none',
   discoverItems: [],
@@ -41,7 +42,7 @@ const client = new WebClient(game.slave, 0, status)
 async function main() {
   game.master.poll()
   game.slave.poll()
-  await game.slave.game.start()
+  game.slave.game.start()
   if (props.replay) {
     const obj = decompress(props.replay) as GameReplay
     await client.replay(obj, async () => {

@@ -79,6 +79,7 @@ export class Player {
 
   insertResolve: ((v: number) => void) | null
   discoverResolve: ((v: number) => void) | null
+  deployResolve: ((v: number) => void) | null
 
   constructor(game: Game, pos: number, role: RoleKey) {
     this.bus = new Emitter('card', [])
@@ -181,7 +182,7 @@ export class Player {
                 name: '进场',
                 message: '$hand-enter',
                 accelerator: 'e',
-                enable: this.can_enter(),
+                enable: this.can_enter(k),
               })
             }
             res.push({
@@ -253,6 +254,7 @@ export class Player {
 
     this.insertResolve = null
     this.discoverResolve = null
+    this.deployResolve = null
 
     this.bind_inputs()
     this.bind_default()
@@ -311,7 +313,9 @@ export class Player {
       item.splice(choice, 1)
     }
     if (!option?.nodrop) {
-      this.game.pool.drop(item.filter(i => typeof i !== 'string') as Card[])
+      this.game.pool.drop(
+        (item.filter(i => typeof i !== 'string') as Card[]).filter(c => c.pool)
+      )
     }
     return true
   }
@@ -522,6 +526,28 @@ export class Player {
   }
 
   async enter(cardt: Card): Promise<CardInstance | null> {
+    if (cardt.attr.type === 'support') {
+      if (!this.can_enter(cardt.name)) {
+        return null
+      }
+      const pos = await this.queryDeploy()
+      const target = this.present[pos] as CardInstance
+      const card = new CardInstance(this, cardt)
+      const descs = Descriptors[cardt.name]
+      if (descs) {
+        for (let i = 0; i < descs.length; i++) {
+          await card.add_desc(descs[i], cardt.desc[i])
+        }
+      } else {
+        console.log('WARN: Card Not Implement Yet')
+      }
+      await this.post('post-deploy', {
+        ...refC(card),
+        target,
+      })
+      await card.clear_desc()
+      return null
+    }
     let pos = this.data.first_hole
     if (pos === -1) {
       return null
@@ -639,7 +665,7 @@ export class Player {
 
   async sell(card: CardInstance) {
     const around = card.around()
-    const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
+    const dark = card.data.level >= 4 ? 2 : 1
     const pos = card.data.pos
     const left = card.left()
     const right = card.right()
@@ -647,34 +673,48 @@ export class Player {
     card.right = () => right
     this.unput(card)
     card.data.pos = -1
-    await this.post('post-sell', {
-      ...refC(card),
-      pos,
-    })
+    if (card.data.level > 0) {
+      await this.post('post-sell', {
+        ...refC(card),
+        pos,
+      })
+    }
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
-    await this.post('card-selled', {
-      ...refP(this),
-      target: card,
-      flag: false,
-      pos,
-    })
-    await this.obtain_resource({
-      mineral: 1,
-    })
-    for (const c of around) {
-      await c.gain_darkness(dark)
+    if (card.data.level > 0) {
+      await this.post('card-selled', {
+        ...refP(this),
+        target: card,
+        flag: false,
+        pos,
+      })
+      await this.obtain_resource({
+        mineral: 1,
+      })
+      for (const c of around) {
+        await c.gain_darkness(dark)
+      }
     }
   }
 
-  async destroy(card: CardInstance) {
+  async destroy(card: CardInstance, overwhelm = false) {
     const around = card.around()
-    const dark = card.data.name === '虫卵' ? 0 : card.data.level >= 4 ? 2 : 1
+    const dark = card.data.level >= 4 ? 2 : 1
+    const left = card.left()
+    const right = card.right()
+    card.left = () => left
+    card.right = () => right
     this.unput(card)
+    card.data.pos = -1
+    if (overwhelm) {
+      await this.post('post-enter', refC(card))
+    }
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
-    for (const c of around) {
-      await c.gain_darkness(dark)
+    if (card.data.level > 0) {
+      for (const c of around) {
+        await c.gain_darkness(dark)
+      }
     }
   }
 
@@ -712,6 +752,24 @@ export class Player {
         client,
         item,
         cancel,
+      })
+    })
+  }
+
+  async queryDeploy() {
+    const client = this.pos
+    return new Promise<number>(resolve => {
+      this.deployResolve = (v: number) => {
+        this.game
+          .postOutput('end-deploy', {
+            client,
+          })
+          .then(() => {
+            resolve(v)
+          })
+      }
+      this.game.postOutput('begin-deploy', {
+        client,
       })
     })
   }
@@ -811,6 +869,11 @@ export class Player {
         this.insertResolve(choice)
       }
     })
+    this.bus.on('$deploy-choice', async ({ choice }) => {
+      if (this.deployResolve) {
+        this.deployResolve(choice)
+      }
+    })
     this.bus.on('$discover-choice', async ({ choice }) => {
       if (this.discoverResolve) {
         this.discoverResolve(choice)
@@ -818,7 +881,7 @@ export class Player {
     })
     this.bus.on('$buy-enter', async ({ place }) => {
       const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck, 'enter') || !this.can_enter()) {
+      if (!ck || !this.can_buy(ck, 'enter') || !this.can_enter(ck)) {
         return
       }
       this.data.mineral -= this.role.buy_cost(ck, 'enter')
@@ -851,7 +914,7 @@ export class Player {
     })
     this.bus.on('$hand-enter', async ({ place }) => {
       const ck = this.data.hand[place]
-      if (!ck || !this.can_enter()) {
+      if (!ck || !this.can_enter(ck)) {
         return
       }
       this.data.hand[place] = null
@@ -1000,8 +1063,12 @@ export class Player {
     return this.data.mineral >= this.role.buy_cost(ck, act)
   }
 
-  can_enter() {
-    return this.data.present.filter(c => !isCardInstanceAttrib(c)).length > 0
+  can_enter(ck: CardKey) {
+    if (getCard(ck).attr.type === 'support') {
+      return this.data.present.filter(isCardInstanceAttrib).length > 0
+    } else {
+      return this.data.present.filter(c => !isCardInstanceAttrib(c)).length > 0
+    }
   }
 
   can_combine(ck: CardKey) {

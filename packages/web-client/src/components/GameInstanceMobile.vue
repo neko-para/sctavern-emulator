@@ -62,7 +62,7 @@ const extraDlg = ref(false)
           :disabled="status.model || !player.data.ability.enable"
           :color="player.data.ability.enpower ? 'white' : ''"
           @click="client.requestAbility()"
-          >{{ player.data.ability.name
+          >{{ player.data.ability.data.name
           }}{{
             player.data.ability.prog_cur !== -1
               ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
@@ -126,6 +126,7 @@ const extraDlg = ref(false)
             :model="status.model"
             :pos="i"
             :insert="status.insert"
+            :deploy="status.deploy"
             :selected="status.selected === `P${i}`"
             :client="client"
           ></present-item>

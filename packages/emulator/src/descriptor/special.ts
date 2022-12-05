@@ -1,4 +1,11 @@
-import { AllCard, getCard, isBuilding } from '@sctavern-emulator/data'
+import {
+  AllCard,
+  getCard,
+  isBiological,
+  isBuilding,
+  isHero,
+  isNormal,
+} from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable } from '../types'
 import { autoBind, autoBindPlayer, autoBindUnique, fake, us } from '../utils'
@@ -10,10 +17,9 @@ function 制造(
 ) {
   return autoBind('round-end', async (card, gold) => {
     const cnt = card.find('零件').length
-    let n = Math.floor(cnt / count)
-    await card.remove_unit(card.find('零件', n * count))
-    while (n > 0) {
-      n -= 1
+    const n = Math.floor(cnt / count)
+    if (n > 0) {
+      await card.remove_unit(card.find('零件', count))
       await result(card, gold)
     }
   })
@@ -169,6 +175,45 @@ const data: CardDescriptorTable = {
     }),
   ],
   不法之徒: [],
+  生化实验室: [
+    autoBind('post-deploy', async (card, gold, { target }) => {
+      const idx = (await target.filter(isBiological)).filter(
+        u => u !== '被感染的陆战队员'
+      )
+      await target.player.inject(us('被感染的陆战队员', idx.length))
+    }),
+  ],
+  紧急回收: [
+    autoBind('post-deploy', async (card, gold, { target }) => {
+      const into = target.around().filter(c => c.data.name !== '虫卵')[0]
+      if (into) {
+        await into.obtain_unit(
+          target.data.units.filter(isNormal).filter(u => !isHero(u))
+        )
+      }
+      await target.player.destroy(target)
+    }),
+  ],
+  星灵科技: [
+    autoBind('post-deploy', async (card, gold, { target }) => {
+      await target.add_desc(
+        autoBind('round-end', async (card, gold) => {
+          await card.player.wrap(us('陆战队员', gold ? 2 : 1))
+        }),
+        ['每回合结束时, 折跃1陆战队员', '每回合结束时, 折跃2陆战队员']
+      )
+    }),
+  ],
+  尖端科技: [
+    autoBind('post-deploy', async (card, gold, { target }) => {
+      await target.obtain_upgrade('轨道空降')
+    }),
+  ],
+  超负荷: [
+    autoBind('post-deploy', async (card, gold, { target }) => {
+      await target.player.destroy(target, true)
+    }),
+  ],
 }
 
 export { data }

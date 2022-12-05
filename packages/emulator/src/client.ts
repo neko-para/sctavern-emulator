@@ -18,6 +18,8 @@ interface IClient {
   selected(choice: string): Promise<void>
   begin_discover(item: (Card | UpgradeKey)[], cancel: boolean): Promise<void>
   end_discover(): Promise<void>
+  begin_deploy(): Promise<void>
+  end_deploy(): Promise<void>
   begin_insert(): Promise<void>
   end_insert(): Promise<void>
 }
@@ -89,6 +91,8 @@ export class SlaveGame {
       client.begin_discover(item, cancel)
     )
     bus.on('end-discover', () => client.end_discover())
+    bus.on('begin-deploy', () => client.begin_deploy())
+    bus.on('end-deploy', () => client.end_deploy())
     bus.on('begin-insert', () => client.begin_insert())
     bus.on('end-insert', () => client.end_insert())
   }
@@ -212,6 +216,17 @@ export class Client implements IClient {
     }
   }
 
+  async replay_deploy() {
+    while (this.peekNextReplayItem()?.msg === '$select') {
+      await this.step()
+      await postItem(this, this.nextReplayItem())
+    }
+    if (this.peekNextReplayItem()?.msg === '$deploy-choice') {
+      await this.step()
+      await postItem(this, this.nextReplayItem())
+    }
+  }
+
   async replay_insert() {
     while (this.peekNextReplayItem()?.msg === '$select') {
       await this.step()
@@ -232,6 +247,14 @@ export class Client implements IClient {
   }
 
   async end_discover() {
+    //
+  }
+
+  async begin_deploy() {
+    //
+  }
+
+  async end_deploy() {
     //
   }
 
@@ -376,6 +399,13 @@ export class Client implements IClient {
 
   async insertChoose({ pos }: { pos: number }) {
     await this.post('$insert-choice', {
+      choice: pos,
+      player: this.pos,
+    })
+  }
+
+  async deployChoose({ pos }: { pos: number }) {
+    await this.post('$deploy-choice', {
       choice: pos,
       player: this.pos,
     })

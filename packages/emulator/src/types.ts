@@ -41,7 +41,7 @@ type InputBusTemplate = {
   '$discover-choice': {
     choice: number
   }
-  '$select-choice': {
+  '$deploy-choice': {
     choice: number
   }
 
@@ -178,6 +178,9 @@ type CardBusTemplate = {
   'post-sell': {
     pos: number // 用于供养等, 定位
   }
+  'post-deploy': {
+    target: CardInstance
+  }
   seize: {
     // 夺取
     target: CardInstance
@@ -209,6 +212,12 @@ type OutputBusTemplate = {
     cancel: boolean
   }
   'end-discover': {
+    //
+  }
+  'begin-deploy': {
+    //
+  }
+  'end-deploy': {
     //
   }
 }
