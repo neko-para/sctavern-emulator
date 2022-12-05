@@ -6,6 +6,7 @@ import {
   getCard,
   getRole,
   getUnit,
+  isMachine,
   isNormal,
   Role,
   RoleKey,
@@ -749,6 +750,29 @@ function 诺娃(r: IRole) {
   }
 }
 
+function 思旺(r: IRole) {
+  r.data.enable = true
+  return async () => {
+    const card = r.player.current_selected()
+    if (!(card instanceof CardInstance)) {
+      return
+    }
+    const n = (await card.filter(isMachine)).length
+    if (n === 0) {
+      return
+    }
+    if (r.player.find_name('机械工厂').length === 0) {
+      const c = (await r.player.enter(getCard('机械工厂'))) as CardInstance
+      c.data.color = 'gold'
+    }
+    const c = r.player.find_name('机械工厂')[0]
+    if (!c) {
+      return
+    }
+    await c.obtain_unit(us('零件', n))
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -772,6 +796,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   探机,
   泰凯斯,
   诺娃,
+  思旺,
 }
 
 export function create_role(p: Player, r: RoleKey) {

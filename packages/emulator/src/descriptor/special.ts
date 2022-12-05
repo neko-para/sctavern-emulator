@@ -5,13 +5,14 @@ import {
   isBuilding,
   isHero,
   isNormal,
+  UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable } from '../types'
 import { autoBind, autoBindPlayer, autoBindUnique, fake, us } from '../utils'
 import { RenewPolicy, 任务 } from './terran'
 
-function 制造(
+function 制造X(
   count: number,
   result: (card: CardInstance, gold: boolean) => Promise<void>
 ) {
@@ -22,6 +23,12 @@ function 制造(
       await card.remove_unit(card.find('零件', count))
       await result(card, gold)
     }
+  })
+}
+
+function 制造(count: number, unit: UnitKey, num = 1) {
+  return 制造X(count, async card => {
+    await card.obtain_unit(us(unit, num))
   })
 }
 
@@ -102,9 +109,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(us('零件', gold ? 2 : 1))
       await card.replace_unit(card.find('自动机炮'), '零件')
     }),
-    制造(6, async card => {
-      await card.obtain_unit(['星门'])
-    }),
+    制造(6, '星门'),
   ],
   自动机炮: [
     autoBind('round-end', async (card, gold) => {
@@ -119,9 +124,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   作战中心: [
-    制造(6, async card => {
-      await card.obtain_unit(['作战指挥中心'])
-    }),
+    制造(6, '作战指挥中心'),
     任务(
       'card-entered',
       2,
@@ -151,9 +154,7 @@ const data: CardDescriptorTable = {
       }
       await card.replace_unit(card.find('自动机炮'), '零件')
     }),
-    制造(9, async card => {
-      await card.obtain_unit(['粒子光炮'])
-    }),
+    制造(9, '粒子光炮'),
   ],
   再生钢: [
     autoBind('round-end', async card => {
@@ -213,6 +214,12 @@ const data: CardDescriptorTable = {
     autoBind('post-deploy', async (card, gold, { target }) => {
       await target.player.destroy(target, true)
     }),
+  ],
+  机械工厂: [
+    制造(70, '休伯利安号'),
+    制造(45, '战列巡航舰', 9),
+    制造(30, '雷神', 6),
+    制造(16, '攻城坦克', 6),
   ],
 }
 

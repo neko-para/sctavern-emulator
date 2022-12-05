@@ -231,3 +231,18 @@ desc = ["部署时, 摧毁指定卡牌, 并再次触发它的进场特效"]
 pool = false
 [card.attr]
 type = "support"
+
+[[card]]
+name = "机械工厂"
+race = "T"
+pack = "核心"
+level = 0
+unit = { "科技实验室" = 1 }
+desc = [
+  "制造(70): 获得1休伯利安号",
+  "制造(45): 获得9战列巡航舰",
+  "制造(30): 获得6雷神",
+  "制造(16): 获得6攻城坦克",
+]
+pool = false
+[card.attr]

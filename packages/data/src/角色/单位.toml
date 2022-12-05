@@ -208,3 +208,21 @@ multiple = 4
 name = "人类战车钢板"
 defense = 3
 speed = 2.62
+
+[[unit]]
+name = "休伯利安号"
+race = "T"
+value = 9000
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 6000
+[[unit.weapon]]
+name = "主激光炮组"
+damage = 20
+range = 6
+speed = 0.07
+target = "GA"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 6
+speed = 3.5
