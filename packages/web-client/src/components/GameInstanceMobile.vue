@@ -23,7 +23,7 @@ const extraDlg = ref(false)
 
 <template>
   <div class="d-flex flex-column pa-1">
-    <v-dialog :value="status.discover" persistent>
+    <v-dialog :model-value="status.discover" persistent>
       <v-card>
         <v-card-text
           class="d-flex justify-space-around"
@@ -58,11 +58,18 @@ const extraDlg = ref(false)
             {{ player.data.gas }} / 6</span
           >
         </div>
+
         <v-btn
-          :disabled="status.model || !player.data.ability.enable"
-          :color="player.data.ability.enpower ? 'white' : ''"
-          @click="client.requestAbility()"
-          >{{ player.data.ability.data.name
+          :disabled="status.model"
+          :color="
+            player.data.ability.enpower
+              ? 'red'
+              : player.data.ability.enable
+              ? ''
+              : 'grey'
+          "
+          @click="player.data.ability.enable && client.requestAbility()"
+          >{{ player.data.ability.data.ability
           }}{{
             player.data.ability.prog_cur !== -1
               ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`

@@ -2,26 +2,21 @@
 import { ref, reactive, computed } from 'vue'
 import { LocalGame, type GameReplay } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
-import ConfigDialog from './ConfigDialog.vue'
 import {
   AllCard,
   AllUnit,
   getCard,
   getUnit,
   type Card,
-  type RoleKey,
   type Unit,
   type UnitKey,
 } from '@sctavern-emulator/data'
-import { applyConfigChange, compress, decompress } from './utils'
+import { compress, decompress } from '@/utils'
 import type { ClientStatus } from './types'
 import { WebClient } from './WebClient'
 
 const props = defineProps<{
-  pack: string[]
-  seed: string
-  role: RoleKey
-  replay: string | null
+  replay: string
   mobile: boolean
 }>()
 
@@ -35,10 +30,12 @@ const status = reactive<ClientStatus>({
   discoverCancel: false,
 })
 
+const replay = decompress(props.replay) as GameReplay
+
 const game = new LocalGame({
-  pack: props.pack,
-  seed: props.seed,
-  role: [props.role],
+  pack: replay.pack,
+  seed: replay.seed,
+  role: replay.role,
 })
 
 const client = new WebClient(game.slave, 0, status)
@@ -47,15 +44,13 @@ async function main() {
   game.master.poll()
   game.slave.poll()
   game.slave.game.start()
-  if (props.replay) {
-    const obj = decompress(props.replay) as GameReplay
-    await client.replay(obj, async () => {
-      await new Promise(resolve => {
-        setTimeout(resolve, 100)
-      })
-      return false
+
+  await client.replay(replay, async () => {
+    await new Promise(resolve => {
+      setTimeout(resolve, 100)
     })
-  }
+    return false
+  })
 }
 
 const obtainCardDlg = ref(false)
@@ -108,7 +103,6 @@ function handleKey(ev: KeyboardEvent) {
   if (
     status.model ||
     expDlg.value ||
-    impDlg.value ||
     obtainCardDlg.value ||
     obtainUnitDlg.value
   ) {
@@ -171,20 +165,12 @@ const expData = ref('')
 
 function doExport() {
   expData.value = compress({
-    pack: props.pack,
-    seed: props.seed,
-    role: [props.role],
+    pack: replay.pack,
+    seed: replay.seed,
+    role: replay.role,
     log: game.slave.game.log,
   })
   expDlg.value = true
-}
-
-const impDlg = ref(false)
-const impData = ref('')
-
-function doImport() {
-  const obj = decompress(impData.value) as GameReplay
-  applyConfigChange(obj, impData.value)
 }
 
 document.onkeydown = handleKey
@@ -204,23 +190,6 @@ main()
       <v-card-text>
         <v-textarea readonly hide-details v-model="expData"></v-textarea>
       </v-card-text>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog
-    v-model="impDlg"
-    :class="{
-      'w-50': !mobile,
-    }"
-  >
-    <v-card>
-      <v-card-title>导入</v-card-title>
-      <v-card-text>
-        <v-textarea hide-details v-model="impData"></v-textarea>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn @click="doImport()">导入</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -319,9 +288,6 @@ main()
       }"
     >
       <v-btn :disabled="status.model" @click="doExport()">导出</v-btn>
-      <v-btn :disabled="status.model" @click="impDlg = true">导入</v-btn>
-      <config-dialog :mobile="mobile"></config-dialog>
-
       <v-btn :disabled="status.model" @click="obtainCardDlg = true">卡牌</v-btn>
       <v-btn
         :disabled="status.model || client.status.selected[0] !== 'P'"
