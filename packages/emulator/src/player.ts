@@ -673,7 +673,8 @@ export class Player {
     card.right = () => right
     this.unput(card)
     card.data.pos = -1
-    if (card.data.level > 0) {
+    const doPost = card.data.level > 0 || card.data.name === '虫卵'
+    if (doPost) {
       await this.post('post-sell', {
         ...refC(card),
         pos,
@@ -681,7 +682,7 @@ export class Player {
     }
     await card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
-    if (card.data.level > 0) {
+    if (doPost) {
       await this.post('card-selled', {
         ...refP(this),
         target: card,
@@ -691,8 +692,10 @@ export class Player {
       await this.obtain_resource({
         mineral: 1,
       })
-      for (const c of around) {
-        await c.gain_darkness(dark)
+      if (card.data.name !== '虫卵') {
+        for (const c of around) {
+          await c.gain_darkness(dark)
+        }
       }
     }
   }
