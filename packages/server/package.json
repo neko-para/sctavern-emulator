@@ -7,7 +7,7 @@
     "run": "node --loader ts-node/esm index.ts"
   },
   "dependencies": {
-    "@sctavern-emulator/emulator": "*",
+    "@sctavern-emulator/emulator": "file:../../node_modules/@sctavern-emulator/emulator",
     "ws": "^8.11.0"
   },
   "devDependencies": {
