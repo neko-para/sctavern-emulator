@@ -17,7 +17,7 @@
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/data/dist",
+        "outputPath": "node_modules/@sctavern-emulator/data",
         "tsConfig": "packages/data/tsconfig.lib.json",
         "packageJson": "packages/data/package.json",
         "main": "packages/data/src/index.ts",

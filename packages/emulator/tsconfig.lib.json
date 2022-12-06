@@ -1,14 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "./",
+    "rootDir": "./",
+    "outDir": "../../node_modules/@sctavern-emulator/emlator",
     "composite": true,
-    "module": "ES2015",
+    "module": "ESNext",
     "declaration": true,
     "incremental": true,
-    "outDir": "./dist",
     "tsBuildInfoFile": "../../tmp/buildcache/data",
-    "types": ["node"],
+    "types": ["node"]
   },
   "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts", "dist"],
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "./package.json"]
 }

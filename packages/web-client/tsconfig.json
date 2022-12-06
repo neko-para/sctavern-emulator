@@ -5,8 +5,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@sctavern-emulator/emulator": ["../emulator/src/index.ts"],
-      "@sctavern-emulator/data": ["../data/src/index.ts"],
+      "@sctavern-emulator/*": ["../../node_modules/@sctaver-emulator/*"]
     }
   },
   "references": [

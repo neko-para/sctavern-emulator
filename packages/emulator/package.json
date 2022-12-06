@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@sctavern-emulator/data": "*",
-    "@vue/reactivity": "^3.2.45",
+    "@vue/reactivity": "*",
     "random": "*"
   },
   "type": "module"

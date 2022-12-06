@@ -1,0 +1,9 @@
+{
+  "name": "web-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "packages/web-client",
+  "sourceRoot": "packages/web-client/src",
+  "projectType": "application",
+  
+  "tags": []
+}

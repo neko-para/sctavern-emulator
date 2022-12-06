@@ -12,7 +12,7 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/emulator/dist",
+        "outputPath": "node_modules/@sctavern-emulator/emulator",
         "tsConfig": "packages/emulator/tsconfig.lib.json",
         "packageJson": "packages/emulator/package.json",
         "main": "packages/emulator/src/index.ts",

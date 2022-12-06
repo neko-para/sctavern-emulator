@@ -1,11 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
     "composite": true,
-    "module": "ES2015",
+    "module": "ESNext",
     "declaration": true,
     "incremental": true,
-    "outDir": "./dist",
+    "outDir": "../../node_modules/@sctavern-emulator/data",
     "tsBuildInfoFile": "../../tmp/buildcache/data",
     "types": ["node"]
   },
@@ -16,5 +18,5 @@
     "src/scripts/*.js",
     "dist"
   ],
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "./package.json"]
 }

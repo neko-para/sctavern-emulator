@@ -1,8 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
-    "module": "commonjs",
+    "baseUrl": "./",
+    "rootDir": "./",
+    "outDir": "../../node_modules/@sctavern-emulator/data",
+    "module": "ESNext",
     "types": ["jest", "node"],
     "composite": true
   },
@@ -16,6 +18,7 @@
     "**/*.spec.js",
     "**/*.test.jsx",
     "**/*.spec.jsx",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "./package.json"
   ]
 }

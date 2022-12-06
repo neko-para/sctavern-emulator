@@ -3,13 +3,21 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "ESNext",
+    "lib": ["es6"],
     "rootDir": ".",
     "moduleResolution": "node",
     "baseUrl": ".",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@sctavern-emulator/data": ["node_modules/@sctavern-emulator/data"],
+      "@sctavern-emulator/emulator": [
+        "node_modules/@sctavern-emulator/emulator"
+      ]
+    }
   },
   "exclude": ["node_modules", "tmp", "dist"]
 }
