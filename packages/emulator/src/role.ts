@@ -615,6 +615,9 @@ function 探机(r: IRole) {
       if (pos.length === 0) {
         return false
       }
+      await role.player.obtain_resource({
+        mineral: -1,
+      })
       await card.replace_unit(pos.slice(0, 1), '虚空水晶塔')
       return true
     },
