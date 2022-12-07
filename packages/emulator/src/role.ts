@@ -838,6 +838,44 @@ function 雷神(r: IRole) {
   }
 }
 
+function 机械哨兵(r: IRole) {
+  r.data.prog_max = 3
+  r.data.prog_cur = 3
+  r.player.bus.on('round-enter', async () => {
+    if (r.data.prog_cur === 0) {
+      r.player.attrib.config('机械哨兵', 1)
+    }
+  })
+  r.data.enable = computed(() => {
+    return (
+      !r.player.attrib.get('机械哨兵') &&
+      r.player.data.mineral >= 4 &&
+      r.player.can_cache()
+    )
+  }) as unknown as boolean
+
+  return async () => {
+    const card = r.player.current_selected()
+    if (!(card instanceof CardInstance)) {
+      return
+    }
+    if (
+      card.data.level >= 5 ||
+      r.player.data.mineral < 4 ||
+      card.data.occupy.length === 0 ||
+      !r.player.can_cache()
+    ) {
+      return
+    }
+    await r.player.obtain_resource({
+      mineral: -4,
+    })
+    await r.player.obtain_card(getCard(card.data.occupy[0]))
+    r.player.attrib.config('机械哨兵', 1)
+    r.data.prog_cur -= 1
+  }
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -879,6 +917,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   思旺,
   跳虫,
   雷神,
+  机械哨兵,
   锻炉,
 }
 
