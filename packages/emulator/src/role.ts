@@ -838,6 +838,21 @@ function 雷神(r: IRole) {
   }
 }
 
+function 锻炉(r: IRole) {
+  r.data.prog_max = 50
+  r.data.prog_cur = 0
+  r.player.bus.on('card-selled', async ({ target }) => {
+    if (target.data.name !== '虫卵') {
+      if (r.data.prog_cur < r.data.prog_max) {
+        r.data.prog_cur += 2
+      }
+    }
+  })
+  return async () => {
+    //
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -864,6 +879,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   思旺,
   跳虫,
   雷神,
+  锻炉,
 }
 
 export function create_role(p: Player, r: RoleKey) {
