@@ -43,7 +43,7 @@ interface IRole {
 }
 
 interface RoleBind {
-  (role: IRole): () => Promise<void>
+  (role: IRole): void | (() => Promise<void>)
 }
 
 export class RoleImpl implements IRole {
@@ -78,7 +78,11 @@ export class RoleImpl implements IRole {
       //
     }
 
-    this.ability = b(this)
+    this.ability =
+      b(this) ||
+      (async () => {
+        //
+      })
   }
 }
 
@@ -103,6 +107,17 @@ function ActPerRole(
   }
 }
 
+function ExpectSelected(
+  role: IRole,
+  pred: (card: CardInstance) => boolean = () => true
+): CardInstance | null {
+  const sel = role.player.current_selected()
+  if (!(sel instanceof CardInstance)) {
+    return null
+  }
+  return pred(sel) ? sel : null
+}
+
 function 白板() {
   return async () => {
     //
@@ -111,11 +126,8 @@ function 白板() {
 
 function 执政官(r: IRole) {
   return ActPerRole(r, 1, async role => {
-    const left = role.player.current_selected()
-    if (!(left instanceof CardInstance)) {
-      return false
-    }
-    const right = left.right()
+    const left = ExpectSelected(role)
+    const right = left?.right()
     if (
       !left ||
       !right ||
@@ -172,18 +184,12 @@ function 陆战队员(r: IRole) {
 function 收割者(r: IRole) {
   r.player.data.config.AlwaysInsert = true
   r.buy_cost = c => (getCard(c).attr.insert ? 2 : 3)
-  return async () => {
-    //
-  }
 }
 
 function 感染虫(r: IRole) {
   return ActPerRole(r, 1, async role => {
-    const card = role.player.current_selected()
-    if (!(card instanceof CardInstance)) {
-      return false
-    }
-    if (card.data.race !== 'T') {
+    const card = ExpectSelected(role, card => card.data.race === 'T')
+    if (!card) {
       return false
     }
     const infr = card.data.infr
@@ -206,11 +212,11 @@ function 感染虫(r: IRole) {
 
 function SCV(r: IRole) {
   return ActPerRole(r, 1, async role => {
-    const card = role.player.current_selected()
-    if (!(card instanceof CardInstance)) {
-      return false
-    }
-    if (card.data.race !== 'T' || card.data.infr[0] === 'hightech') {
+    const card = ExpectSelected(
+      role,
+      card => card.data.race === 'T' && card.data.infr[0] === 'hightech'
+    )
+    if (!card) {
       return false
     }
     await card.switch_infr()
@@ -226,8 +232,8 @@ function 阿巴瑟(r: IRole) {
       if (role.player.data.mineral < 2) {
         return false
       }
-      const card = role.player.current_selected()
-      if (!(card instanceof CardInstance)) {
+      const card = ExpectSelected(role)
+      if (!card) {
         return false
       }
       const tl = Math.min(6, card.data.level + 1)
@@ -258,9 +264,6 @@ function 工蜂(r: IRole) {
       })
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 副官(r: IRole) {
@@ -281,9 +284,6 @@ function 副官(r: IRole) {
   })
   r.refreshed = async () => {
     r.data.prog_cur -= 1
-  }
-  return async () => {
-    //
   }
 }
 
@@ -309,9 +309,6 @@ function 追猎者(r: IRole) {
       }
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 使徒(r: IRole) {
@@ -336,9 +333,6 @@ function 使徒(r: IRole) {
   r.player.bus.on('round-start', async () => {
     r.data.prog_cur = 0
   })
-  return async () => {
-    //
-  }
 }
 
 function 矿骡(r: IRole) {
@@ -383,20 +377,17 @@ function 斯台特曼(r: IRole) {
       })
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 雷诺(r: IRole) {
   r.data.enable = true
 
   return async () => {
-    const card = r.player.current_selected()
-    if (!(card instanceof CardInstance)) {
-      return
-    }
-    if (card.data.color !== 'normal' || card.data.level >= 6) {
+    const card = ExpectSelected(
+      r,
+      card => card.data.color === 'normal' && card.data.level < 6
+    )
+    if (!card) {
       return
     }
     card.data.color = 'gold'
@@ -443,9 +434,6 @@ function 阿塔尼斯(r: IRole) {
       target.data.color = 'darkgold'
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 科学球(r: IRole) {
@@ -526,9 +514,6 @@ function 母舰核心(r: IRole) {
       await c.obtain_unit(us('虚空辉光舰', r.player.data.level))
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 行星要塞(r: IRole) {
@@ -566,11 +551,11 @@ function 拟态虫(r: IRole) {
     r,
     1,
     async role => {
-      const card = role.player.current_selected()
-      if (!(card instanceof CardInstance)) {
-        return false
-      }
-      if (card.data.pos === role.player.persisAttrib.get('R拟态虫', -1)) {
+      const card = ExpectSelected(
+        role,
+        card => card.data.pos !== role.player.persisAttrib.get('R拟态虫', -1)
+      )
+      if (!card) {
         return false
       }
       role.player.persisAttrib.config('R拟态虫', card.data.pos)
@@ -604,8 +589,8 @@ function 探机(r: IRole) {
     r,
     1,
     async role => {
-      const card = role.player.current_selected()
-      if (!(card instanceof CardInstance)) {
+      const card = ExpectSelected(role)
+      if (!card) {
         return false
       }
       if (role.player.data.mineral < 1) {
@@ -734,9 +719,6 @@ function 泰凯斯(r: IRole) {
       pop()
     }
   })
-  return async () => {
-    //
-  }
 }
 
 function 诺娃(r: IRole) {
@@ -747,19 +729,13 @@ function 诺娃(r: IRole) {
         .slice(0, 2)
     )
   })
-  return async () => {
-    //
-  }
 }
 
 function 思旺(r: IRole) {
   r.data.enable = true
   return async () => {
-    const card = r.player.current_selected()
-    if (!(card instanceof CardInstance)) {
-      return
-    }
-    if (card.data.name === '机械工厂') {
+    const card = ExpectSelected(r, card => card.data.name !== '机械工厂')
+    if (!card) {
       return
     }
     const n = (await card.filter(isMachine)).length
@@ -779,9 +755,7 @@ function 思旺(r: IRole) {
 }
 
 function 跳虫() {
-  return async () => {
-    //
-  }
+  //
 }
 
 function 雷神(r: IRole) {
@@ -790,11 +764,8 @@ function 雷神(r: IRole) {
     r.data.enable = true
   })
   return async () => {
-    const card = r.player.current_selected()
-    if (!(card instanceof CardInstance)) {
-      return
-    }
-    if (card.data.level >= 6) {
+    const card = ExpectSelected(r, card => card.data.level < 6)
+    if (!card) {
       return
     }
     const items = r.player.game.shuffle(
@@ -855,16 +826,14 @@ function 机械哨兵(r: IRole) {
   }) as unknown as boolean
 
   return async () => {
-    const card = r.player.current_selected()
-    if (!(card instanceof CardInstance)) {
+    const card = ExpectSelected(
+      r,
+      card => card.data.level < 5 && card.data.occupy.length > 0
+    )
+    if (!card) {
       return
     }
-    if (
-      card.data.level >= 5 ||
-      r.player.data.mineral < 4 ||
-      card.data.occupy.length === 0 ||
-      !r.player.can_cache()
-    ) {
+    if (r.player.data.mineral < 4 || !r.player.can_cache()) {
       return
     }
     await r.player.obtain_resource({
@@ -912,9 +881,6 @@ function 锻炉(r: IRole) {
       }
     }
   })
-  return async () => {
-    //
-  }
 }
 
 const RoleSet: Record<RoleKey, RoleBind> = {
