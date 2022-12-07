@@ -312,11 +312,16 @@ export class Player {
       target?: CardInstance
       cancel?: boolean
       nodrop?: boolean
+      fake?: (cho: number) => void
     }
   ): Promise<boolean> {
     const choice = await this.queryDiscover(item, !!option?.cancel)
     if (choice === -1) {
       return false
+    }
+    if (option?.fake) {
+      option?.fake(choice)
+      return true
     }
     const cho = item[choice]
     if (typeof cho === 'string') {

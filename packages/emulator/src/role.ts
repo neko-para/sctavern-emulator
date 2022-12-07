@@ -15,7 +15,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Player } from './player'
-import { autoBind, us } from './utils'
+import { autoBind, refP, us } from './utils'
 import { Descriptors } from './descriptor'
 import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
 import { DescriptorGenerator } from './types'
@@ -778,9 +778,63 @@ function 思旺(r: IRole) {
   }
 }
 
-function 跳虫(r: IRole) {
+function 跳虫() {
   return async () => {
     //
+  }
+}
+
+function 雷神(r: IRole) {
+  r.data.enable = true
+  r.player.bus.on('tavern-upgraded', async () => {
+    r.data.enable = true
+  })
+  return async () => {
+    const card = r.player.current_selected()
+    if (!(card instanceof CardInstance)) {
+      return
+    }
+    if (card.data.level >= 6) {
+      return
+    }
+    const items = r.player.game.shuffle(
+      AllCard.map(getCard).filter(
+        c =>
+          c.name !== card.data.name &&
+          c.level === card.data.level &&
+          c.race === card.data.race &&
+          c.pack === '核心' &&
+          c.pool
+      )
+    )
+    let choice = -1
+    if (
+      !(await r.player.discover(items, {
+        cancel: true,
+        fake: cho => {
+          choice = cho
+        },
+      }))
+    ) {
+      return
+    }
+    const cardt = items[choice]
+
+    card.clear_desc()
+    const descs = Descriptors[cardt.name]
+    if (descs) {
+      for (let i = 0; i < descs.length; i++) {
+        await card.add_desc(descs[i], cardt.desc[i])
+      }
+    } else {
+      console.log('WARN: Card Not Implement Yet')
+    }
+
+    await r.player.post('card-entered', {
+      ...refP(r.player),
+      target: card,
+    })
+    r.data.enable = false
   }
 }
 
@@ -809,6 +863,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   诺娃,
   思旺,
   跳虫,
+  雷神,
 }
 
 export function create_role(p: Player, r: RoleKey) {

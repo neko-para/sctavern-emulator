@@ -46,7 +46,6 @@ const heroExtraList = computed(() => {
             <template v-slot:activator="{ props: p }">
               <v-btn
                 v-bind="p"
-                :disabled="status.model"
                 :color="
                   player.data.ability.enpower
                     ? 'red'
@@ -54,7 +53,11 @@ const heroExtraList = computed(() => {
                     ? ''
                     : 'grey'
                 "
-                @click="player.data.ability.enable && client.requestAbility()"
+                @click="
+                  !status.model &&
+                    player.data.ability.enable &&
+                    client.requestAbility()
+                "
                 >{{ player.data.ability.data.ability
                 }}{{
                   player.data.ability.prog_cur !== -1
