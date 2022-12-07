@@ -468,6 +468,13 @@ export class CardInstance {
     await this.player.destroy(target)
   }
 
+  async incubate(id = 0) {
+    await this.post('req_incubate', {
+      ...refC(this),
+      id,
+    })
+  }
+
   async regroup(id = 0) {
     await this.post('regroup', {
       ...refC(this),

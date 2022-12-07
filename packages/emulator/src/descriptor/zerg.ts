@@ -36,10 +36,7 @@ function 孵化X<T extends keyof LogicBus>(
   return autoBindSome((card, gold) => {
     card.bus.on(time, async param => {
       if (test(card, gold, param)) {
-        await card.post('req_incubate', {
-          ...refC(card),
-          id,
-        })
+        await card.incubate(id)
       }
     })
     card.bus.on('req_incubate', async ({ id: rid }) => {

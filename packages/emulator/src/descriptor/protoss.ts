@@ -23,10 +23,7 @@ function 集结X(
     card.bus.on('round-end', async () => {
       const n = Math.min(2, Math.floor(card.data.power / power))
       for (let i = 0; i < n; i++) {
-        await card.post('regroup', {
-          ...refC(card),
-          id,
-        })
+        await card.regroup(id)
       }
     })
     card.bus.on('regroup', async ({ id: rid }) => {
