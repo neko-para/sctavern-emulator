@@ -375,53 +375,44 @@ export class Player {
     if (units.length === 0) {
       return
     }
-    if (this.find_name('虫卵').length === 0) {
+    const isZergling = this.role.data.data.name === '跳虫'
+    let egg_cardt = getCard('虫卵')
+    let egg_descs = Descriptors['虫卵'] as DescriptorGenerator[]
+    if (isZergling) {
+      egg_cardt = {
+        ...egg_cardt,
+      }
+      egg_cardt.desc = [
+        [
+          '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
+          '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
+        ],
+      ]
+      egg_descs = [
+        autoBind('post-sell', async card => {
+          const another = card.player.find_name('虫卵')
+          if (another.length > 0) {
+            await another[0].obtain_unit(card.data.units)
+          }
+        }),
+      ]
+    }
+
+    let eggs = this.find_name('虫卵')
+    const expectCount = isZergling && this.data.level >= 4 ? 2 : 1
+    while (eggs.length < expectCount) {
       const hole = this.data.first_hole
       if (hole === -1) {
-        return
+        break
       }
-      let egg_cardt = getCard('虫卵')
-      let descs = Descriptors['虫卵'] as DescriptorGenerator[]
-      const isZergling = this.role.data.data.name === '跳虫'
-
-      const eggs: [CardInstance, number][] = [
-        [new CardInstance(this, egg_cardt), hole],
-      ]
-
-      if (isZergling) {
-        if (this.data.level >= 4) {
-          const another_hole = this.data.first_hole
-          if (another_hole !== -1) {
-            eggs.push([new CardInstance(this, egg_cardt), another_hole])
-          }
-        }
-        egg_cardt = {
-          ...egg_cardt,
-        }
-        egg_cardt.desc = [
-          [
-            '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
-            '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
-          ],
-        ]
-        descs = [
-          autoBind('post-sell', async card => {
-            const another = card.player.find_name('虫卵')
-            if (another.length > 0) {
-              await another[0].obtain_unit(card.data.units)
-            }
-          }),
-        ]
+      const egg = new CardInstance(this, egg_cardt)
+      egg.data.color = 'gold'
+      for (let i = 0; i < egg_descs.length; i++) {
+        await egg.add_desc(egg_descs[i], egg_cardt.desc[i])
       }
-      for (const [egg, hole] of eggs) {
-        egg.data.color = 'gold'
-        for (let i = 0; i < descs.length; i++) {
-          await egg.add_desc(descs[i], egg_cardt.desc[i])
-        }
-        await this.put(egg, hole)
-      }
+      await this.put(egg, hole)
+      eggs = this.find_name('虫卵')
     }
-    const eggs = this.find_name('虫卵')
     if (eggs.length > 0) {
       if (only_left) {
         await eggs[0].obtain_unit(units)
