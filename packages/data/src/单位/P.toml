@@ -521,6 +521,22 @@ target = "G"
 [unit.armor]
 name = "星灵护板"
 defense = 2
+speed = 0
+[unit.sarmor]
+name = "星灵等离子护盾"
+defense = 0
+
+[[unit]]
+name = "泰坦棱镜(已收起)"
+race = "P"
+value = 500
+utype = "normal"
+tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
+health = 500
+shield = 500
+[unit.armor]
+name = "星灵护板"
+defense = 2
 speed = 3.5
 [unit.sarmor]
 name = "星灵等离子护盾"

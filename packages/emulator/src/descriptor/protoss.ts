@@ -1,4 +1,4 @@
-import { reactive } from '@vue/reactivity'
+import { computed, reactive } from '@vue/reactivity'
 import {
   canElite,
   elited,
@@ -214,11 +214,16 @@ const data: CardDescriptorTable = {
     }),
   ],
   光复艾尔: [
+    autoBind('obtain-upgrade', async card => {
+      await card.replace_unit(card.find('泰坦棱镜(已收起)'), '泰坦棱镜')
+    }),
     autoBindUnique(
       (card, desc) => {
-        card.attrib.config('光复艾尔', 1, 'max')
+        desc.manualDisable = computed<boolean>(() => {
+          return card.data.units.indexOf('泰坦棱镜') === -1
+        }) as unknown as boolean
         card.attrib.setView('光复艾尔', () =>
-          card.attrib.get('光复艾尔')
+          card.find('泰坦棱镜').length > 0
             ? desc.disabled
               ? '停用'
               : '启用'
@@ -236,18 +241,12 @@ const data: CardDescriptorTable = {
             return
           }
           param.flag = true
+          await card.replace_unit(card.find('泰坦棱镜'), '泰坦棱镜(已收起)')
           await card.obtain_unit(
             target.data.units
               .filter(u => isNormal(u) || u === '水晶塔')
               .filter(u => desc.gold || !isHero(u))
           )
-          card.attrib.set('光复艾尔', 0)
-          desc.manualDisable = true
-          await card.player.resort_unique('光复艾尔')
-        })
-        card.bus.on('obtain-upgrade', async () => {
-          card.attrib.set('光复艾尔', 1)
-          desc.manualDisable = false
           await card.player.resort_unique('光复艾尔')
         })
       },
