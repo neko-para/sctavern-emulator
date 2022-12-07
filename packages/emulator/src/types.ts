@@ -166,6 +166,10 @@ type CardBusTemplate = {
     // 快速生产
   }
 
+  req_incubate: {
+    id: number
+  }
+
   regroup: {
     // 集结
     id: number

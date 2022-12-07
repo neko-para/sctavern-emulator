@@ -53,21 +53,29 @@ export function isCardInstanceAttrib(
   return !!card
 }
 
-export function autoBind<T extends keyof LogicBus>(
-  msg: T,
-  func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
+export function autoBindSome(
+  func: (card: CardInstance, gold: boolean) => void
 ): DescriptorGenerator {
   return (card, gold) => {
     card.bus.begin()
-    card.bus.on(msg, async param => {
-      await func(card, gold, param)
-    })
+    func(card, gold)
     return reactive({
       gold,
 
       unbind: card.bus.end(),
     })
   }
+}
+
+export function autoBind<T extends keyof LogicBus>(
+  msg: T,
+  func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
+): DescriptorGenerator {
+  return autoBindSome((c, g) => {
+    c.bus.on(msg, async param => {
+      await func(c, g, param)
+    })
+  })
 }
 
 export function autoBindPlayer<T extends keyof LogicBus>(

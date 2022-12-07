@@ -6,33 +6,85 @@ import {
   isHero,
   isNormal,
   Unit,
+  UnitKey,
 } from '@sctavern-emulator/data'
-import { CardDescriptorTable } from '../types'
-import { autoBind, autoBindUnique, isCardInstance, us } from '../utils'
+import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
+import {
+  autoBind,
+  autoBindSome,
+  autoBindUnique,
+  isCardInstance,
+  refC,
+  us,
+} from '../utils'
 import { 科挂X } from './terran'
+import { CardInstance } from '../card'
+
+function 孵化X<T extends keyof LogicBus>(
+  time: T,
+  getu: (card: CardInstance, gold: boolean) => UnitKey[],
+  test: (
+    card: CardInstance,
+    gold: boolean,
+    param: LogicBus[T]
+  ) => boolean = () => true,
+  post: (card: CardInstance, gold: boolean) => Promise<void> = async () => {
+    //
+  },
+  id = 0
+): DescriptorGenerator {
+  return autoBindSome((card, gold) => {
+    card.bus.on(time, async param => {
+      if (test(card, gold, param)) {
+        await card.post('req_incubate', {
+          ...refC(card),
+          id,
+        })
+      }
+    })
+    card.bus.on('req_incubate', async ({ id: rid }) => {
+      if (rid === id || rid === -1) {
+        await card.player.incubate(card, getu(card, gold))
+        await post(card, gold)
+      }
+    })
+  })
+}
+
+function 孵化(
+  time: keyof LogicBus,
+  unit: UnitKey,
+  nc: number,
+  gc: number,
+  id = 0
+): DescriptorGenerator {
+  return 孵化X(
+    time,
+    (card, gold) => us(unit, gold ? gc : nc),
+    () => true,
+    async () => {
+      //
+    },
+    id
+  )
+}
 
 const data: CardDescriptorTable = {
   虫卵: [
-    autoBind('round-start', async card => {
-      if (
-        [card.left(), card.right()]
-          .filter(isCardInstance)
-          .filter(c => c.data.race === 'Z').length === 2
-      ) {
-        await card.player.incubate(
-          card,
-          card.data.units.filter(isNormal).filter(isBiological)
-        )
-        await card.player.destroy(card)
+    孵化X(
+      'round-start',
+      card => card.data.units.filter(isNormal).filter(isBiological),
+      card => card.around().filter(c => c.data.race === 'Z').length === 2,
+      async card => {
         await card.player.obtain_resource({
           mineral: 1,
         })
+        await card.player.destroy(card)
       }
-    }),
+    ),
   ],
   虫群先锋: [
     autoBind('round-end', async (card, gold) => {
-      console.log(gold)
       await card.obtain_unit(us('跳虫', gold ? 4 : 2))
     }),
   ],
@@ -62,24 +114,17 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(us('被感染的陆战队员', gold ? 2 : 1))
     }),
   ],
-  孵化蟑螂: [
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(card, us('蟑螂', gold ? 2 : 1))
-    }),
-  ],
+  孵化蟑螂: [孵化('round-end', '蟑螂', 1, 2)],
   爆虫滚滚: [
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(
-        card,
-        us(
-          '爆虫',
-          Math.floor(
-            (card.find('爆虫').length + card.find('爆虫(精英)').length) /
-              (gold ? 15 : 20)
-          )
+    孵化X('round-end', (card, gold) =>
+      us(
+        '爆虫',
+        Math.floor(
+          (card.find('爆虫').length + card.find('爆虫(精英)').length) /
+            (gold ? 15 : 20)
         )
       )
-    }),
+    ),
     autoBindUnique((card, desc) => {
       card.bus.on('card-selled', async ({ target }) => {
         if (desc.disabled) {
@@ -92,11 +137,7 @@ const data: CardDescriptorTable = {
       })
     }, '爆虫滚滚'),
   ],
-  飞龙骑脸: [
-    autoBind('post-sell', async (card, gold) => {
-      await card.player.incubate(card, us('异龙', gold ? 4 : 2))
-    }),
-  ],
+  飞龙骑脸: [孵化('post-sell', '异龙', 2, 4)],
   凶残巨兽: [
     autoBind('post-sell', async (card, gold) => {
       await card.player.inject(us('雷兽', gold ? 2 : 1))
@@ -123,16 +164,8 @@ const data: CardDescriptorTable = {
       })
     }, '孵化所'),
   ],
-  地底伏击: [
-    autoBind('post-enter', async (card, gold) => {
-      await card.player.incubate(card, us('潜伏者', gold ? 2 : 1))
-    }),
-  ],
-  孵化刺蛇: [
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(card, us('刺蛇(精英)', gold ? 2 : 1))
-    }),
-  ],
+  地底伏击: [孵化('post-enter', '潜伏者', 1, 2)],
+  孵化刺蛇: [孵化('round-end', '刺蛇(精英)', 1, 2)],
   感染深渊: [
     autoBind('round-end', async (card, gold) => {
       let n = 0
@@ -149,7 +182,6 @@ const data: CardDescriptorTable = {
       }
     }),
   ],
-
   腐化大龙: [
     autoBind('round-start', async (card, gold) => {
       await card.replace_unit(card.find('腐化者', gold ? 4 : 2), '巢虫领主')
@@ -159,12 +191,8 @@ const data: CardDescriptorTable = {
     }),
   ],
   空中管制: [
-    autoBind('post-enter', async (card, gold) => {
-      await card.player.incubate(card, us('爆蚊', gold ? 6 : 3))
-    }),
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(card, us('异龙(精英)', gold ? 2 : 1))
-    }),
+    孵化('post-enter', '爆蚊', 3, 6, 0),
+    孵化('round-end', '异龙(精英)', 1, 2, 1),
   ],
   虫群大军: [
     autoBind('round-end', async (card, gold) => {
@@ -266,9 +294,7 @@ const data: CardDescriptorTable = {
     autoBind('inject', async (card, gold) => {
       await card.replace_unit(card.find('幼雷兽', gold ? 2 : 1), '雷兽')
     }),
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(card, us('幼雷兽', gold ? 2 : 1))
-    }),
+    孵化('round-end', '幼雷兽', 1, 2),
   ],
   优质基因: [
     autoBind('round-end', async (card, gold) => {
@@ -341,9 +367,7 @@ const data: CardDescriptorTable = {
     },
   ],
   机械感染: [
-    autoBind('round-end', async (card, gold) => {
-      await card.player.incubate(card, us('被感染的女妖', gold ? 2 : 1))
-    }),
+    孵化('round-end', '被感染的女妖', 1, 2),
     autoBindUnique((card, desc) => {
       card.bus.on('card-selled', async ({ target }) => {
         if (desc.disabled) {
