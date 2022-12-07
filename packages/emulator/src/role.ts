@@ -270,14 +270,14 @@ function 副官(r: IRole) {
   }
   r.player.bus.on('round-enter', async () => {
     r.data.prog_cur = 1
-    if (r.player.persisAttrib.get('副官')) {
+    if (r.player.persisAttrib.get('R副官')) {
       await r.player.obtain_resource({
         mineral: 1,
       })
     }
   })
   r.player.bus.on('round-end', async () => {
-    r.player.persisAttrib.config('副官', r.player.data.mineral)
+    r.player.persisAttrib.config('R副官', r.player.data.mineral)
   })
   r.refreshed = async () => {
     r.data.prog_cur -= 1
@@ -289,10 +289,10 @@ function 副官(r: IRole) {
 
 function 追猎者(r: IRole) {
   r.data.prog_max = 5
-  r.player.persisAttrib.config('追猎者', 0)
+  r.player.persisAttrib.config('R追猎者', 0)
   r.bought = async () => {
-    if (r.data.enpower || !r.player.attrib.get('追猎者')) {
-      r.player.attrib.config('追猎者', 1)
+    if (r.data.enpower || !r.player.attrib.get('R追猎者')) {
+      r.player.attrib.config('R追猎者', 1)
       await r.player.do_refresh()
     }
   }
@@ -343,18 +343,18 @@ function 使徒(r: IRole) {
 
 function 矿骡(r: IRole) {
   r.player.bus.on('round-enter', async () => {
-    if (r.player.persisAttrib.get('矿骡')) {
+    if (r.player.persisAttrib.get('R矿骡')) {
       r.data.enable = false
       await r.player.obtain_resource({
         mineral: 2 - r.player.data.mineral_max,
       })
-      r.player.persisAttrib.config('矿骡', 0)
+      r.player.persisAttrib.config('R矿骡', 0)
     } else {
       r.data.enable = true
     }
   })
   return async () => {
-    r.player.persisAttrib.config('矿骡', 1)
+    r.player.persisAttrib.config('R矿骡', 1)
     r.data.enable = false
     await r.player.obtain_resource({
       mineral: Math.max(0, r.player.data.mineral_max - r.player.data.mineral),
@@ -455,7 +455,7 @@ function 科学球(r: IRole) {
   r.data.enable = computed<boolean>(
     () =>
       r.player.data.gas >= 1 &&
-      !r.player.attrib.get('科学球') &&
+      !r.player.attrib.get('R科学球') &&
       r.data.prog_cur > 0
   ) as unknown as boolean
   r.data.extra = computed<string[]>(() => {
@@ -480,7 +480,7 @@ function 科学球(r: IRole) {
     if (
       !r.player.can_enter('观察样本') ||
       r.player.data.gas < 1 ||
-      r.player.attrib.get('科学球') ||
+      r.player.attrib.get('R科学球') ||
       r.data.prog_cur === 0
     ) {
       return
@@ -489,7 +489,7 @@ function 科学球(r: IRole) {
     await r.player.obtain_resource({
       gas: -1,
     })
-    r.player.attrib.config('科学球', 1)
+    r.player.attrib.config('R科学球', 1)
     const c = await r.player.enter(getCard('观察样本'))
     await c?.obtain_unit(
       (Object.keys(record) as UnitKey[]).map(k => us(k, record[k] || 0)).flat(1)
@@ -570,10 +570,10 @@ function 拟态虫(r: IRole) {
       if (!(card instanceof CardInstance)) {
         return false
       }
-      if (card.data.pos === role.player.persisAttrib.get('拟态虫', -1)) {
+      if (card.data.pos === role.player.persisAttrib.get('R拟态虫', -1)) {
         return false
       }
-      role.player.persisAttrib.config('拟态虫', card.data.pos)
+      role.player.persisAttrib.config('R拟态虫', card.data.pos)
       await role.player.obtain_resource({
         mineral: -2,
       })
@@ -843,12 +843,12 @@ function 机械哨兵(r: IRole) {
   r.data.prog_cur = 3
   r.player.bus.on('round-enter', async () => {
     if (r.data.prog_cur === 0) {
-      r.player.attrib.config('机械哨兵', 1)
+      r.player.attrib.config('R机械哨兵', 1)
     }
   })
   r.data.enable = computed(() => {
     return (
-      !r.player.attrib.get('机械哨兵') &&
+      !r.player.attrib.get('R机械哨兵') &&
       r.player.data.mineral >= 4 &&
       r.player.can_cache()
     )
@@ -871,8 +871,34 @@ function 机械哨兵(r: IRole) {
       mineral: -4,
     })
     await r.player.obtain_card(getCard(card.data.occupy[0]))
-    r.player.attrib.config('机械哨兵', 1)
+    r.player.attrib.config('R机械哨兵', 1)
     r.data.prog_cur -= 1
+  }
+}
+
+function 异龙(r: IRole) {
+  r.player.persisAttrib.config('R异龙', 1)
+  r.data.enable = computed<boolean>(() => {
+    return !!r.player.persisAttrib.get('R异龙') && r.player.data.mineral >= 2
+  }) as unknown as boolean
+  r.player.bus.on('tavern-upgraded', async () => {
+    r.player.persisAttrib.config('R异龙', 1)
+  })
+  return async () => {
+    if (!r.player.persisAttrib.get('R异龙') || r.player.data.mineral < 2) {
+      return
+    }
+    await r.player.obtain_resource({
+      mineral: -2,
+    })
+    await r.player.discover(
+      r.player.game.pool.discover(
+        c => c.race === 'Z' && c.level <= r.player.data.level,
+        4,
+        false
+      )
+    )
+    r.player.persisAttrib.config('R异龙', 0)
   }
 }
 
@@ -919,6 +945,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   雷神,
   机械哨兵,
   锻炉,
+  异龙,
 }
 
 export function create_role(p: Player, r: RoleKey) {
