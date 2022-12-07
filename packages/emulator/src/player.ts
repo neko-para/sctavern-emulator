@@ -18,8 +18,21 @@ import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { create_role, RoleData, RoleImpl } from './role'
-import { Descriptor, InputBus, LogicBus, PlayerConfig } from './types'
-import { isCardInstance, isCardInstanceAttrib, refC, refP, us } from './utils'
+import {
+  Descriptor,
+  DescriptorGenerator,
+  InputBus,
+  LogicBus,
+  PlayerConfig,
+} from './types'
+import {
+  autoBind,
+  isCardInstance,
+  isCardInstanceAttrib,
+  refC,
+  refP,
+  us,
+} from './utils'
 
 interface ActionItem {
   name: string
@@ -358,32 +371,65 @@ export class Player {
     }
   }
 
-  async inject(units: UnitKey[]) {
+  async inject(units: UnitKey[], only_left = false) {
     if (units.length === 0) {
       return
     }
-    const eggs = this.find_name('虫卵')
-    let egg_card: CardInstance | null = null
-    if (eggs.length === 0) {
+    if (this.find_name('虫卵').length === 0) {
       const hole = this.data.first_hole
       if (hole === -1) {
         return
       }
-      const egg_cardt = getCard('虫卵')
-      egg_card = new CardInstance(this, egg_cardt)
-      egg_card.data.color = 'gold'
-      const descs = Descriptors['虫卵']
-      if (descs) {
+      let egg_cardt = getCard('虫卵')
+      let descs = Descriptors['虫卵'] as DescriptorGenerator[]
+      const isZergling = this.role.data.data.name === '跳虫'
+
+      const eggs: [CardInstance, number][] = [
+        [new CardInstance(this, egg_cardt), hole],
+      ]
+
+      if (isZergling) {
+        if (this.data.level >= 4) {
+          const another_hole = this.data.first_hole
+          if (another_hole !== -1) {
+            eggs.push([new CardInstance(this, egg_cardt), another_hole])
+          }
+        }
+        egg_cardt = {
+          ...egg_cardt,
+        }
+        egg_cardt.desc = [
+          [
+            '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
+            '出售该卡牌时, 尝试将此卡牌的单位转移到另一张虫卵牌上',
+          ],
+        ]
+        descs = [
+          autoBind('post-sell', async card => {
+            const another = card.player.find_name('虫卵')
+            if (another.length > 0) {
+              await another[0].obtain_unit(card.data.units)
+            }
+          }),
+        ]
+      }
+      for (const [egg, hole] of eggs) {
+        egg.data.color = 'gold'
         for (let i = 0; i < descs.length; i++) {
-          await egg_card.add_desc(descs[i], egg_cardt.desc[i])
+          await egg.add_desc(descs[i], egg_cardt.desc[i])
+        }
+        await this.put(egg, hole)
+      }
+    }
+    const eggs = this.find_name('虫卵')
+    if (eggs.length > 0) {
+      if (only_left) {
+        await eggs[0].obtain_unit(units)
+      } else {
+        for (const e of eggs) {
+          await e.obtain_unit(units)
         }
       }
-      await this.put(egg_card, hole)
-    } else {
-      egg_card = eggs[0]
-    }
-    if (egg_card) {
-      await egg_card.obtain_unit(units)
       await this.post('inject', {
         ...refP(this),
         units,

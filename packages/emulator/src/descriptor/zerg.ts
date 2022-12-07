@@ -263,7 +263,8 @@ const data: CardDescriptorTable = {
         card.player.persisAttrib.set('斯托科夫', desc.gold ? 0 : 1 - v)
         if (desc.gold || v === 1) {
           await card.player.inject(
-            target.data.units.filter(isNormal).filter(u => !isHero(u))
+            target.data.units.filter(isNormal).filter(u => !isHero(u)),
+            true
           )
         }
       })

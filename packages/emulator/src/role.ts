@@ -778,6 +778,12 @@ function 思旺(r: IRole) {
   }
 }
 
+function 跳虫(r: IRole) {
+  return async () => {
+    //
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -802,6 +808,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   泰凯斯,
   诺娃,
   思旺,
+  跳虫,
 }
 
 export function create_role(p: Player, r: RoleKey) {
