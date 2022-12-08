@@ -17,6 +17,7 @@ import { WebClient } from './WebClient'
 
 const props = defineProps<{
   replay: string
+  interval: number
   mobile: boolean
 }>()
 
@@ -48,7 +49,7 @@ async function main() {
   await client.replay(replay, async () => {
     await new Promise<void>(resolve => {
       // resolve()
-      setTimeout(resolve, 100)
+      setTimeout(resolve, props.interval)
     })
     return false
   })

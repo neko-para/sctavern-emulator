@@ -21,6 +21,7 @@ const seedConfig = ref(Math.floor(Math.random() * 1000000).toString())
 const roleConfig = ref<RoleKey>('白板')
 const logConfig = ref<LogItem[]>([])
 const replayConfig = ref('')
+const intervalConfig = ref('100')
 const importDlg = ref(false)
 
 function genPackConfig() {
@@ -77,6 +78,7 @@ function apply() {
       name: 'Local',
       query: {
         replay: replay,
+        interval: intervalConfig.value,
       },
     })
   } else {
@@ -145,6 +147,16 @@ function apply() {
                 </v-col>
                 <v-col cols="2">
                   <v-btn @click="genPackConfig()">随机</v-btn>
+                </v-col>
+              </v-row>
+              <v-row v-if="logConfig.length > 0">
+                <v-col cols="1"></v-col>
+                <v-col cols="8">
+                  <v-text-field
+                    label="等待时延"
+                    suffix="ms"
+                    v-model="intervalConfig"
+                  ></v-text-field>
                 </v-col>
               </v-row>
             </v-card-text>
