@@ -21,6 +21,7 @@ import {
   AllUpgrade,
   AllRole,
   hash,
+  hash_full,
 } from './pubdata'
 import type {
   CardKey,
@@ -38,7 +39,7 @@ export const Units: Map<UnitKey, Unit> = new Map()
 export const Upgrades: Map<UpgradeKey, Upgrade> = new Map()
 export const Roles: Map<RoleKey, Role> = new Map()
 
-export { attr, tr, order, hash }
+export { attr, tr, order, hash, hash_full }
 export { AllCard, AllUnit, AllTerm, AllUpgrade, AllRole }
 export { CardKey, TermKey, UnitKey, UpgradeKey, RoleKey, PossibleKey }
 export { Race, Card, Term, Unit, Upgrade, Role, Weapon, Armor, SArmor }

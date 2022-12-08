@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { hash as gitHash } from '@sctavern-emulator/data'
+import {
+  hash as gitHash,
+  hash_full as gitHashFull,
+} from '@sctavern-emulator/data'
 import { computed } from 'vue'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
@@ -20,6 +23,9 @@ const player = computed(() => {
 const heroExtraList = computed(() => {
   return props.client.player.data.ability.extra
 })
+
+const project = 'https://github.com/neko-para/sctavern-emulator'
+const project_tree = `${project}/tree/${gitHashFull}`
 </script>
 
 <template>
@@ -130,7 +136,11 @@ const heroExtraList = computed(() => {
       </div>
       <v-card class="d-flex flex-column ml-auto" style="height: min-content">
         <v-card-text class="d-flex flex-column">
-          <span class="mb-1">版本: {{ gitHash }}</span>
+          <a :href="project" class="mb-1" target="_blank">Github</a>
+          <span class="mb-1"
+            >版本:
+            <a :href="project_tree" target="_blank">{{ gitHash }}</a></span
+          >
           <span class="mb-1">种子: {{ client.game.game.config.seed }}</span>
           <span
             class="mt-1"

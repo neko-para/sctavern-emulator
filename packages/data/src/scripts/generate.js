@@ -62,10 +62,11 @@ async function main() {
     c.desc = c.desc.map(splitDesc)
   })
   const hash = await new Promise(resolve => {
-    child_process.exec('git rev-parse --short HEAD', (err, stdout) => {
+    child_process.exec('git rev-parse HEAD', (err, stdout) => {
       resolve(stdout.trim())
     })
   })
+  const hashShort = hash.substring(0, 7)
   await fs.writeFile(
     process.argv[2],
     `import { Data } from "./types"
@@ -91,8 +92,9 @@ export const AllRole: RoleKey[] = ["${result.role
       .join('","')}"]
 export type PossibleKey = UnitKey | CardKey | TermKey | UpgradeKey | RoleKey
 const data: Data = ${JSON.stringify(result, null, 2)}
-const hash = '${hash}'
-export { data, hash }\n`
+const hash = '${hashShort}'
+const hash_full = '${hash}'
+export { data, hash, hash_full }\n`
   )
 }
 
