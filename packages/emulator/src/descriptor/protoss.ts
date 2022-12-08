@@ -213,6 +213,7 @@ const data: CardDescriptorTable = {
   光复艾尔: [
     autoBind('obtain-upgrade', async card => {
       card.replace_unit(card.find('泰坦棱镜(已收起)'), '泰坦棱镜')
+      card.player.resort_unique('光复艾尔')
     }),
     autoBindUnique(
       (card, desc) => {
