@@ -41,18 +41,51 @@ const game = new LocalGame({
 
 const client = new WebClient(game.slave, 0, status)
 
+const replaying = ref(false)
+const replayStatus = ref<'play' | 'pause'>('play')
+let replayResolve: (() => void) | null = null
+
+function pauseReplay() {
+  replayStatus.value = 'pause'
+}
+
+function playReplay() {
+  replayStatus.value = 'play'
+  nextReplay()
+}
+
+function stopReplay() {
+  replaying.value = false
+}
+
+function nextReplay() {
+  if (replayResolve) {
+    const r = replayResolve
+    replayResolve = null
+    r()
+  }
+}
+
 async function main() {
   game.master.poll()
   game.slave.poll()
   game.slave.game.start()
 
+  replaying.value = true
   await client.replay(replay, async () => {
-    await new Promise<void>(resolve => {
-      // resolve()
-      setTimeout(resolve, props.interval)
-    })
-    return false
+    if (replayStatus.value === 'play') {
+      await new Promise<void>(resolve => {
+        // resolve()
+        setTimeout(resolve, props.interval)
+      })
+    } else {
+      await new Promise<void>(resolve => {
+        replayResolve = resolve
+      })
+    }
+    return !replaying.value
   })
+  replaying.value = false
 }
 
 const obtainCardDlg = ref(false)
@@ -299,6 +332,16 @@ main()
       <v-btn :disabled="status.model" @click="client.requestResource()"
         >资源</v-btn
       >
+      <template v-if="replaying">
+        <v-btn v-if="replayStatus === 'play'" @click="pauseReplay()"
+          >暂停</v-btn
+        >
+        <template v-else>
+          <v-btn @click="playReplay()">继续</v-btn>
+          <v-btn @click="nextReplay()">单步</v-btn>
+          <v-btn @click="stopReplay()">停止</v-btn>
+        </template>
+      </template>
     </div>
   </game-instance-chooser>
 </template>
