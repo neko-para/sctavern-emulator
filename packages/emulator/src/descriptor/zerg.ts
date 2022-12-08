@@ -270,8 +270,6 @@ const data: CardDescriptorTable = {
   守卫巢穴: [
     autoBind('round-end', async (card, gold) => {
       await card.player.inject(us('守卫', gold ? 2 : 1))
-    }),
-    autoBind('round-end', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
         await c.replace_unit(
           c.find(u => ['异龙', '异龙(精英)'].includes(u), gold ? 2 : 1),
