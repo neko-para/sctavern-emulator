@@ -338,7 +338,7 @@ export class Player {
     return true
   }
 
-  async obtain_resource(resource: { mineral?: number; gas?: number }) {
+  obtain_resource(resource: { mineral?: number; gas?: number }) {
     this.data.mineral += resource.mineral || 0
     this.data.gas += resource.gas || 0
   }
@@ -413,9 +413,9 @@ export class Player {
       const egg = new CardInstance(this, egg_cardt)
       egg.data.color = 'gold'
       for (let i = 0; i < egg_descs.length; i++) {
-        await egg.add_desc(egg_descs[i], egg_cardt.desc[i])
+        egg.add_desc(egg_descs[i], egg_cardt.desc[i])
       }
-      await this.put(egg, hole)
+      this.put(egg, hole)
       eggs = this.find_name('虫卵')
     }
     if (eggs.length > 0) {
@@ -458,7 +458,7 @@ export class Player {
     }
   }
 
-  async resort_unique(name: string) {
+  resort_unique(name: string) {
     const data = this.unique[name]
     if (data.length === 0) {
       return
@@ -481,7 +481,7 @@ export class Player {
     }
   }
 
-  async add_unique(card: CardInstance, desc: Descriptor) {
+  add_unique(card: CardInstance, desc: Descriptor) {
     const key = desc.unique
     if (!key) {
       return
@@ -492,10 +492,10 @@ export class Player {
       card,
       desc,
     })
-    await this.resort_unique(key)
+    this.resort_unique(key)
   }
 
-  async del_unique(desc: Descriptor) {
+  del_unique(desc: Descriptor) {
     const key = desc.unique
     if (!key) {
       return
@@ -517,7 +517,7 @@ export class Player {
     }
   }
 
-  private async _put(card: CardInstance, pos: number) {
+  private _put(card: CardInstance, pos: number) {
     if (pos === -1) {
       return false
     }
@@ -550,8 +550,8 @@ export class Player {
     return false
   }
 
-  async put(card: CardInstance, pos: number) {
-    if (await this._put(card, pos)) {
+  put(card: CardInstance, pos: number) {
+    if (this._put(card, pos)) {
       for (let i = 0; i < 7; i++) {
         this.bus.child[i] = this.present[i]?.bus || null
       }
@@ -561,7 +561,7 @@ export class Player {
     }
   }
 
-  async unput(card: CardInstance) {
+  unput(card: CardInstance) {
     this.present[card.data.pos] = null
     this.data.present[card.data.pos] = null
     this.bus.child[card.data.pos] = null
@@ -578,7 +578,7 @@ export class Player {
       const descs = Descriptors[cardt.name]
       if (descs) {
         for (let i = 0; i < descs.length; i++) {
-          await card.add_desc(descs[i], cardt.desc[i])
+          card.add_desc(descs[i], cardt.desc[i])
         }
       } else {
         console.log('WARN: Card Not Implement Yet')
@@ -610,7 +610,7 @@ export class Player {
     const descs = Descriptors[cardt.name]
     if (descs) {
       for (let i = 0; i < descs.length; i++) {
-        await card.add_desc(descs[i], cardt.desc[i])
+        card.add_desc(descs[i], cardt.desc[i])
       }
     } else {
       console.log('WARN: Card Not Implement Yet')
@@ -666,12 +666,12 @@ export class Player {
     await cs[0].clear_desc()
     await cs[1].clear_desc()
 
-    await this.unput(cs[1])
+    this.unput(cs[1])
 
     const descs = Descriptors[cardt.name]
     if (descs) {
       for (let i = 0; i < descs.length; i++) {
-        await cs[0].add_desc(descs[i], cardt.desc[i])
+        cs[0].add_desc(descs[i], cardt.desc[i])
       }
     }
     cs[0].bindDef()
@@ -731,7 +731,7 @@ export class Player {
         flag: false,
         pos,
       })
-      await this.obtain_resource({
+      this.obtain_resource({
         mineral: 1,
       })
       if (card.data.name !== '虫卵') {
@@ -978,7 +978,7 @@ export class Player {
         return
       }
       this.data.hand[place] = null
-      await this.obtain_resource({
+      this.obtain_resource({
         mineral: 1,
       })
     })
@@ -1032,7 +1032,7 @@ export class Player {
         .shuffle(comm)
         .slice(0, 4 - sp.length)
         .concat(sp)
-      await this.obtain_resource({
+      this.obtain_resource({
         gas: -2,
       })
       if (
@@ -1044,7 +1044,7 @@ export class Player {
           }
         ))
       ) {
-        await this.obtain_resource({
+        this.obtain_resource({
           gas: 1,
         })
       }
@@ -1068,7 +1068,7 @@ export class Player {
       this.present[place]?.obtain_unit(units)
     })
     this.bus.on('$imr', async () => {
-      await this.obtain_resource({
+      this.obtain_resource({
         mineral: 100,
         gas: 100,
       })

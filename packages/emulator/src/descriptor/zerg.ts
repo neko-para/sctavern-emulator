@@ -73,7 +73,7 @@ const data: CardDescriptorTable = {
       card => card.data.units.filter(isNormal).filter(isBiological),
       card => card.around().filter(c => c.data.race === 'Z').length === 2,
       async card => {
-        await card.player.obtain_resource({
+        card.player.obtain_resource({
           mineral: 1,
         })
         await card.player.destroy(card)
@@ -87,7 +87,7 @@ const data: CardDescriptorTable = {
   ],
   蟑螂小队: [
     autoBind('round-start', async (card, gold) => {
-      await card.replace_unit(card.find('蟑螂', gold ? 2 : 1), '破坏者')
+      card.replace_unit(card.find('蟑螂', gold ? 2 : 1), '破坏者')
     }),
     autoBind('post-sell', async (card, gold) => {
       await card.player.inject(us('蟑螂', gold ? 4 : 2))
@@ -95,7 +95,7 @@ const data: CardDescriptorTable = {
   ],
   屠猎者: [
     autoBind('round-end', async card => {
-      await card.replace_unit(card.find('刺蛇'), elited)
+      card.replace_unit(card.find('刺蛇'), elited)
     }),
     autoBind('tavern-upgraded', async (card, gold) => {
       await card.obtain_unit(us('刺蛇(精英)', gold ? 2 : 1))
@@ -168,20 +168,20 @@ const data: CardDescriptorTable = {
       let n = 0
       for (const c of card.player.present.filter(isCardInstance)) {
         const idx = c.find('陆战队员', gold ? 4 : 2)
-        await c.remove_unit(idx)
+        c.remove_unit(idx)
         n += idx.length
       }
       await card.player.inject(us('被感染的陆战队员', n))
     }),
     autoBind('round-start', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
-        await c.replace_unit(c.find('被感染的陆战队员', gold ? 2 : 1), '畸变体')
+        c.replace_unit(c.find('被感染的陆战队员', gold ? 2 : 1), '畸变体')
       }
     }),
   ],
   腐化大龙: [
     autoBind('round-start', async (card, gold) => {
-      await card.replace_unit(card.find('腐化者', gold ? 4 : 2), '巢虫领主')
+      card.replace_unit(card.find('腐化者', gold ? 4 : 2), '巢虫领主')
     }),
     autoBind('post-sell', async (card, gold) => {
       await card.player.inject(us('巢虫领主', gold ? 4 : 2))
@@ -201,7 +201,7 @@ const data: CardDescriptorTable = {
   终极进化: [
     autoBind('post-enter', async (card, gold) => {
       for (const c of card.around()) {
-        await c.replace_unit(
+        c.replace_unit(
           [...c.find('蟑螂', 2), ...c.find('蟑螂(精英)', 2)]
             .sort()
             .slice(0, gold ? 2 : 1),
@@ -271,7 +271,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       await card.player.inject(us('守卫', gold ? 2 : 1))
       for (const c of card.player.present.filter(isCardInstance)) {
-        await c.replace_unit(
+        c.replace_unit(
           c.find(u => ['异龙', '异龙(精英)'].includes(u), gold ? 2 : 1),
           '守卫'
         )
@@ -288,7 +288,7 @@ const data: CardDescriptorTable = {
   ],
   雷兽窟: [
     autoBind('inject', async (card, gold) => {
-      await card.replace_unit(card.find('幼雷兽', gold ? 2 : 1), '雷兽')
+      card.replace_unit(card.find('幼雷兽', gold ? 2 : 1), '雷兽')
     }),
     孵化('round-end', '幼雷兽', 1, 2),
   ],
@@ -342,7 +342,7 @@ const data: CardDescriptorTable = {
           if (tos.length === 0) {
             return
           }
-          await c.replace_unit(
+          c.replace_unit(
             us
               .slice(us.length - (gold ? 2 : 1))
               .filter(([u]) => u.value < tos[0][0].value)

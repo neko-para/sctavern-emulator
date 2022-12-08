@@ -121,7 +121,7 @@ function 进场切换挂件(): DescriptorGenerator {
 const data: CardDescriptorTable = {
   死神火车: [
     任务('card-entered', 2, async (card, gold) => {
-      await card.player.obtain_resource({
+      card.player.obtain_resource({
         mineral: gold ? 2 : 1,
       })
     }),
@@ -147,9 +147,7 @@ const data: CardDescriptorTable = {
     autoBind('post-enter', async card => {
       for (const c of [card.left(), card.right()]) {
         if (c?.data.race === 'T') {
-          await card.obtain_unit(
-            await c.filter((u, i) => i % 3 !== 0 && isNormal(u))
-          )
+          await card.obtain_unit(c.filter((u, i) => i % 3 !== 0 && isNormal(u)))
         }
       }
     }),
@@ -209,8 +207,8 @@ const data: CardDescriptorTable = {
   斯台特曼: [
     autoBind('fast-prod', async (card, gold) => {
       for (const c of card.around()) {
-        await c.replace_unit(c.find('歌利亚', gold ? 2 : 1), elited)
-        await c.replace_unit(c.find('维京战机', gold ? 2 : 1), elited)
+        c.replace_unit(c.find('歌利亚', gold ? 2 : 1), elited)
+        c.replace_unit(c.find('维京战机', gold ? 2 : 1), elited)
       }
     }),
     autoBind('post-enter', async card => {
@@ -230,8 +228,8 @@ const data: CardDescriptorTable = {
     反应堆('陆战队员(精英)'),
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.all_of('T')) {
-        await c.replace_unit(c.find('陆战队员', gold ? 5 : 3), elited)
-        await c.replace_unit(c.find('劫掠者', gold ? 5 : 3), elited)
+        c.replace_unit(c.find('陆战队员', gold ? 5 : 3), elited)
+        c.replace_unit(c.find('劫掠者', gold ? 5 : 3), elited)
       }
     }),
     autoBind('round-end', async (card, gold) => {
@@ -264,7 +262,7 @@ const data: CardDescriptorTable = {
         const nNorRest = nNor % 6
         cnt += (nNor - nNorRest) / 6
         nNorTran += nNor - nNorRest
-        await c.remove_unit([
+        c.remove_unit([
           ...c.find('陆战队员(精英)', nProTran),
           ...c.find('陆战队员', nNorTran),
         ])
@@ -276,8 +274,8 @@ const data: CardDescriptorTable = {
     快速生产('雷神', 1, 2),
     科挂X(5, async (card, gold) => {
       for (const c of card.player.all_of('T')) {
-        await c.replace_unit(c.find('攻城坦克', gold ? 2 : 1), elited)
-        await c.replace_unit(c.find('战狼', gold ? 2 : 1), elited)
+        c.replace_unit(c.find('攻城坦克', gold ? 2 : 1), elited)
+        c.replace_unit(c.find('战狼', gold ? 2 : 1), elited)
       }
     }),
   ],
@@ -292,10 +290,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
         if (c.data.race === 'T') {
-          await c.replace_unit(
-            c.find('陆战队员(精英)', gold ? 2 : 1),
-            '帝盾卫兵'
-          )
+          c.replace_unit(c.find('陆战队员(精英)', gold ? 2 : 1), '帝盾卫兵')
         }
       }
     }),
@@ -383,7 +378,7 @@ const data: CardDescriptorTable = {
     }),
     autoBind('fast-prod', async (card, gold) => {
       for (const c of card.player.all_of('T')) {
-        await c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
+        c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
       }
     }),
   ],

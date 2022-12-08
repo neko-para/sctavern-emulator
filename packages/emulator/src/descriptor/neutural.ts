@@ -74,7 +74,7 @@ const data: CardDescriptorTable = {
       }
       let n = 0
       for (const c of card.player.present.filter(isCardInstance)) {
-        n += (await c.filter(u => u === '精华')).length
+        n += c.filter(u => u === '精华').length
       }
       await card.obtain_unit(us('原始异龙', Math.floor(n / 2)))
     }),
@@ -122,7 +122,7 @@ const data: CardDescriptorTable = {
       for (const [c, i] of card.player.game.gen
         .shuffle(choice)
         .slice(0, gold ? 8 : 5)) {
-        await c.replace_unit([i], elited)
+        c.replace_unit([i], elited)
       }
     }),
   ],
@@ -328,15 +328,12 @@ const data: CardDescriptorTable = {
         const descs = data.刀锋女王
         if (descs) {
           for (let i = 0; i < descs.length; i++) {
-            await around[0].add_desc(descs[i], getCard('刀锋女王').desc[i])
+            around[0].add_desc(descs[i], getCard('刀锋女王').desc[i])
           }
         } else {
           console.log('WARN: Card Not Implement Yet')
         }
-        await around[0].replace_unit(
-          around[0].find('莎拉·凯瑞甘', 1),
-          '刀锋女王'
-        )
+        around[0].replace_unit(around[0].find('莎拉·凯瑞甘', 1), '刀锋女王')
         await card.player.destroy(card)
       } else {
         await card.obtain_upgrade('献祭')

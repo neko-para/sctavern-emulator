@@ -20,7 +20,7 @@ function 制造X(
     const cnt = card.find('零件').length
     const n = Math.floor(cnt / count)
     if (n > 0) {
-      await card.remove_unit(card.find('零件', count))
+      card.remove_unit(card.find('零件', count))
       await result(card, gold)
     }
   })
@@ -35,12 +35,12 @@ function 制造(count: number, unit: UnitKey, num = 1) {
 const data: CardDescriptorTable = {
   黄金矿工: [
     autoBind('round-start', async card => {
-      await card.player.obtain_resource({
+      card.player.obtain_resource({
         mineral: 1,
       })
     }),
     autoBind('post-sell', async card => {
-      await card.player.obtain_resource({
+      card.player.obtain_resource({
         mineral: 2,
       })
     }),
@@ -52,11 +52,11 @@ const data: CardDescriptorTable = {
       const cnt = card.find('自动机炮').length
       const r = gold ? 2 : 3
       const n = Math.floor(cnt / r)
-      await card.remove_unit(card.find('自动机炮', n * r))
+      card.remove_unit(card.find('自动机炮', n * r))
       await card.obtain_unit(us('毒气炮塔', n))
     }),
     autoBind('post-sell', async (card, gold) => {
-      await card.player.obtain_resource({
+      card.player.obtain_resource({
         mineral: gold ? 2 : 1,
       })
     }),
@@ -66,7 +66,7 @@ const data: CardDescriptorTable = {
       const cnt = card.find('自动机炮').length
       const r = gold ? 4 : 5
       const n = Math.floor(cnt / r)
-      await card.remove_unit(card.find('自动机炮', n * r))
+      card.remove_unit(card.find('自动机炮', n * r))
       await card.obtain_unit(us('凯达琳巨石', n))
     }),
     autoBind('round-end', async card => {
@@ -76,7 +76,7 @@ const data: CardDescriptorTable = {
   岗哨机枪: [
     autoBind('round-end', async card => {
       const cnt = card.find('自动机炮').length
-      await card.remove_unit(card.find('自动机炮'))
+      card.remove_unit(card.find('自动机炮'))
       await card.obtain_unit(us('岗哨机枪', cnt * 2))
     }),
     autoBind('card-entered', async (card, gold) => {
@@ -88,7 +88,7 @@ const data: CardDescriptorTable = {
       const cnt = card.find('自动机炮').length
       const r = gold ? 4 : 5
       const n = Math.floor(cnt / r)
-      await card.remove_unit(card.find('自动机炮', n * r))
+      card.remove_unit(card.find('自动机炮', n * r))
       await card.obtain_unit(us('行星要塞', n))
     }),
     autoBindUnique(async (card, desc) => {
@@ -100,14 +100,14 @@ const data: CardDescriptorTable = {
         if (target.data.race !== 'N') {
           return
         }
-        await card.obtain_unit(await target.filter(isBuilding))
+        await card.obtain_unit(target.filter(isBuilding))
       })
     }, '行星要塞'),
   ],
   星门: [
     autoBind('round-end', async (card, gold) => {
       await card.obtain_unit(us('零件', gold ? 2 : 1))
-      await card.replace_unit(card.find('自动机炮'), '零件')
+      card.replace_unit(card.find('自动机炮'), '零件')
     }),
     制造(6, '星门'),
   ],
@@ -138,7 +138,7 @@ const data: CardDescriptorTable = {
   导弹基地: [
     autoBind('round-end', async card => {
       const cnt = card.find('自动机炮').length
-      await card.remove_unit(card.find('自动机炮'))
+      card.remove_unit(card.find('自动机炮'))
       await card.obtain_unit(us('风暴对地导弹塔', cnt * 2))
     }),
     autoBindPlayer('task-done', async (card, gold) => {
@@ -149,10 +149,10 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async (card, gold) => {
       for (const c of card.around()) {
         const idxs = c.find('自动机炮', gold ? 2 : 1)
-        await c.remove_unit(idxs)
+        c.remove_unit(idxs)
         await card.obtain_unit(us('自动机炮', idxs.length))
       }
-      await card.replace_unit(card.find('自动机炮'), '零件')
+      card.replace_unit(card.find('自动机炮'), '零件')
     }),
     制造(9, '粒子光炮'),
   ],
@@ -160,7 +160,7 @@ const data: CardDescriptorTable = {
     autoBind('round-end', async card => {
       const cnt = card.find('自动机炮').length
       const n = Math.floor(cnt / 2)
-      await card.remove_unit(card.find('自动机炮', n * 2))
+      card.remove_unit(card.find('自动机炮', n * 2))
       await card.obtain_unit(us('热辣贝蒂', n))
     }),
     autoBind('obtain-upgrade', async (card, gold) => {
@@ -178,9 +178,9 @@ const data: CardDescriptorTable = {
   不法之徒: [],
   生化实验室: [
     autoBind('post-deploy', async (card, gold, { target }) => {
-      const idx = (await target.filter(isBiological)).filter(
-        u => u !== '被感染的陆战队员'
-      )
+      const idx = target
+        .filter(isBiological)
+        .filter(u => u !== '被感染的陆战队员')
       await target.player.inject(us('被感染的陆战队员', idx.length))
     }),
   ],
@@ -197,7 +197,7 @@ const data: CardDescriptorTable = {
   ],
   星灵科技: [
     autoBind('post-deploy', async (card, gold, { target }) => {
-      await target.add_desc(
+      target.add_desc(
         autoBind('round-end', async (card, gold) => {
           await card.player.wrap(us('陆战队员', gold ? 2 : 1))
         }),

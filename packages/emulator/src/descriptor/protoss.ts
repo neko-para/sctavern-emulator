@@ -134,7 +134,7 @@ const data: CardDescriptorTable = {
   重回战场: [
     autoBind('post-enter', async (card, gold) => {
       for (const c of card.player.all_of('P')) {
-        await c.replace_unit(c.find(isBiological, gold ? 2 : 1), u =>
+        c.replace_unit(c.find(isBiological, gold ? 2 : 1), u =>
           isHero(u) ? '英雄不朽者' : '不朽者'
         )
       }
@@ -155,7 +155,7 @@ const data: CardDescriptorTable = {
         const us = c.find(u => canElite(u) && !isHeavy(u))
         card.player.game.gen.shuffle(us)
         const ts = us.slice(0, gold ? 2 : 1)
-        unit.push(...(await c.remove_unit(ts)).map(elited))
+        unit.push(...c.remove_unit(ts).map(elited))
       }
       await card.player.wrap(unit)
     }),
@@ -212,7 +212,7 @@ const data: CardDescriptorTable = {
   ],
   光复艾尔: [
     autoBind('obtain-upgrade', async card => {
-      await card.replace_unit(card.find('泰坦棱镜(已收起)'), '泰坦棱镜')
+      card.replace_unit(card.find('泰坦棱镜(已收起)'), '泰坦棱镜')
     }),
     autoBindUnique(
       (card, desc) => {
@@ -238,13 +238,13 @@ const data: CardDescriptorTable = {
             return
           }
           param.flag = true
-          await card.replace_unit(card.find('泰坦棱镜'), '泰坦棱镜(已收起)')
+          card.replace_unit(card.find('泰坦棱镜'), '泰坦棱镜(已收起)')
           await card.obtain_unit(
             target.data.units
               .filter(u => isNormal(u) || u === '水晶塔')
               .filter(u => desc.gold || !isHero(u))
           )
-          await card.player.resort_unique('光复艾尔')
+          card.player.resort_unique('光复艾尔')
         })
       },
       '光复艾尔',
@@ -254,11 +254,8 @@ const data: CardDescriptorTable = {
   菲尼克斯: [
     autoBind('post-enter', async card => {
       for (const c of card.around()) {
-        await c.replace_unit(
-          [...c.find('狂热者'), ...c.find('使徒')],
-          '旋风狂热者'
-        )
-        await c.replace_unit(
+        c.replace_unit([...c.find('狂热者'), ...c.find('使徒')], '旋风狂热者')
+        c.replace_unit(
           [...c.find('狂热者(精英)'), ...c.find('使徒(精英)')],
           '旋风狂热者(精英)'
         )
@@ -330,7 +327,7 @@ const data: CardDescriptorTable = {
     }),
     集结X(4, async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
-        await c.replace_unit(c.find('虚空辉光舰', gold ? 2 : 1), elited)
+        c.replace_unit(c.find('虚空辉光舰', gold ? 2 : 1), elited)
       }
     }),
   ],
@@ -356,8 +353,8 @@ const data: CardDescriptorTable = {
   ],
   晋升仪式: [
     集结X(4, async (card, gold) => {
-      await card.replace_unit(card.find('不朽者', gold ? 2 : 1), '英雄不朽者')
-      await card.replace_unit(
+      card.replace_unit(card.find('不朽者', gold ? 2 : 1), '英雄不朽者')
+      card.replace_unit(
         card.find(u => isBiological(u) && u !== '高阶圣堂武士', gold ? 2 : 1),
         '高阶圣堂武士'
       )

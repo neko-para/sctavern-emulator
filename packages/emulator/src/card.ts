@@ -228,7 +228,7 @@ export class CardInstance {
         this.replace_unit([pos], '科技实验室')
         break
       case 'scilab':
-        await this.replace_unit([pos], '反应堆')
+        this.replace_unit([pos], '反应堆')
         break
       default:
         return
@@ -269,7 +269,7 @@ export class CardInstance {
     await this.post('obtain-unit-post', p)
   }
 
-  async remove_unit(index: number[]) {
+  remove_unit(index: number[]) {
     return this.filter((u, i) => index.includes(i))
   }
 
@@ -299,7 +299,7 @@ export class CardInstance {
           this.data.color = 'gold'
           if (descs) {
             for (let i = 0; i < descs.length; i++) {
-              await this.add_desc(descs[i], getCard('黄金矿工').desc[i])
+              this.add_desc(descs[i], getCard('黄金矿工').desc[i])
             }
           } else {
             console.log('WARN: Card Not Implement Yet')
@@ -379,10 +379,7 @@ export class CardInstance {
     }
   }
 
-  async replace_unit(
-    places: number[],
-    unit: UnitKey | ((u: UnitKey) => UnitKey)
-  ) {
+  replace_unit(places: number[], unit: UnitKey | ((u: UnitKey) => UnitKey)) {
     const proc = typeof unit === 'string' ? () => unit : unit
     places.forEach(idx => {
       if (idx >= 0 && idx < this.data.units.length) {
@@ -391,7 +388,7 @@ export class CardInstance {
     })
   }
 
-  async filter(func: (unit: UnitKey, pos: number) => boolean) {
+  filter(func: (unit: UnitKey, pos: number) => boolean) {
     const taked: UnitKey[] = []
     this.data.units = this.data.units.filter((u, i) => {
       if (func(u, i)) {
@@ -401,11 +398,10 @@ export class CardInstance {
         return true
       }
     })
-
     return taked
   }
 
-  async bind_desc(
+  bind_desc(
     binder: (card: CardInstance) => Descriptor,
     text: string,
     data: {
@@ -421,16 +417,16 @@ export class CardInstance {
       data,
     })
     if (d.unique) {
-      await this.player.add_unique(this, d)
+      this.player.add_unique(this, d)
     }
   }
 
-  async add_desc(desc: DescriptorGenerator, text: [string, string]) {
+  add_desc(desc: DescriptorGenerator, text: [string, string]) {
     const gold = this.data.color !== 'normal'
     const binder = (card: CardInstance) => {
       return desc(card, gold)
     }
-    await this.bind_desc(binder, text[gold ? 1 : 0], {
+    this.bind_desc(binder, text[gold ? 1 : 0], {
       desc,
       text,
     })
@@ -440,7 +436,7 @@ export class CardInstance {
     for (const d of this.data.descriptors) {
       d.desc.unbind && d.desc.unbind()
       if (d.desc.unique) {
-        await this.player.del_unique(d.desc)
+        this.player.del_unique(d.desc)
       }
     }
     this.data.descriptors = []

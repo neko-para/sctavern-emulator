@@ -152,7 +152,7 @@ function 执政官(r: IRole) {
     right.data.color = 'darkgold'
     right.data.belong = 'none'
     for (const b of leftBinds) {
-      await right.bind_desc(b.bind, b.text, b.data)
+      right.bind_desc(b.bind, b.text, b.data)
     }
     right.attrib.cleanView()
     right.bindDef()
@@ -169,7 +169,7 @@ function 陆战队员(r: IRole) {
         return false
       }
       const tl = Math.max(1, role.player.data.level - 1)
-      await role.player.obtain_resource({
+      role.player.obtain_resource({
         mineral: -2,
       })
       await role.player.discover(
@@ -194,13 +194,13 @@ function 感染虫(r: IRole) {
     }
     const infr = card.data.infr
     if (infr[0] === 'reactor') {
-      await card.remove_unit([infr[1]])
+      card.remove_unit([infr[1]])
     }
     card.data.color = 'darkgold'
     card.data.race = 'Z'
     card.data.name = `被感染的${card.data.name}`
     await card.clear_desc()
-    await card.add_desc(
+    card.add_desc(
       autoBind('round-end', async card => {
         await role.player.inject(card.data.units.filter(isNormal).slice(0, 1))
       }),
@@ -237,7 +237,7 @@ function 阿巴瑟(r: IRole) {
         return false
       }
       const tl = Math.min(6, card.data.level + 1)
-      await role.player.obtain_resource({
+      role.player.obtain_resource({
         mineral: -2,
       })
       await role.player.destroy(card)
@@ -254,12 +254,12 @@ function 工蜂(r: IRole) {
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round % 2 === 1) {
       if (r.player.data.gas < 6) {
-        await r.player.obtain_resource({
+        r.player.obtain_resource({
           gas: 1,
         })
       }
     } else {
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         mineral: 1,
       })
     }
@@ -274,7 +274,7 @@ function 副官(r: IRole) {
   r.player.bus.on('round-enter', async () => {
     r.data.prog_cur = 1
     if (r.player.persisAttrib.get('R副官')) {
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         mineral: 1,
       })
     }
@@ -339,7 +339,7 @@ function 矿骡(r: IRole) {
   r.player.bus.on('round-enter', async () => {
     if (r.player.persisAttrib.get('R矿骡')) {
       r.data.enable = false
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         mineral: 2 - r.player.data.mineral_max,
       })
       r.player.persisAttrib.config('R矿骡', 0)
@@ -350,7 +350,7 @@ function 矿骡(r: IRole) {
   return async () => {
     r.player.persisAttrib.config('R矿骡', 1)
     r.data.enable = false
-    await r.player.obtain_resource({
+    r.player.obtain_resource({
       mineral: Math.max(0, r.player.data.mineral_max - r.player.data.mineral),
     })
   }
@@ -366,13 +366,13 @@ function 斯台特曼(r: IRole) {
     )
   })
   r.player.bus.on('tavern-upgraded', async () => {
-    await r.player.obtain_resource({
+    r.player.obtain_resource({
       gas: 1,
     })
   })
   r.player.bus.on('round-start', async ({ round }) => {
     if (round > 1) {
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         gas: -1,
       })
     }
@@ -394,7 +394,7 @@ function 雷诺(r: IRole) {
     const descs = card.data.descriptors
     await card.clear_desc()
     for (const d of descs) {
-      await card.add_desc(d.data.desc, d.data.text)
+      card.add_desc(d.data.desc, d.data.text)
     }
     await card.obtain_upgrade('金光闪闪')
     r.data.enable = false
@@ -424,7 +424,7 @@ function 阿塔尼斯(r: IRole) {
       const descs = Descriptors[cardt.name]
       if (descs) {
         for (let i = 0; i < descs.length; i++) {
-          await target.add_desc(descs[i], cardt.desc[i])
+          target.add_desc(descs[i], cardt.desc[i])
         }
       } else {
         console.log('WARN: Card Not Implement Yet')
@@ -474,7 +474,7 @@ function 科学球(r: IRole) {
       return
     }
     r.data.prog_cur -= 1
-    await r.player.obtain_resource({
+    r.player.obtain_resource({
       gas: -1,
     })
     r.player.attrib.config('R科学球', 1)
@@ -490,7 +490,7 @@ function 母舰核心(r: IRole) {
   r.data.prog_cur = 0
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round === 1) {
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         mineral: -3,
       })
       await r.player.enter(getCard('母舰核心'))
@@ -506,7 +506,7 @@ function 母舰核心(r: IRole) {
         r.data.prog_cur = -1
         if (c) {
           c.data.name = '母舰'
-          await c.replace_unit(c.find('母舰核心', 1), '母舰')
+          c.replace_unit(c.find('母舰核心', 1), '母舰')
         }
       }
     }
@@ -529,7 +529,7 @@ function 行星要塞(r: IRole) {
       if (role.player.data.mineral < 3) {
         return false
       }
-      await role.player.obtain_resource({
+      role.player.obtain_resource({
         mineral: -3,
       })
       await role.player.discover(
@@ -559,7 +559,7 @@ function 拟态虫(r: IRole) {
         return false
       }
       role.player.persisAttrib.config('R拟态虫', card.data.pos)
-      await role.player.obtain_resource({
+      role.player.obtain_resource({
         mineral: -2,
       })
       const cardt = role.player.game.shuffle(
@@ -600,10 +600,10 @@ function 探机(r: IRole) {
       if (pos.length === 0) {
         return false
       }
-      await role.player.obtain_resource({
+      role.player.obtain_resource({
         mineral: -1,
       })
-      await card.replace_unit(pos.slice(0, 1), '虚空水晶塔')
+      card.replace_unit(pos.slice(0, 1), '虚空水晶塔')
       return true
     },
     role => role.player.data.mineral >= 1
@@ -613,7 +613,7 @@ function 探机(r: IRole) {
 function 泰凯斯(r: IRole) {
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round === 1) {
-      await r.player.obtain_resource({
+      r.player.obtain_resource({
         mineral: -3,
       })
       const card = (await r.player.enter(getCard('不法之徒'))) as CardInstance
@@ -676,7 +676,7 @@ function 泰凯斯(r: IRole) {
         ],
         [
           任务('card-entered', 4, async card => {
-            await card.player.obtain_resource({
+            card.player.obtain_resource({
               mineral: 4,
             })
             await card.obtain_unit(us('攻城坦克', 2))
@@ -738,7 +738,7 @@ function 思旺(r: IRole) {
     if (!card) {
       return
     }
-    const n = (await card.filter(isMachine)).length
+    const n = card.filter(isMachine).length
     if (n === 0) {
       return
     }
@@ -795,7 +795,7 @@ function 雷神(r: IRole) {
     const descs = Descriptors[cardt.name]
     if (descs) {
       for (let i = 0; i < descs.length; i++) {
-        await card.add_desc(descs[i], cardt.desc[i])
+        card.add_desc(descs[i], cardt.desc[i])
       }
     } else {
       console.log('WARN: Card Not Implement Yet')
@@ -836,7 +836,7 @@ function 机械哨兵(r: IRole) {
     if (r.player.data.mineral < 4 || !r.player.can_cache()) {
       return
     }
-    await r.player.obtain_resource({
+    r.player.obtain_resource({
       mineral: -4,
     })
     await r.player.obtain_card(getCard(card.data.occupy[0]))
@@ -857,7 +857,7 @@ function 异龙(r: IRole) {
     if (!r.player.persisAttrib.get('R异龙') || r.player.data.mineral < 2) {
       return
     }
-    await r.player.obtain_resource({
+    r.player.obtain_resource({
       mineral: -2,
     })
     await r.player.discover(
