@@ -2,12 +2,16 @@ import { deflateRaw, inflateRaw } from 'pako'
 import { Buffer } from 'buffer'
 
 export function compress(obj: any) {
-  return Buffer.from(deflateRaw(JSON.stringify(obj))).toString('base64')
+  return Buffer.from(deflateRaw(JSON.stringify(obj)))
+    .toString('base64')
+    .replace(/\//g, '$')
 }
 
 export function decompress(save: string) {
   return JSON.parse(
-    Buffer.from(inflateRaw(Buffer.from(save, 'base64'))).toString('utf-8')
+    Buffer.from(
+      inflateRaw(Buffer.from(save.replace(/\$/g, '/'), 'base64'))
+    ).toString('utf-8')
   )
 }
 
