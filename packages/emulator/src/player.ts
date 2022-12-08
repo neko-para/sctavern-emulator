@@ -766,7 +766,9 @@ export class Player {
   async queryInsert() {
     const client = this.pos
     return new Promise<number>(resolve => {
+      let quit = false
       this.insertResolve = (v: number) => {
+        quit = true
         this.game
           .postOutput('end-insert', {
             client,
@@ -778,13 +780,16 @@ export class Player {
       this.game.postOutput('begin-insert', {
         client,
       })
+      this.game.slave.poll(() => quit)
     })
   }
 
   async queryDiscover(item: (Card | UpgradeKey)[], cancel: boolean) {
     const client = this.pos
     return new Promise<number>(resolve => {
+      let quit = false
       this.discoverResolve = (v: number) => {
+        quit = true
         this.game
           .postOutput('end-discover', {
             client,
@@ -798,13 +803,16 @@ export class Player {
         item,
         cancel,
       })
+      this.game.slave.poll(() => quit)
     })
   }
 
   async queryDeploy() {
     const client = this.pos
     return new Promise<number>(resolve => {
+      let quit = false
       this.deployResolve = (v: number) => {
+        quit = true
         this.game
           .postOutput('end-deploy', {
             client,
@@ -816,6 +824,7 @@ export class Player {
       this.game.postOutput('begin-deploy', {
         client,
       })
+      this.game.slave.poll(() => quit)
     })
   }
 

@@ -46,7 +46,8 @@ async function main() {
   game.slave.game.start()
 
   await client.replay(replay, async () => {
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
+      // resolve()
       setTimeout(resolve, 100)
     })
     return false

@@ -23,7 +23,6 @@ export class WebClient extends Client {
   async begin_insert() {
     this.status.insert = true
     this.status.model = true
-    await super.replay_insert()
   }
 
   async end_insert() {
@@ -34,7 +33,6 @@ export class WebClient extends Client {
   async begin_deploy() {
     this.status.deploy = true
     this.status.model = true
-    await super.replay_deploy()
   }
 
   async end_deploy() {
@@ -47,7 +45,6 @@ export class WebClient extends Client {
     this.status.discoverItems = item
     this.status.discoverCancel = cancel
     this.status.model = true
-    await super.replay_discover()
   }
 
   async end_discover() {

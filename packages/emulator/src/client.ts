@@ -37,7 +37,9 @@ class LogQueue {
     if (this.resolve) {
       const r = this.resolve
       this.resolve = null
-      r(item)
+      setTimeout(() => {
+        r(item)
+      }, 0)
     } else {
       this.items.push(item)
     }
@@ -64,22 +66,21 @@ export class SlaveGame {
   game: Game
   adapter: Adapter
   queue: LogQueue
+  loop: SlaveEventLoop
 
   constructor(config: GameConfig, adapter: Adapter) {
-    this.game = new Game(config)
+    this.game = new Game(config, this)
     this.adapter = adapter
     this.queue = new LogQueue()
+    this.loop = new SlaveEventLoop(this)
 
     this.adapter.onPosted = item => {
       this.queue.push(item)
     }
   }
 
-  async poll() {
-    for (;;) {
-      const item = await this.queue.pop()
-      postItem(this.game, item)
-    }
+  async poll(quit: () => boolean = () => false) {
+    await this.loop.exec(quit)
   }
 
   bind(client: IClient): void {
@@ -99,6 +100,22 @@ export class SlaveGame {
 
   async post<T extends keyof InputBus>(msg: T, param: LogicBus[T]) {
     await this.adapter.post(msg, param)
+  }
+}
+
+class SlaveEventLoop {
+  game: SlaveGame
+
+  constructor(game: SlaveGame) {
+    this.game = game
+  }
+
+  async exec(quit: () => boolean) {
+    while (!quit()) {
+      const item = await this.game.queue.pop()
+      // console.log('poll', item.msg)
+      await postItem(this.game.game, item)
+    }
   }
 }
 
@@ -170,8 +187,6 @@ export class Client implements IClient {
   game: SlaveGame
   pos: number
   player: Player
-  replayLog: LogItem[]
-  replayPos: number
   step: () => Promise<void>
   stop: boolean
 
@@ -179,9 +194,6 @@ export class Client implements IClient {
     this.game = game
     this.pos = pos
     this.player = game.game.player[pos]
-
-    this.replayLog = []
-    this.replayPos = 0
 
     this.step = async () => {
       //
@@ -193,49 +205,6 @@ export class Client implements IClient {
 
   async post<T extends keyof InputBus>(msg: T, param: LogicBus[T]) {
     await this.game.post(msg, param)
-  }
-
-  peekNextReplayItem(): LogItem | null {
-    return this.replayPos < this.replayLog.length
-      ? this.replayLog[this.replayPos]
-      : null
-  }
-
-  nextReplayItem(): LogItem {
-    return this.replayLog[this.replayPos++]
-  }
-
-  async replay_discover() {
-    while (this.peekNextReplayItem()?.msg === '$select') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
-    if (this.peekNextReplayItem()?.msg === '$discover-choice') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
-  }
-
-  async replay_deploy() {
-    while (this.peekNextReplayItem()?.msg === '$select') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
-    if (this.peekNextReplayItem()?.msg === '$deploy-choice') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
-  }
-
-  async replay_insert() {
-    while (this.peekNextReplayItem()?.msg === '$select') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
-    if (this.peekNextReplayItem()?.msg === '$insert-choice') {
-      await this.step()
-      await postItem(this, this.nextReplayItem())
-    }
   }
 
   async selected(choice: string) {
@@ -270,18 +239,14 @@ export class Client implements IClient {
     replay: GameReplay,
     step: () => Promise<boolean> = async () => false
   ) {
-    this.replayLog = replay.log
-    this.replayPos = 0
     this.step = async () => {
       this.stop = this.stop || (await step())
     }
     this.stop = false
-    while (this.replayPos < this.replayLog.length && !this.stop) {
-      const item = this.replayLog[this.replayPos++]
+    const log = replay.log.map(x => x)
+    while (log.length > 0 && !this.stop) {
+      const item = log.shift() as LogItem
       await postItem(this, item)
-      if (this.stop) {
-        break
-      }
       await this.step()
     }
   }
