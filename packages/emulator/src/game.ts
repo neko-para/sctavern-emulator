@@ -16,6 +16,7 @@ interface GameAttrib {
 export class Game implements Postable<LogicBus> {
   bus: Emitter<LogicBus>
   obus: Emitter<OutputBus>
+  config: GameConfig
   slave: SlaveGame
 
   data: GameAttrib
@@ -27,6 +28,7 @@ export class Game implements Postable<LogicBus> {
   log: LogItem[]
 
   constructor(config: GameConfig, slave: SlaveGame) {
+    this.config = config
     this.slave = slave
     const count = config.role.length
     this.player = Array(count)

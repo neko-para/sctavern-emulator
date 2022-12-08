@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { hash as gitHash } from '@sctavern-emulator/data'
 import { computed } from 'vue'
 import StoreItem from './StoreItem.vue'
 import HandItem from './HandItem.vue'
@@ -22,7 +23,7 @@ const heroExtraList = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex flex-column pa-1">
+  <div class="d-flex flex-column pa-1 w-100">
     <div class="d-flex">
       <div class="d-flex flex-column text-h6" :key="`Info`">
         <span
@@ -127,6 +128,19 @@ const heroExtraList = computed(() => {
           >
         </div>
       </div>
+      <v-card class="d-flex flex-column ml-auto" style="height: min-content">
+        <v-card-text class="d-flex flex-column">
+          <span class="mb-1">版本: {{ gitHash }}</span>
+          <span class="mb-1">种子: {{ client.game.game.config.seed }}</span>
+          <span
+            class="mt-1"
+            v-for="(p, k) in client.game.game.pool.pack"
+            :key="`PackInfo-${k}`"
+          >
+            {{ k }}
+          </span>
+        </v-card-text>
+      </v-card>
     </div>
     <div class="d-flex mt-2">
       <div v-for="(p, i) in player.data.present" :key="`Present-Item-${i}`">

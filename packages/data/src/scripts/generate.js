@@ -1,6 +1,7 @@
 import { parse } from '@ltd/j-toml'
 import { pinyin } from 'pinyin'
 import fs from 'fs/promises'
+import child_process from 'child_process'
 
 async function searchDataRecursive(res, path) {
   for (const d of await fs.readdir(path)) {
@@ -60,6 +61,11 @@ async function main() {
   result.card.forEach(c => {
     c.desc = c.desc.map(splitDesc)
   })
+  const hash = await new Promise(resolve => {
+    child_process.exec('git rev-parse --short HEAD', (err, stdout) => {
+      resolve(stdout.trim())
+    })
+  })
   await fs.writeFile(
     process.argv[2],
     `import { Data } from "./types"
@@ -85,7 +91,8 @@ export const AllRole: RoleKey[] = ["${result.role
       .join('","')}"]
 export type PossibleKey = UnitKey | CardKey | TermKey | UpgradeKey | RoleKey
 const data: Data = ${JSON.stringify(result, null, 2)}
-export { data }\n`
+const hash = '${hash}'
+export { data, hash }\n`
   )
 }
 
