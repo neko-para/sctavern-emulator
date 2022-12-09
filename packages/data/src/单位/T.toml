@@ -431,14 +431,8 @@ name = "维京战机"
 race = "T"
 value = 225
 utype = "normal"
-tag = ["轻甲", "机械单位"]
+tag = ["重甲", "机械单位"]
 health = 135
-[[unit.weapon]]
-name = "格林机关炮"
-damage = "12, vs 机械单位 20"
-range = 6
-speed = 0.71
-target = "G"
 [[unit.weapon]]
 name = "兰泽尔飞雷"
 damage = "10, vs 重甲 14"
@@ -449,7 +443,25 @@ multiple = 2
 [unit.armor]
 name = "人类舰船钢板"
 defense = 0
-speed = "3.15(机甲模式), 3.85(战机模式)"
+speed = 3.85
+
+[[unit]]
+name = "维京战机<机甲模式>"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 135
+[[unit.weapon]]
+name = "格林机关炮"
+damage = "12, vs 机械单位 20"
+range = 6
+speed = 0.71
+target = "G"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 3.15
 
 [[unit]]
 name = "解放者"
@@ -841,14 +853,8 @@ name = "维京战机(精英)"
 race = "T"
 value = 225
 utype = "normal"
-tag = ["轻甲", "机械单位"]
+tag = ["重甲", "机械单位"]
 health = 180
-[[unit.weapon]]
-name = "格林机关炮"
-damage = 18
-range = 6
-speed = 0.71
-target = "G"
 [[unit.weapon]]
 name = "兰泽尔飞雷"
 damage = "14, vs 重甲 20"
@@ -859,7 +865,25 @@ multiple = 2
 [unit.armor]
 name = "人类舰船钢板"
 defense = 0
-speed = "3.15(机甲模式), 3.85(战机模式)"
+speed = 3.85
+
+[[unit]]
+name = "维京战机<机甲模式>(精英)"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["重甲", "机械单位"]
+health = 180
+[[unit.weapon]]
+name = "格林机关炮"
+damage = 18
+range = 6
+speed = 0.71
+target = "G"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 0
+speed = 3.15
 
 [[unit]]
 name = "攻城坦克(精英)"

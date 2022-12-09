@@ -69,8 +69,14 @@ export function getRole(key: RoleKey) {
 export function canElite(key: UnitKey) {
   return AllUnit.includes((key + '(精英)') as UnitKey)
 }
+export function canRoyalize(key: UnitKey) {
+  return AllUnit.includes((key + '(皇家卫队)') as UnitKey)
+}
 export function elited(key: UnitKey) {
   return (key + '(精英)') as UnitKey
+}
+export function royalized(key: UnitKey) {
+  return (key + '(皇家卫队)') as UnitKey
 }
 export function isBiological(key: UnitKey) {
   return getUnit(key).tag.includes('生物单位')

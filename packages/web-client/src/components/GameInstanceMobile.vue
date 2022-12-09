@@ -72,7 +72,9 @@ const extraDlg = ref(false)
           >{{ player.data.ability.data.ability
           }}{{
             player.data.ability.prog_cur !== -1
-              ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
+              ? player.data.ability.prog_max !== -1
+                ? ` ${player.data.ability.prog_cur} / ${player.data.ability.prog_max}`
+                : ` ${player.data.ability.prog_cur}`
               : ''
           }}</v-btn
         >

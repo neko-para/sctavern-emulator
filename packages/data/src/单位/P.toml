@@ -527,7 +527,7 @@ name = "星灵等离子护盾"
 defense = 0
 
 [[unit]]
-name = "泰坦棱镜(已收起)"
+name = "泰坦棱镜<已收起>"
 race = "P"
 value = 500
 utype = "normal"

@@ -10,12 +10,13 @@ import {
   isNormal,
   Role,
   RoleKey,
+  royalized,
   Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from './card'
 import { Player } from './player'
-import { autoBind, refP, us } from './utils'
+import { autoBind, isCardInstance, refP, us } from './utils'
 import { Descriptors } from './descriptor'
 import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
 import { DescriptorGenerator } from './types'
@@ -63,7 +64,7 @@ export class RoleImpl implements IRole {
     this.data = reactive({
       data: r,
       prog_cur: -1,
-      prog_max: 0,
+      prog_max: -1,
       enable: false,
       enpower: false,
     })
@@ -758,6 +759,47 @@ function 跳虫() {
   //
 }
 
+function 蒙斯克(r: IRole) {
+  r.data.prog_cur = 12
+  r.player.bus.on('round-start', async () => {
+    r.data.prog_cur = Math.max(0, r.data.prog_cur - 3)
+  })
+  r.data.enable = computed<boolean>(() => {
+    return r.player.data.mineral >= r.data.prog_cur
+  }) as unknown as boolean
+  return async () => {
+    if (r.player.data.mineral < r.data.prog_cur) {
+      return
+    }
+    r.player.obtain_resource({
+      mineral: -r.data.prog_cur,
+    })
+    r.data.prog_cur = 9
+    for (const card of r.player.present.filter(isCardInstance)) {
+      let idx = card.find('战列巡航舰', 1)
+      if (idx.length > 0) {
+        card.replace_unit(idx, royalized)
+        continue
+      }
+      idx = card.find('雷神', 1)
+      if (idx.length > 0) {
+        card.replace_unit(idx, royalized)
+        continue
+      }
+      idx = card.find('攻城坦克', 1)
+      if (idx.length > 0) {
+        card.replace_unit(idx, royalized)
+        continue
+      }
+      idx = card.find(u => u === '维京战机' || u === '维京战机<机甲模式>', 1)
+      if (idx.length > 0) {
+        card.replace_unit(idx, royalized)
+        continue
+      }
+    }
+  }
+}
+
 function 雷神(r: IRole) {
   r.data.enable = true
   r.player.bus.on('tavern-upgraded', async () => {
@@ -908,6 +950,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   诺娃,
   思旺,
   跳虫,
+  蒙斯克,
   雷神,
   机械哨兵,
   锻炉,

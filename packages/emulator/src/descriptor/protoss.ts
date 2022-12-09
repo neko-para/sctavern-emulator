@@ -212,7 +212,7 @@ const data: CardDescriptorTable = {
   ],
   光复艾尔: [
     autoBind('obtain-upgrade', async card => {
-      card.replace_unit(card.find('泰坦棱镜(已收起)'), '泰坦棱镜')
+      card.replace_unit(card.find('泰坦棱镜<已收起>'), '泰坦棱镜')
       card.player.resort_unique('光复艾尔')
     }),
     autoBindUnique(
@@ -239,7 +239,7 @@ const data: CardDescriptorTable = {
             return
           }
           param.flag = true
-          card.replace_unit(card.find('泰坦棱镜'), '泰坦棱镜(已收起)')
+          card.replace_unit(card.find('泰坦棱镜'), '泰坦棱镜<已收起>')
           await card.obtain_unit(
             target.data.units
               .filter(u => isNormal(u) || u === '水晶塔')

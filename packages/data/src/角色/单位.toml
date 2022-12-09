@@ -226,3 +226,108 @@ target = "GA"
 name = "人类舰船钢板"
 defense = 6
 speed = 3.5
+
+[[unit]]
+name = "维京战机(皇家卫队)"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 800
+[[unit.weapon]]
+name = "兰泽尔鱼雷"
+damage = "12, vs 重甲 16"
+range = 10
+speed = 1.43
+target = "A"
+multiple = 4
+[unit.armor]
+name = "人类舰船钢板"
+defense = 2
+speed = 3.85
+
+[[unit]]
+name = "维京战机<机甲模式>(皇家卫队)"
+race = "T"
+value = 225
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 800
+[[unit.weapon]]
+name = "格林机关炮"
+damage = "14, vs 重甲 28"
+range = 8
+speed = 0.25
+target = "G"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 2
+speed = 3.15
+
+[[unit]]
+name = "攻城坦克(皇家卫队)"
+race = "T"
+value = 275
+utype = "normal"
+tag = ["重甲", "机械单位", "英雄单位"]
+health = 600
+[[unit.weapon]]
+name = "90毫米口径火炮"
+damage = "30, vs 重甲 60"
+range = 7
+speed = 0.74
+target = "G"
+[[unit.weapon]]
+name = "穿冲震击炮"
+damage = "100, vs 重甲 135"
+range = 13
+speed = 1.43
+target = "G"
+[unit.armor]
+name = "人类战车钢板"
+defense = 1
+speed = 3.15
+
+[[unit]]
+name = "雷神(皇家卫队)"
+race = "T"
+value = 0
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
+health = 1200
+[[unit.weapon]]
+name = "黑色战锤"
+damage = 60
+range = 8
+speed = 0.71
+target = "G"
+multiple = 2
+[[unit.weapon]]
+name = "标枪导弹发射筒"
+damage = 16
+range = 10
+speed = 2.14
+target = "A"
+multiple = 10
+[unit.armor]
+name = "人类战车钢板"
+defense = 3
+speed = 2.62
+
+[[unit]]
+name = "战列巡航舰(皇家卫队)"
+race = "T"
+value = 700
+utype = "normal"
+tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
+health = 1600
+[[unit.weapon]]
+name = "大和炮"
+damage = 240
+range = 8
+speed = 1.43
+target = "GA"
+[unit.armor]
+name = "人类舰船钢板"
+defense = 5
+speed = 2.62
