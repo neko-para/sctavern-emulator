@@ -791,7 +791,7 @@ function 蒙斯克(r: IRole) {
         card.replace_unit(idx, royalized)
         continue
       }
-      idx = card.find(u => u === '维京战机' || u === '维京战机<机甲模式>', 1)
+      idx = card.find(u => u === '维京战机' || u === '维京战机<机甲>', 1)
       if (idx.length > 0) {
         card.replace_unit(idx, royalized)
         continue

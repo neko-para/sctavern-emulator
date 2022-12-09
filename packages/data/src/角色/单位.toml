@@ -230,7 +230,7 @@ speed = 3.5
 [[unit]]
 name = "维京战机(皇家卫队)"
 race = "T"
-value = 225
+value = 800
 utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 800
@@ -247,9 +247,9 @@ defense = 2
 speed = 3.85
 
 [[unit]]
-name = "维京战机<机甲模式>(皇家卫队)"
+name = "维京战机<机甲>(皇家卫队)"
 race = "T"
-value = 225
+value = 800
 utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 800
@@ -267,7 +267,7 @@ speed = 3.15
 [[unit]]
 name = "攻城坦克(皇家卫队)"
 race = "T"
-value = 275
+value = 1000
 utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 600
@@ -291,7 +291,7 @@ speed = 3.15
 [[unit]]
 name = "雷神(皇家卫队)"
 race = "T"
-value = 0
+value = 1500
 utype = "normal"
 tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
 health = 1200
@@ -317,7 +317,7 @@ speed = 2.62
 [[unit]]
 name = "战列巡航舰(皇家卫队)"
 race = "T"
-value = 700
+value = 1700
 utype = "normal"
 tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
 health = 1600

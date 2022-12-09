@@ -187,7 +187,7 @@ const data: CardDescriptorTable = {
       RenewPolicy.roundend
     ),
   ],
-  陆军学院: [科挂(3, '战狼', 1, 2), 快速生产('维京战机<机甲模式>', 3, 5)],
+  陆军学院: [科挂(3, '战狼', 1, 2), 快速生产('维京战机<机甲>', 3, 5)],
   空军学院: [
     快速生产('维京战机', 3, 5),
     autoBindPlayer('task-done', async (card, gold) => {
@@ -209,10 +209,7 @@ const data: CardDescriptorTable = {
       for (const c of card.around()) {
         c.replace_unit(c.find('歌利亚', gold ? 2 : 1), elited)
         c.replace_unit(
-          c.find(
-            u => u === '维京战机' || u === '维京战机<机甲模式>',
-            gold ? 2 : 1
-          ),
+          c.find(u => u === '维京战机' || u === '维京战机<机甲>', gold ? 2 : 1),
           elited
         )
       }

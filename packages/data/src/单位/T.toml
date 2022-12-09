@@ -446,7 +446,7 @@ defense = 0
 speed = 3.85
 
 [[unit]]
-name = "维京战机<机甲模式>"
+name = "维京战机<机甲>"
 race = "T"
 value = 225
 utype = "normal"
@@ -868,7 +868,7 @@ defense = 0
 speed = 3.85
 
 [[unit]]
-name = "维京战机<机甲模式>(精英)"
+name = "维京战机<机甲>(精英)"
 race = "T"
 value = 225
 utype = "normal"
