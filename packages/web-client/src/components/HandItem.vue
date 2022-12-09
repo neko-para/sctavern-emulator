@@ -29,7 +29,7 @@ const elv = ref(5)
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="client.selectChoose(card ? `H${pos}` : 'none')"
+    @click="!model && client.selectChoose(card ? `H${pos}` : 'none')"
   >
     <template v-if="card && cardInfo">
       <div class="d-flex">

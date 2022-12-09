@@ -24,7 +24,7 @@ const cardInfo = computed(() => {
     :class="{
       selected: selected,
     }"
-    @click="client.selectChoose(card ? `H${pos}` : 'none')"
+    @click="!model && client.selectChoose(card ? `H${pos}` : 'none')"
   >
     <template v-if="card && cardInfo">
       <div class="d-flex mx-1 w-100" v-if="!selected">

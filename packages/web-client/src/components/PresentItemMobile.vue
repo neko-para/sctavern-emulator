@@ -27,7 +27,7 @@ const Color = {
     :class="{
       selected: selected,
     }"
-    @click="client.selectChoose(card ? `P${pos}` : 'none')"
+    @click="!model && client.selectChoose(card ? `P${pos}` : 'none')"
   >
     <div class="d-flex mx-1 w-100">
       <template v-if="card">

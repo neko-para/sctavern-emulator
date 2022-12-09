@@ -238,7 +238,6 @@ main()
       <v-card-text>
         <v-text-field
           hide-details
-          autofocus
           v-model="obtainCardKey"
           @keyup.enter="
             obtainCardChoice.length > 0 &&
@@ -271,7 +270,7 @@ main()
       <v-card-text>
         <div class="d-flex">
           <v-text-field
-            autofocus
+            hide-details
             v-model="obtainUnitKey"
             @keyup.enter="
               obtainUnitChoice.length > 0 &&
