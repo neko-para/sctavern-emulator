@@ -370,7 +370,7 @@ export class Player {
       units,
     })
     for (const c of from.around()) {
-      if (c.data.race === 'Z') {
+      if (c.data.race === 'Z' || this.role.data.data.name === '分裂池') {
         await c.obtain_unit(units, 'incubate')
       }
     }

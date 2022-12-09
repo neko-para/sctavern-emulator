@@ -938,6 +938,17 @@ function 医疗兵(r: IRole) {
   })
 }
 
+function 分裂池(r: IRole) {
+  return ActPerRole(r, 1, async role => {
+    const card = ExpectSelected(role)
+    if (!card) {
+      return false
+    }
+    await card.incubate(-1)
+    return true
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -978,8 +989,9 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   蒙斯克,
   雷神,
   机械哨兵,
-  医疗兵,
   异龙,
+  医疗兵,
+  分裂池,
   锻炉,
 }
 
