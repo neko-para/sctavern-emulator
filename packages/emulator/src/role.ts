@@ -6,6 +6,8 @@ import {
   getCard,
   getRole,
   getUnit,
+  isBiological,
+  isHero,
   isMachine,
   isNormal,
   Role,
@@ -913,6 +915,29 @@ function 异龙(r: IRole) {
   }
 }
 
+function 医疗兵(r: IRole) {
+  return ActPerRole(r, 1, async role => {
+    const card = ExpectSelected(role)
+    if (!card) {
+      return false
+    }
+    const units = card.filter(u => isNormal(u) && isBiological(u) && !isHero(u))
+    await role.player.destroy(card)
+    const cards = role.player.present
+      .filter(isCardInstance)
+      .filter(c => c.data.name !== '虫卵')
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i]
+      await c.obtain_unit(units.filter((u, j) => j % cards.length === i))
+    }
+    role.player.obtain_resource({
+      mineral: 1,
+    })
+
+    return true
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -953,8 +978,9 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   蒙斯克,
   雷神,
   机械哨兵,
-  锻炉,
+  医疗兵,
   异龙,
+  锻炉,
 }
 
 export function create_role(p: Player, r: RoleKey) {
