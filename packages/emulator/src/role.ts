@@ -16,9 +16,15 @@ import {
   Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
-import { CardInstance } from './card'
+import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
-import { autoBind, isCardInstance, refP, us } from './utils'
+import {
+  autoBind,
+  isCardInstance,
+  isCardInstanceAttrib,
+  refP,
+  us,
+} from './utils'
 import { Descriptors } from './descriptor'
 import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
 import { DescriptorGenerator } from './types'
@@ -1012,6 +1018,102 @@ function 锻炉(r: IRole) {
   })
 }
 
+function 扎加拉(r: IRole) {
+  r.data.prog_cur = computed<number>(() => {
+    return r.player.data.present.filter(isCardInstanceAttrib).length
+  }) as unknown as number
+  r.data.prog_max = 6
+  r.player.bus.on('round-enter', async () => {
+    if (r.data.prog_cur >= r.data.prog_max) {
+      const max_pos = r.player.data.present
+        .map((c, i) => [c, i] as [CardInstanceAttrib, number])
+        .filter(([c]) => isCardInstanceAttrib(c))
+        .map(([c, i]) => [c.value, i] as [number, number])
+        .sort(([va, ia], [vb, ib]) => {
+          if (va === vb) {
+            return ia - ib
+          } else {
+            return vb - va
+          }
+        })[0][1]
+      await r.player.destroy(r.player.present[max_pos] as CardInstance)
+
+      const min_pos = r.player.data.present
+        .map((c, i) => [c, i] as [CardInstanceAttrib, number])
+        .filter(([c]) => isCardInstanceAttrib(c))
+        .map(([c, i]) => [c.value, i] as [number, number])
+        .sort(([va, ia], [vb, ib]) => {
+          if (va === vb) {
+            return ia - ib
+          } else {
+            return va - vb
+          }
+        })[0][1]
+      await r.player.destroy(r.player.present[min_pos] as CardInstance)
+      r.player.obtain_resource({
+        mineral: 11,
+      })
+    }
+  })
+}
+
+function 大力神(r: IRole) {
+  let cho3: CardKey = '不死队',
+    cho5: CardKey = '不死队'
+  r.player.bus.on('round-enter', async ({ round }) => {
+    if (round === 1) {
+      const c3 = r.player.game.pool.discover(c => c.level === 3, 3)
+      await r.player.discover(c3, {
+        fake: cho => {
+          cho3 = c3[cho].name
+        },
+      })
+      const c5 = r.player.game.pool.discover(c => c.level === 5, 3)
+      await r.player.discover(c5, {
+        fake: cho => {
+          cho5 = c5[cho].name
+        },
+      })
+      r.player.game.pool.drop([...c3, ...c5])
+    }
+  })
+  r.player.bus.on('tavern-upgraded', async ({ level }) => {
+    switch (level) {
+      case 2:
+      case 4:
+        r.player.data.upgrade_cost += 1
+        break
+      case 3:
+        await r.player.obtain_card(getCard(cho3))
+        break
+      case 5:
+        await r.player.obtain_card(getCard(cho5))
+        break
+    }
+  })
+  return ActPerRole(r, 1, async role => {
+    const card = ExpectSelected(role)
+    if (!card) {
+      return false
+    }
+    const fpos = card.data.pos
+    const pos = await role.player.queryInsert()
+    if (fpos === pos) {
+      return false
+    }
+    const another = role.player.present[pos]
+    if (another) {
+      role.player.unput(another)
+    }
+    role.player.unput(card)
+    role.player.put(card, pos)
+    if (another) {
+      role.player.put(another, fpos)
+    }
+    return true
+  })
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1046,6 +1148,8 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   响尾蛇,
   混合体,
   锻炉,
+  扎加拉,
+  大力神,
 }
 
 export function create_role(p: Player, r: RoleKey) {

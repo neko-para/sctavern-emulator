@@ -26,17 +26,16 @@ interface IClient {
 
 class LogQueue {
   items: LogItem[]
-  resolve: ((item: LogItem) => void) | null
+  resolve: ((item: LogItem) => void)[]
 
   constructor() {
     this.items = []
-    this.resolve = null
+    this.resolve = []
   }
 
   push(item: LogItem) {
     if (this.resolve) {
-      const r = this.resolve
-      this.resolve = null
+      const r = this.resolve.shift() as (item: LogItem) => void
       setTimeout(() => {
         r(item)
       }, 0)
@@ -50,7 +49,7 @@ class LogQueue {
       return this.items.shift() as LogItem
     } else {
       return new Promise<LogItem>(resolve => {
-        this.resolve = resolve
+        this.resolve.push(resolve)
       })
     }
   }
