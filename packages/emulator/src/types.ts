@@ -95,6 +95,10 @@ type GameBus = {
   'round-end': {
     round: number
   }
+  'round-finish': {
+    // 回合结束后时间点, 用于混合体
+    round: number
+  }
 }
 
 type PlayerBusTemplate = {

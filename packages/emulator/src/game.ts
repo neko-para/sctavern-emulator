@@ -101,6 +101,9 @@ export class Game implements Postable<LogicBus> {
     await this.post('round-end', {
       round: this.data.round,
     })
+    await this.post('round-finish', {
+      round: this.data.round,
+    })
     this.data.round += 1
     this.data.done_count = 0
     await this.post('round-start', {

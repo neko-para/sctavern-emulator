@@ -331,3 +331,88 @@ target = "GA"
 name = "人类舰船钢板"
 defense = 5
 speed = 2.62
+
+[[unit]]
+name = "混合体掠夺者"
+race = "N"
+value = 250
+utype = "normal"
+tag = ["重甲", "生物单位", "英雄单位"]
+health = 250
+[[unit.weapon]]
+name = "利爪"
+damage = 30
+range = 1.2
+speed = 0.71
+target = "G"
+[unit.armor]
+name = "虚空甲壳"
+defense = 2
+speed = 3.94
+
+[[unit]]
+name = "混合体天罚者"
+race = "N"
+value = 300
+utype = "normal"
+tag = ["重甲", "生物单位", "英雄单位"]
+health = 150
+shield = 100
+[[unit.weapon]]
+name = "湮灭光束"
+damage = 15
+range = 6
+speed = 0.71
+target = "GA"
+[unit.armor]
+name = "虚空甲壳"
+defense = 0
+speed = 3.92
+[unit.sarmor]
+name = "混合体天罚者护盾"
+defense = 0
+
+[[unit]]
+name = "混合体支配者"
+race = "N"
+value = 1400
+utype = "normal"
+tag = ["重甲", "生物单位", "灵能单位", "重型单位", "英雄单位"]
+health = 1000
+shield = 100
+power = 200
+[[unit.weapon]]
+name = "灵能波"
+damage = 30
+range = 6
+speed = 1.07
+target = "GA"
+[unit.armor]
+name = "虚空甲壳"
+defense = 1
+speed = 3.94
+[unit.sarmor]
+name = "混合体护盾"
+defense = 0
+
+[[unit]]
+name = "混合体实验体"
+race = "N"
+value = 1600
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位", "英雄单位"]
+health = 1000
+shield = 300
+[[unit.weapon]]
+name = "灵能波"
+damage = "80, vs 重型单位 100"
+range = 10
+speed = 2.14
+target = "GA"
+[unit.armor]
+name = "虚空甲壳"
+defense = 2
+speed = 3.94
+[unit.sarmor]
+name = "混合体护盾"
+defense = 0

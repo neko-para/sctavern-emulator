@@ -976,6 +976,30 @@ function 响尾蛇(r: IRole) {
   })
 }
 
+function 混合体(r: IRole) {
+  r.player.bus.on('round-finish', async () => {
+    const hybrid: Record<number, UnitKey> = {
+      1: '混合体掠夺者',
+      2: '混合体天罚者',
+      3: '混合体毁灭者',
+      4: '混合体巨兽',
+      5: '混合体支配者',
+      6: '混合体实验体',
+    }
+    for (let i = 1; i <= 6; i++) {
+      const ps = r.player.all_of('P').filter(c => c.data.level === i)
+      const zs = r.player.all_of('Z').filter(c => c.data.level === i)
+      while (ps.length > 0 && zs.length > 0) {
+        const cs = r.player.game.shuffle([
+          ps.shift() as CardInstance,
+          zs.shift() as CardInstance,
+        ])
+        await cs[0].obtain_unit([hybrid[i]])
+      }
+    }
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -1020,6 +1044,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   医疗兵,
   分裂池,
   响尾蛇,
+  混合体,
   锻炉,
 }
 
