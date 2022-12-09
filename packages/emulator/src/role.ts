@@ -949,6 +949,33 @@ function 分裂池(r: IRole) {
   })
 }
 
+function 响尾蛇(r: IRole) {
+  r.data.prog_cur = 0
+  r.data.prog_max = 3
+  r.player.bus.on('tavern-upgraded', async () => {
+    if (r.data.prog_cur === r.data.prog_max) {
+      r.data.prog_cur = 0
+    }
+  })
+  r.player.bus.on('refreshed', async () => {
+    if (r.data.prog_cur < r.data.prog_max) {
+      r.data.prog_cur += 1
+      if (r.data.prog_cur === r.data.prog_max) {
+        await r.player.discover(
+          r.player.game
+            .shuffle(
+              AllCard.map(getCard).filter(
+                c => c.pool && c.level === r.player.data.level
+              )
+            )
+            .slice(0, r.player.data.level === 6 ? 3 : 4),
+          { nodrop: true }
+        )
+      }
+    }
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -992,6 +1019,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   异龙,
   医疗兵,
   分裂池,
+  响尾蛇,
   锻炉,
 }
 
