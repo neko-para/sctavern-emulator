@@ -16,6 +16,7 @@ const props = defineProps<{
 const cardInfo = computed(() => {
   return props.card ? getCard(props.card) : null
 })
+
 const elv = ref(5)
 </script>
 
@@ -23,10 +24,13 @@ const elv = ref(5)
   <v-card
     id="storeItemRoot"
     class="d-flex flex-column justify-space-between"
-    :color="client.player.data.locked && card ? 'cyan' : 'white'"
+    :color="
+      client.player.data.storeStatus[props.pos].locked ? 'cyan' : 'normal'
+    "
     :elevation="elv"
     :class="{
       selected: selected,
+      special: client.player.data.storeStatus[props.pos].special && !selected,
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
@@ -62,5 +66,9 @@ const elv = ref(5)
 
 .selected {
   border: 2px solid black;
+}
+
+.special {
+  border: 2px dashed black;
 }
 </style>

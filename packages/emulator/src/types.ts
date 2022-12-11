@@ -124,6 +124,9 @@ type PlayerBusTemplate = {
     flag: boolean // 仅用于光复艾尔, 防止重复回收, 考虑换其它方法
     pos: number
   }
+  'upgrade-cancelled': {
+    target: CardInstance
+  }
 
   incubate: {
     // 孵化

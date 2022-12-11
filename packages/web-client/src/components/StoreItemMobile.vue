@@ -20,10 +20,13 @@ const cardInfo = computed(() => {
   <v-card
     id="storeItemRoot"
     class="d-flex align-center"
-    :color="client.player.data.locked && card ? 'cyan' : 'white'"
-    elevation="5"
+    :color="
+      client.player.data.storeStatus[props.pos].locked ? 'cyan' : 'normal'
+    "
+    :elevation="5"
     :class="{
       selected: selected,
+      special: client.player.data.storeStatus[props.pos].special && !selected,
     }"
     @click="!model && client.selectChoose(card ? `S${pos}` : 'none')"
   >
@@ -56,5 +59,9 @@ const cardInfo = computed(() => {
 
 .selected {
   border: 1px solid black;
+}
+
+.special {
+  border: 1px dashed black;
 }
 </style>

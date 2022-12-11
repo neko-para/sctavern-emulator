@@ -18,7 +18,7 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance, CardInstanceAttrib } from './card'
-import { Player } from './player'
+import { Player, StoreStatus } from './player'
 import {
   autoBind,
   isCardInstance,
@@ -45,10 +45,14 @@ interface IRole {
 
   ability(): Promise<void>
 
-  buy_cost(card: CardKey, act: 'enter' | 'combine' | 'cache'): number
+  buy_cost(
+    card: CardKey,
+    act: 'enter' | 'combine' | 'cache',
+    pos: number
+  ): number
   refresh_cost(): number
 
-  bought(): Promise<void>
+  bought(pos: number): Promise<void>
   refreshed(): Promise<void>
 }
 
@@ -62,10 +66,14 @@ export class RoleImpl implements IRole {
 
   ability: () => Promise<void>
 
-  buy_cost: (card: CardKey, act: 'enter' | 'combine' | 'cache') => number
+  buy_cost: (
+    card: CardKey,
+    act: 'enter' | 'combine' | 'cache',
+    pos: number
+  ) => number
   refresh_cost: () => number
 
-  bought: () => Promise<void>
+  bought: (pos: number) => Promise<void>
   refreshed: () => Promise<void>
 
   constructor(p: Player, b: RoleBind, r: Role) {
@@ -1252,6 +1260,74 @@ function 米拉(r: IRole) {
   })
 }
 
+function 先知(r: IRole) {
+  r.data.prog_max = 1
+  r.data.prog_cur = 1
+  r.data.enable = computed<boolean>(() => {
+    return r.data.prog_cur > 0
+  }) as unknown as boolean
+  r.player.bus.on('upgrade-cancelled', async () => {
+    if (!r.player.attrib.get('R先知')) {
+      r.player.obtain_resource({
+        gas: 1,
+      })
+      r.player.attrib.config('R先知', 1)
+    }
+  })
+  r.player.data.config.MaxUpgradePerCard += 1
+  return async () => {
+    const card = ExpectSelected(
+      r,
+      c => c.data.upgrades.length < r.player.data.config.MaxUpgradePerCard
+    )
+    if (!card) {
+      return
+    }
+    r.data.prog_cur -= 1
+    await r.player.discover(
+      r.player.game
+        .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
+        .slice(0, 3),
+      {
+        target: card,
+      }
+    )
+  }
+}
+
+function 阿尔达瑞斯(r: IRole) {
+  let lockedPlace: number[] = []
+  let prevLockedPlace: number[] = []
+  r.player.data.storeStatus = computed<StoreStatus[]>(() => {
+    return r.player.data.store.map((k, i) => ({
+      locked: !!k && r.player.data.locked,
+      special: prevLockedPlace.includes(i),
+    }))
+  }) as unknown as StoreStatus[]
+  r.player.bus.on('$lock', async () => {
+    lockedPlace = r.player.data.store
+      .map((c, i) => [c, i] as [CardKey | null, number])
+      .filter(([c]) => c)
+      .map(([c, i]) => i)
+  })
+  r.player.bus.on('$unlock', async () => {
+    lockedPlace = []
+  })
+  r.player.bus.on('refreshed', async () => {
+    prevLockedPlace = []
+  })
+  r.player.bus.on('round-end', async () => {
+    prevLockedPlace = lockedPlace
+    lockedPlace = []
+  })
+  r.buy_cost = (c, a, p) => {
+    return prevLockedPlace.includes(p) ? 2 : 3
+  }
+  r.bought = async p => {
+    prevLockedPlace = prevLockedPlace.filter(i => i !== p)
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1292,6 +1368,8 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   凯瑞甘,
   '凯瑞甘(异虫形态)': 白板,
   米拉,
+  先知,
+  阿尔达瑞斯,
 }
 
 export function create_role(p: Player, r: RoleKey) {
