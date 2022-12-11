@@ -1006,6 +1006,69 @@ function 混合体(r: IRole) {
   })
 }
 
+function 德哈卡(r: IRole) {
+  r.data.enable = true
+  r.data.prog_cur = 0
+  r.player.bus.on('round-enter', async () => {
+    r.data.prog_cur += r.player.data.gas
+  })
+  return async () => {
+    const card = ExpectSelected(r)
+    if (!card) {
+      return
+    }
+    if (card.data.belong === 'origin') {
+      const evolution: Record<
+        | '原始蟑螂'
+        | '原始刺蛇'
+        | '原始异龙'
+        | '暴掠龙'
+        | '原始雷兽'
+        | '德哈卡分身',
+        UnitKey
+      > = {
+        原始蟑螂: '原始点火虫',
+        原始刺蛇: '原始穿刺者',
+        原始异龙: '原始守卫',
+        暴掠龙: '毒裂兽',
+        原始雷兽: '原始暴龙兽',
+        德哈卡分身: '德哈卡',
+      }
+      const units = r.player.game.shuffle(
+        card.data.units
+          .map((u, i) => [u, i] as [UnitKey, number])
+          .filter(([u]) => u in evolution) as [keyof typeof evolution, number][]
+      )
+      if (units.length === 0) {
+        return
+      }
+      r.data.prog_cur -= 1
+      card.replace_unit([units[0][1]], evolution[units[0][0]])
+    } else {
+      if (r.data.prog_cur < 6) {
+        return
+      }
+      r.data.prog_cur -= 6
+      const cardt = getCard('原始刺蛇')
+      card.clear_desc()
+      const descs = Descriptors[cardt.name]
+      if (descs) {
+        for (let i = 0; i < descs.length; i++) {
+          card.add_desc(descs[i], cardt.desc[i])
+        }
+      } else {
+        console.log('WARN: Card Not Implement Yet')
+      }
+      card.data.name = '原始刺蛇'
+      card.data.level = 2
+      card.data.race = 'N'
+      if (card.data.color === 'darkgold') {
+        card.data.color = 'gold'
+      }
+    }
+  }
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -1147,6 +1210,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   分裂池,
   响尾蛇,
   混合体,
+  德哈卡,
   锻炉,
   扎加拉,
   大力神,

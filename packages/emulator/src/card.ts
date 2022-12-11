@@ -432,7 +432,7 @@ export class CardInstance {
     })
   }
 
-  async clear_desc() {
+  clear_desc() {
     for (const d of this.data.descriptors) {
       d.desc.unbind && d.desc.unbind()
       if (d.desc.unique) {
