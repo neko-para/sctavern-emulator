@@ -1240,6 +1240,18 @@ function 凯瑞甘(r: IRole) {
   }
 }
 
+function 米拉(r: IRole) {
+  r.data.prog_cur = 6
+  r.player.bus.on('card-entered', async ({ target }) => {
+    if (target.data.level > r.data.prog_cur) {
+      r.player.obtain_resource({
+        mineral: 1,
+      })
+    }
+    r.data.prog_cur = target.data.level
+  })
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1279,6 +1291,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   大力神,
   凯瑞甘,
   '凯瑞甘(异虫形态)': 白板,
+  米拉,
 }
 
 export function create_role(p: Player, r: RoleKey) {
