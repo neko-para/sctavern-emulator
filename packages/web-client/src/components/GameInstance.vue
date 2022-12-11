@@ -38,7 +38,7 @@ const project_tree = `${project}/tree/${gitHashFull}`
         >
         <span
           >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
-          {{ player.data.gas }} / 6</span
+          {{ player.data.gas }} / {{ player.data.config.MaxGas }}</span
         >
         <div class="d-flex mb-1 justify-space-between pr-2">
           <v-btn

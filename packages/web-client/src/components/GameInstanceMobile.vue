@@ -55,7 +55,7 @@ const extraDlg = ref(false)
           >
           <span
             >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
-            {{ player.data.gas }} / 6</span
+            {{ player.data.gas }} / {{ player.data.config.MaxGas }}</span
           >
         </div>
 

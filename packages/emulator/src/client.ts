@@ -34,8 +34,8 @@ class LogQueue {
   }
 
   push(item: LogItem) {
-    if (this.resolve) {
-      const r = this.resolve.shift() as (item: LogItem) => void
+    const r = this.resolve.shift()
+    if (r) {
       setTimeout(() => {
         r(item)
       }, 0)

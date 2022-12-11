@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { type RoleKey, order, AllRole } from '@sctavern-emulator/data'
+import { type RoleKey, order, AllRole, getRole } from '@sctavern-emulator/data'
 import {
   type LogItem,
   Shuffler,
@@ -45,8 +45,10 @@ function genSeed() {
   seedConfig.value = Math.floor(Math.random() * 1000000).toString()
 }
 
+const AllRoleChoice = AllRole.filter(r => !getRole(r).ext)
+
 function genRole() {
-  roleConfig.value = shuffler.shuffle(AllRole.map(x => x))[0]
+  roleConfig.value = shuffler.shuffle(AllRoleChoice.map(x => x))[0]
 }
 
 function loadReplay() {
@@ -127,7 +129,10 @@ function apply() {
               <v-row>
                 <v-col cols="1"></v-col>
                 <v-col cols="8">
-                  <v-select v-model="roleConfig" :items="AllRole"></v-select>
+                  <v-select
+                    v-model="roleConfig"
+                    :items="AllRoleChoice"
+                  ></v-select>
                 </v-col>
                 <v-col cols="2">
                   <v-btn @click="genRole()">随机</v-btn>

@@ -132,6 +132,7 @@ export interface Role {
   type: 'role'
   ability: string
   desc: string
+  ext?: true
 }
 
 export interface Data {

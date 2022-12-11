@@ -6,6 +6,7 @@ import {
   getCard,
   getRole,
   getUnit,
+  getUpgrade,
   isBiological,
   isHero,
   isMachine,
@@ -1177,6 +1178,68 @@ function 大力神(r: IRole) {
   })
 }
 
+function 凯瑞甘(r: IRole) {
+  r.data.prog_max = 5
+  r.player.bus.begin()
+  r.player.bus.on('tavern-upgraded', async () => {
+    r.player.attrib.config('R凯瑞甘_刷新', 1)
+  })
+  r.player.bus.on('round-enter', async () => {
+    r.data.prog_cur = 0
+  })
+  const cl = r.player.bus.end()
+  r.refresh_cost = () => {
+    return r.player.attrib.get('R凯瑞甘_刷新') ? 0 : 1
+  }
+  r.refreshed = async () => {
+    r.player.attrib.config('R凯瑞甘_刷新', 0)
+  }
+  r.bought = async () => {
+    r.data.prog_cur += 1
+    if (r.data.prog_cur === r.data.prog_max) {
+      r.data.data = getRole('凯瑞甘(异虫形态)')
+      r.data.enpower = true
+      r.data.prog_cur = -1
+      r.data.prog_max = -1
+      r.refresh_cost = () => 1
+      r.refreshed = async () => {
+        //
+      }
+      r.bought = async () => {
+        //
+      }
+      cl()
+
+      r.player.data.gas = 0
+      r.player.data.config.MaxGas = 0
+      for (const card of r.player.present.filter(isCardInstance)) {
+        if (card.data.occupy.length === 0) {
+          continue
+        }
+        const units: UnitKey[] = []
+        const cardt = getCard(card.data.occupy[0])
+        for (const u in cardt.unit) {
+          units.push(...us(u as UnitKey, cardt.unit[u as UnitKey] as number))
+        }
+        if (card.data.color === 'gold') {
+          units.push(...units)
+        }
+        await card.obtain_unit(units)
+      }
+      r.player.bus.on('card-entered', async ({ target }) => {
+        await r.player.discover(
+          r.player.game
+            .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
+            .slice(0, 3),
+          {
+            target,
+          }
+        )
+      })
+    }
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1214,6 +1277,8 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   锻炉,
   扎加拉,
   大力神,
+  凯瑞甘,
+  '凯瑞甘(异虫形态)': 白板,
 }
 
 export function create_role(p: Player, r: RoleKey) {
