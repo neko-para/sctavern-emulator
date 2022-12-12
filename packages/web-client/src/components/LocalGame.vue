@@ -271,7 +271,6 @@ main()
       <v-card-text>
         <div class="d-flex">
           <v-text-field
-            hide-details
             v-model="obtainUnitKey"
             @keyup.enter="
               obtainUnitChoice.length > 0 &&
