@@ -23,6 +23,7 @@ export class Emitter<Msg extends Record<string, Record<string, unknown>>> {
 
   end() {
     const r = this.rec
+    this.rec = []
     return () => {
       for (const [m, f] of r) {
         this.off(m, f)

@@ -1134,16 +1134,16 @@ function 大力神(r: IRole) {
     cho5: CardKey = '不死队'
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round === 1) {
-      const c3 = r.player.game.pool.discover(c => c.level === 3, 3)
-      await r.player.discover(c3, {
-        fake: cho => {
-          cho3 = c3[cho].name
-        },
-      })
       const c5 = r.player.game.pool.discover(c => c.level === 5, 3)
       await r.player.discover(c5, {
         fake: cho => {
           cho5 = c5[cho].name
+        },
+      })
+      const c3 = r.player.game.pool.discover(c => c.level === 3, 3)
+      await r.player.discover(c3, {
+        fake: cho => {
+          cho3 = c3[cho].name
         },
       })
       r.player.game.pool.drop([...c3, ...c5])

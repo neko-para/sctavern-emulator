@@ -477,10 +477,9 @@ const data: CardDescriptorTable = {
         if (desc.disabled) {
           return
         }
+        const units = [...new Set(card.data.units.filter(u => !isHero(u)))]
         await card.obtain_unit(
-          card.player.game.gen
-            .shuffle(card.data.units.filter(u => !isHero(u)))
-            .slice(0, desc.gold ? 2 : 1) // TODO: 可能要修改随机策略
+          card.player.game.gen.shuffle(units).slice(0, desc.gold ? 2 : 1)
         )
       })
     }, '死亡之握-刷新'),
