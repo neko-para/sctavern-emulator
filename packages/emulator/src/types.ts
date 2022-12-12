@@ -279,10 +279,19 @@ export interface PlayerConfig {
   MaxGas: number
 }
 
+export const AllMutations = [
+  '辅助角色-诺娃',
+  '辅助角色-星港',
+  '辅助角色-泰凯斯',
+]
+
+export type MutationKey = '辅助角色-诺娃' | '辅助角色-星港' | '辅助角色-泰凯斯'
+
 export interface GameConfig {
   pack: string[]
   seed: string
   role: RoleKey[]
+  mutation: MutationKey[]
 }
 
 export interface LogItem {

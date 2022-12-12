@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { type RoleKey, order, AllRole, getRole } from '@sctavern-emulator/data'
 import {
   type LogItem,
   Shuffler,
+  AllMutations,
   type GameReplay,
 } from '@sctavern-emulator/emulator'
 import { compress, decompress, isMobile } from '@/utils'
@@ -20,6 +21,7 @@ const packConfig = ref<Record<string, boolean>>({
 const seedConfig = ref(Math.floor(Math.random() * 1000000).toString())
 const roleConfig = ref<RoleKey>('白板')
 const logConfig = ref<LogItem[]>([])
+const mutationConfig = ref<Record<string, boolean>>({})
 const replayConfig = ref('')
 const intervalConfig = ref('100')
 const importDlg = ref(false)
@@ -45,10 +47,20 @@ function genSeed() {
   seedConfig.value = Math.floor(Math.random() * 1000000).toString()
 }
 
-const AllRoleChoice = AllRole.filter(r => !getRole(r).ext)
+const AllRoleChoice = computed<RoleKey[]>(() => {
+  return AllRole.filter(r => !getRole(r).ext).filter(
+    r => !mutationConfig.value[`辅助角色-${r}`]
+  )
+})
+
+watch(AllRoleChoice, () => {
+  if (!(roleConfig.value in AllRoleChoice.value)) {
+    roleConfig.value = '白板'
+  }
+})
 
 function genRole() {
-  roleConfig.value = shuffler.shuffle(AllRoleChoice.map(x => x))[0]
+  roleConfig.value = shuffler.shuffle(AllRoleChoice.value.map(x => x))[0]
 }
 
 function loadReplay() {
@@ -62,6 +74,10 @@ function loadReplay() {
   seedConfig.value = replay.seed
   roleConfig.value = replay.role[0]
   logConfig.value = replay.log
+  mutationConfig.value = {}
+  replay.mutation.forEach(m => {
+    mutationConfig.value[m] = true
+  })
   importDlg.value = false
 }
 
@@ -74,6 +90,9 @@ function apply() {
       pack: getPacks(),
       seed: seedConfig.value,
       role: [roleConfig.value],
+      mutation: Object.keys(mutationConfig.value).filter(
+        k => mutationConfig.value[k]
+      ),
       log: logConfig.value,
     })
     router.push({
@@ -154,6 +173,19 @@ function apply() {
                   <v-btn @click="genPackConfig()">随机</v-btn>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="1"></v-col>
+                <v-col v-for="x in 2" cols="4" :key="`muta-col-${x}`">
+                  <v-checkbox
+                    hide-details
+                    v-for="(m, i) in AllMutations.slice(x * 4 - 4, x * 4)"
+                    :key="`muta-${i}-${x}`"
+                    v-model="mutationConfig[m]"
+                    :label="m"
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+
               <v-row v-if="logConfig.length > 0">
                 <v-col cols="1"></v-col>
                 <v-col cols="8">

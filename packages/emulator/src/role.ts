@@ -632,9 +632,12 @@ function 探机(r: IRole) {
 function 泰凯斯(r: IRole) {
   r.player.bus.on('round-enter', async ({ round }) => {
     if (round === 1) {
-      r.player.obtain_resource({
-        mineral: -3,
-      })
+      if (r.player.data.mineral === 3) {
+        // 考虑到存在作为辅助角色碰到母舰的情况
+        r.player.obtain_resource({
+          mineral: -3,
+        })
+      }
       const card = (await r.player.enter(getCard('不法之徒'))) as CardInstance
       let reactor: [DescriptorGenerator, [string, string]] | null = null
       const tasks: [DescriptorGenerator, string][] = [

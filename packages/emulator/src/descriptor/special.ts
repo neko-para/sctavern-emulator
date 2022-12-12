@@ -197,6 +197,10 @@ const data: CardDescriptorTable = {
   ],
   星灵科技: [
     autoBind('post-deploy', async (card, gold, { target }) => {
+      if (target.data.race === 'P') {
+        await card.player.obtain_card(getCard('星灵科技'))
+        return
+      }
       target.add_desc(
         autoBind('round-end', async (card, gold) => {
           await card.player.wrap(us('陆战队员', gold ? 2 : 1))

@@ -290,6 +290,12 @@ export class Player {
 
     this.role = create_role(this, role)
     this.data.ability = this.role.data
+
+    for (const m of this.game.config.mutation) {
+      if (m.startsWith('辅助角色-')) {
+        create_role(this, m.substring(5) as RoleKey)
+      }
+    }
   }
 
   async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {

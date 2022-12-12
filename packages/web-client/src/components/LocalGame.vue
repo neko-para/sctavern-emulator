@@ -37,6 +37,7 @@ const game = new LocalGame({
   pack: replay.pack,
   seed: replay.seed,
   role: replay.role,
+  mutation: replay.mutation,
 })
 
 const client = new WebClient(game.slave, 0, status)
