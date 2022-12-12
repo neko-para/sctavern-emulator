@@ -283,9 +283,23 @@ export const AllMutations = [
   '辅助角色-诺娃',
   '辅助角色-星港',
   '辅助角色-泰凯斯',
+  '地嗪外溢',
+  '作战规划',
 ]
 
-export type MutationKey = '辅助角色-诺娃' | '辅助角色-星港' | '辅助角色-泰凯斯'
+export const MutationPreventRole: Partial<Record<MutationKey, RoleKey>> = {
+  '辅助角色-诺娃': '诺娃',
+  '辅助角色-星港': '星港',
+  '辅助角色-泰凯斯': '泰凯斯',
+  地嗪外溢: '斯台特曼',
+}
+
+export type MutationKey =
+  | '辅助角色-诺娃'
+  | '辅助角色-星港'
+  | '辅助角色-泰凯斯'
+  | '地嗪外溢'
+  | '作战规划'
 
 export interface GameConfig {
   pack: string[]

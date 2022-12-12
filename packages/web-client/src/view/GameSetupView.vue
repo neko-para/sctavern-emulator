@@ -7,6 +7,8 @@ import {
   Shuffler,
   AllMutations,
   type GameReplay,
+  MutationPreventRole,
+  type MutationKey,
 } from '@sctavern-emulator/emulator'
 import { compress, decompress, isMobile } from '@/utils'
 
@@ -48,9 +50,17 @@ function genSeed() {
 }
 
 const AllRoleChoice = computed<RoleKey[]>(() => {
-  return AllRole.filter(r => !getRole(r).ext).filter(
-    r => !mutationConfig.value[`辅助角色-${r}`]
-  )
+  return AllRole.filter(r => !getRole(r).ext).filter(r => {
+    for (const m in mutationConfig.value) {
+      if (!mutationConfig.value[m]) {
+        continue
+      }
+      if (MutationPreventRole[m as MutationKey] === r) {
+        return false
+      }
+    }
+    return true
+  })
 })
 
 watch(AllRoleChoice, () => {

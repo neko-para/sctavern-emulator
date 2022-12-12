@@ -29,7 +29,7 @@ import {
 } from './utils'
 import { Descriptors } from './descriptor'
 import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
-import { DescriptorGenerator } from './types'
+import { DescriptorGenerator, MutationKey } from './types'
 
 export interface RoleData {
   data: Role
@@ -1485,6 +1485,64 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   干扰者,
 }
 
+function 地嗪外溢(r: IRole) {
+  r.player.data.config.MaxUpgradePerCard = 8
+  return 斯台特曼(r)
+}
+
+function 作战规划(r: IRole) {
+  let cho2: CardKey = '不死队',
+    cho4: CardKey = '不死队',
+    cho6: CardKey = '不死队'
+  r.player.bus.on('round-enter', async ({ round }) => {
+    if (round === 1) {
+      const c6 = r.player.game.pool.discover(c => c.level === 6, 3)
+      await r.player.discover(c6, {
+        fake: cho => {
+          cho6 = c6[cho].name
+        },
+      })
+      const c4 = r.player.game.pool.discover(c => c.level === 4, 3)
+      await r.player.discover(c4, {
+        fake: cho => {
+          cho4 = c4[cho].name
+        },
+      })
+      const c2 = r.player.game.pool.discover(c => c.level === 2, 3)
+      await r.player.discover(c2, {
+        fake: cho => {
+          cho2 = c2[cho].name
+        },
+      })
+      r.player.game.pool.drop([...c2, ...c4, ...c6])
+    }
+  })
+  r.player.bus.on('tavern-upgraded', async ({ level }) => {
+    switch (level) {
+      case 2:
+        await r.player.obtain_card(getCard(cho2))
+        break
+      case 4:
+        await r.player.obtain_card(getCard(cho4))
+        break
+      case 6:
+        await r.player.obtain_card(getCard(cho6))
+        break
+    }
+  })
+}
+
+const MutationSet: Record<MutationKey, RoleBind> = {
+  '辅助角色-诺娃': 诺娃,
+  '辅助角色-星港': 星港,
+  '辅助角色-泰凯斯': 泰凯斯,
+  地嗪外溢,
+  作战规划,
+}
 export function create_role(p: Player, r: RoleKey) {
   return new RoleImpl(p, RoleSet[r], getRole(r))
+}
+
+export function create_mutation(p: Player, m: MutationKey) {
+  return new RoleImpl(p, MutationSet[m], getRole('白板'))
 }

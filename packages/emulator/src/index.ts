@@ -1,4 +1,4 @@
-import { AllMutations } from './types'
+import { AllMutations, MutationPreventRole } from './types'
 import type {
   MutationKey,
   GameConfig,
@@ -29,6 +29,7 @@ export type {
 }
 export {
   AllMutations,
+  MutationPreventRole,
   Game,
   Player,
   CardInstance,

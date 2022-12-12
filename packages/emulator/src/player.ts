@@ -17,7 +17,7 @@ import { CardInstance, CardInstanceAttrib } from './card'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Game } from './game'
-import { create_role, RoleData, RoleImpl } from './role'
+import { create_mutation, create_role, RoleData, RoleImpl } from './role'
 import {
   Descriptor,
   DescriptorGenerator,
@@ -292,9 +292,7 @@ export class Player {
     this.data.ability = this.role.data
 
     for (const m of this.game.config.mutation) {
-      if (m.startsWith('辅助角色-')) {
-        create_role(this, m.substring(5) as RoleKey)
-      }
+      create_mutation(this, m)
     }
   }
 
