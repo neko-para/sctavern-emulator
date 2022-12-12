@@ -5,9 +5,7 @@ import {
   getCard,
   getUnit,
   getUpgrade,
-  isNormal,
   Race,
-  Unit,
   UnitKey,
   UpgradeKey,
 } from '@sctavern-emulator/data'
@@ -26,6 +24,7 @@ import {
   autoBind,
   isCardInstance,
   isCardInstanceAttrib,
+  mostValueUnit,
   refC,
   us,
 } from './utils'
@@ -294,7 +293,7 @@ export class CardInstance {
           ])
           break
         case '黄金矿工': {
-          await this.clear_desc()
+          this.clear_desc()
           const descs = Descriptors.黄金矿工
           this.data.color = 'gold'
           if (descs) {
@@ -307,38 +306,22 @@ export class CardInstance {
           break
         }
         case '献祭': {
-          const vo = (unit: Unit) => {
-            if (unit.name === '莎拉·凯瑞甘' || unit.name === '刀锋女王') {
+          const vo = (unit: UnitKey) => {
+            if (unit === '莎拉·凯瑞甘' || unit === '刀锋女王') {
               return 10000
             } else {
-              return unit.value
+              return getUnit(unit).value
             }
           }
-          const [_, idx] = this.data.units
-            .filter(isNormal)
-            .map(getUnit)
-            .map((u, i) => [vo(u), i] as [number, number])
-            .sort(([ua, ia], [ub, ib]) => {
-              if (ua === ub) {
-                return ia - ib
-              } else {
-                return ub - ua
-              }
-            })
-            .slice(0, 1)[0] // 总是应该有单位的吧
+          const idx = mostValueUnit(this.data.units, (a, b) => a > b, vo)[1]
+          const rst = this.data.units.filter((u, i) => idx !== i).map(getUnit)
 
           const sum =
-            this.data.units
-              .filter((u, i) => idx !== i)
-              .map(getUnit)
+            rst
               .map(u => u.health + (u.shield || 0))
               .reduce((a, b) => a + b, 0) * 1.5
 
-          const vsum = this.data.units
-            .filter((u, i) => idx !== i)
-            .map(getUnit)
-            .map(u => u.value)
-            .reduce((a, b) => a + b, 0)
+          const vsum = rst.map(u => u.value).reduce((a, b) => a + b, 0)
 
           this.data.units = [this.data.units[idx]]
           this.attrib.config('献祭', sum)

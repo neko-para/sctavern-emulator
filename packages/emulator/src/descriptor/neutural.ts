@@ -1,15 +1,12 @@
-import { reactive } from '@vue/reactivity'
 import {
   AllUpgrade,
   canElite,
   CardKey,
   elited,
   getCard,
-  getUnit,
   isBiological,
   isHero,
   isNormal,
-  Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
@@ -20,6 +17,7 @@ import {
   autoBindUnique,
   fake,
   isCardInstance,
+  mostValueUnit,
   us,
 } from '../utils'
 
@@ -285,21 +283,10 @@ const data: CardDescriptorTable = {
   ],
   战斗号角: [
     autoBind('card-selled', async (card, gold, { target }) => {
-      await card.obtain_unit(
-        target.data.units
-          .filter(isNormal)
-          .map(getUnit)
-          .map((u, i) => [u, i] as [Unit, number])
-          .sort(([ua, ia], [ub, ib]) => {
-            if (ua.value === ub.value) {
-              return ia - ib
-            } else {
-              return ub.value - ua.value
-            }
-          })
-          .slice(0, 1)
-          .map(([u]) => u.name)
-      )
+      const [unit] = mostValueUnit(target.data.units.filter(isNormal))
+      if (unit) {
+        await card.obtain_unit([unit])
+      }
     }),
   ],
   凯瑞甘: [

@@ -204,9 +204,7 @@ const data: CardDescriptorTable = {
     autoBind('post-enter', async (card, gold) => {
       for (const c of card.around()) {
         c.replace_unit(
-          [...c.find('蟑螂', 2), ...c.find('蟑螂(精英)', 2)]
-            .sort()
-            .slice(0, gold ? 2 : 1),
+          c.find(u => u === '蟑螂' || u === '蟑螂(精英)', gold ? 2 : 1),
           '莽兽'
         )
       }

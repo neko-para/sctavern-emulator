@@ -14,7 +14,6 @@ import {
   Role,
   RoleKey,
   royalized,
-  Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance, CardInstanceAttrib } from './card'
@@ -105,7 +104,7 @@ export class RoleImpl implements IRole {
   }
 }
 
-function ActPerRole(
+function ActPerRound(
   r: IRole,
   c: number,
   a: (r: IRole) => Promise<boolean>,
@@ -144,7 +143,7 @@ function 白板() {
 }
 
 function 执政官(r: IRole) {
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const left = ExpectSelected(role)
     const right = left?.right()
     if (
@@ -180,7 +179,7 @@ function 执政官(r: IRole) {
 }
 
 function 陆战队员(r: IRole) {
-  return ActPerRole(
+  return ActPerRound(
     r,
     1,
     async role => {
@@ -206,7 +205,7 @@ function 收割者(r: IRole) {
 }
 
 function 感染虫(r: IRole) {
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(role, card => card.data.race === 'T')
     if (!card) {
       return false
@@ -230,7 +229,7 @@ function 感染虫(r: IRole) {
 }
 
 function SCV(r: IRole) {
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(
       role,
       card => card.data.race === 'T' && card.data.infr[0] === 'hightech'
@@ -244,7 +243,7 @@ function SCV(r: IRole) {
 }
 
 function 阿巴瑟(r: IRole) {
-  return ActPerRole(
+  return ActPerRound(
     r,
     1,
     async role => {
@@ -320,14 +319,14 @@ function 追猎者(r: IRole) {
       r.data.prog_cur = 0
     }
   })
-  r.player.bus.on('refreshed', async () => {
+  r.refreshed = async () => {
     if (!r.data.enpower && r.data.prog_cur < r.data.prog_max) {
       r.data.prog_cur += 1
       if (r.data.prog_cur === r.data.prog_max) {
         r.data.enpower = true
       }
     }
-  })
+  }
 }
 
 function 使徒(r: IRole) {
@@ -470,17 +469,9 @@ function 科学球(r: IRole) {
     // .join('\n')
   }) as unknown as string[]
   r.player.bus.on('card-entered', async ({ target }) => {
-    const units = target.data.units
-      .map((u, i) => [getUnit(u), i] as [Unit, number])
-      .sort(([ua, ia], [ub, ib]) => {
-        if (ua.value === ub.value) {
-          return ia - ib
-        } else {
-          return ub.value - ua.value
-        }
-      })
-    if (units.length > 0) {
-      record[units[0][0].name] = (record[units[0][0].name] || 0) + 1
+    const [unit] = mostValueUnit(target.data.units)
+    if (unit) {
+      record[unit] = (record[unit] || 0) + 1
     }
   })
   return async () => {
@@ -541,7 +532,7 @@ function 行星要塞(r: IRole) {
       await target.obtain_unit(us('自动机炮', target.player.data.level + 1))
     }
   })
-  return ActPerRole(
+  return ActPerRound(
     r,
     1,
     async role => {
@@ -566,7 +557,7 @@ function 行星要塞(r: IRole) {
 }
 
 function 拟态虫(r: IRole) {
-  return ActPerRole(
+  return ActPerRound(
     r,
     1,
     async role => {
@@ -604,7 +595,7 @@ function 探机(r: IRole) {
   r.player.bus.on('card-entered', async ({ target }) => {
     await target.obtain_unit(['水晶塔'])
   })
-  return ActPerRole(
+  return ActPerRound(
     r,
     1,
     async role => {
@@ -935,7 +926,7 @@ function 异龙(r: IRole) {
 }
 
 function 医疗兵(r: IRole) {
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(role)
     if (!card) {
       return false
@@ -958,7 +949,7 @@ function 医疗兵(r: IRole) {
 }
 
 function 分裂池(r: IRole) {
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(role)
     if (!card) {
       return false
@@ -976,7 +967,7 @@ function 响尾蛇(r: IRole) {
       r.data.prog_cur = 0
     }
   })
-  r.player.bus.on('refreshed', async () => {
+  r.refreshed = async () => {
     if (r.data.prog_cur < r.data.prog_max) {
       r.data.prog_cur += 1
       if (r.data.prog_cur === r.data.prog_max) {
@@ -992,7 +983,7 @@ function 响尾蛇(r: IRole) {
         )
       }
     }
-  })
+  }
 }
 
 function 混合体(r: IRole) {
@@ -1188,7 +1179,7 @@ function 大力神(r: IRole) {
         break
     }
   })
-  return ActPerRole(r, 1, async role => {
+  return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(role)
     if (!card) {
       return false
@@ -1338,9 +1329,6 @@ function 阿尔达瑞斯(r: IRole) {
   r.player.bus.on('$unlock', async () => {
     lockedPlace = []
   })
-  r.player.bus.on('refreshed', async () => {
-    prevLockedPlace = []
-  })
   r.player.bus.on('round-end', async () => {
     prevLockedPlace = lockedPlace
     lockedPlace = []
@@ -1350,6 +1338,9 @@ function 阿尔达瑞斯(r: IRole) {
   }
   r.bought = async p => {
     prevLockedPlace = prevLockedPlace.filter(i => i !== p)
+  }
+  r.refreshed = async () => {
+    prevLockedPlace = []
   }
 }
 
@@ -1410,12 +1401,12 @@ function 解放者(r: IRole) {
   r.buy_cost = () => {
     return r.player.persisAttrib.get('R解放者_模式') ? 2 : 4
   }
-  r.player.bus.on('refreshed', async () => {
+  r.refreshed = async () => {
     r.player.attrib.config(
       'R解放者_刷新',
       1 - r.player.attrib.get('R解放者_刷新')
     )
-  })
+  }
 
   r.player.bus.on('round-enter', async () => {
     r.data.enable = true
