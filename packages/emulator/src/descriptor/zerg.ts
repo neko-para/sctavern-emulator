@@ -71,7 +71,14 @@ const data: CardDescriptorTable = {
     孵化X(
       'round-start',
       card => card.data.units.filter(isNormal).filter(isBiological),
-      card => card.around().filter(c => c.data.race === 'Z').length === 2,
+      card =>
+        card
+          .around()
+          .filter(
+            c =>
+              c.data.race === 'Z' ||
+              card.player.data.ability.data.name === '分裂池'
+          ).length === 2,
       async card => {
         card.player.obtain_resource({
           mineral: 1,
