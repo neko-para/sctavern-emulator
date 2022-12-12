@@ -23,6 +23,7 @@ value = 200
 utype = "normal"
 tag = ["轻甲", "生物单位"]
 health = 140
+air = true
 [[unit.weapon]]
 name = "反冲火箭"
 damage = 12
@@ -174,6 +175,7 @@ value = 150
 utype = "normal"
 tag = ["轻甲", "生物单位"]
 health = 120
+air = true
 [[unit.weapon]]
 name = "刃虫"
 damage = 9
@@ -249,6 +251,7 @@ value = 200
 utype = "normal"
 tag = ["重甲", "生物单位"]
 health = 150
+air = true
 [[unit.weapon]]
 name = "酸性孢子"
 damage = "20, vs 重甲 30"
@@ -323,6 +326,7 @@ value = 250
 utype = "normal"
 tag = ["重甲", "生物单位"]
 health = 200
+air = true
 [[unit.weapon]]
 name = "寄生孢子"
 damage = "14, vs 重型单位 20"
@@ -341,6 +345,7 @@ value = 500
 utype = "normal"
 tag = ["重甲", "生物单位", "重型单位"]
 health = 225
+air = true
 [[unit.weapon]]
 name = "巢虫侵袭"
 damage = 20
@@ -360,6 +365,7 @@ utype = "normal"
 tag = ["重甲", "生物单位", "灵能单位"]
 health = 150
 power = 200
+air = true
 [[unit.weapon]]
 name = "酸性孢子"
 damage = "10, vs 重甲 15"
@@ -378,6 +384,7 @@ value = 37
 utype = "normal"
 tag = ["轻甲", "生物单位"]
 health = 25
+air = true
 [[unit.weapon]]
 name = "自杀"
 damage = 110
@@ -423,6 +430,7 @@ utype = "normal"
 tag = ["生物单位", "重型单位", "英雄单位"]
 health = 1500
 power = 250
+air = true
 [[unit.weapon]]
 name = "触须"
 damage = 20
@@ -582,6 +590,7 @@ value = 300
 utype = "normal"
 tag = ["轻甲", "生物单位"]
 health = 180
+air = true
 [[unit.weapon]]
 name = "刃虫"
 damage = 18

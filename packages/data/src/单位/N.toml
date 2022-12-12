@@ -6,6 +6,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "重型单位", "英雄单位"]
 health = 800
 shield = 600
+air = true
 [[unit.weapon]]
 name = "净化光束"
 damage = 24
@@ -61,6 +62,7 @@ utype = "normal"
 tag = ["轻甲", "机械单位"]
 health = 120
 shield = 60
+air = true
 [[unit.weapon]]
 name = "离子炮"
 damage = "5, 轻甲10"
@@ -84,6 +86,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "重型单位"]
 health = 300
 shield = 150
+air = true
 [[unit.weapon]]
 name = "拦截机"
 damage = 5
@@ -294,6 +297,7 @@ utype = "normal"
 tag = ["轻甲", "机械单位", "英雄单位"]
 health = 50
 power = 200
+air = true
 rmrk = "初始100能量"
 [unit.armor]
 name = "人类建筑钢板"
@@ -325,6 +329,7 @@ value = 250
 utype = "normal"
 tag = ["轻甲", "生物单位"]
 health = 175
+air = true
 [[unit.weapon]]
 name = "刃虫"
 damage = 9
@@ -420,6 +425,7 @@ utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 150
 shield = 100
+air = true
 [[unit.weapon]]
 name = "毁灭光束"
 damage = "6, vs 重甲 10"
@@ -687,6 +693,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
 health = 800
 shield = 500
+air = true
 [[unit.weapon]]
 name = "拦截机"
 damage = 8

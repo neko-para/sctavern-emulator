@@ -110,6 +110,8 @@ export interface Unit {
   health: number
   shield?: number
   power?: number
+  air?: true
+
   weapon?: Weapon[]
   armor?: Armor
   sarmor?: SArmor

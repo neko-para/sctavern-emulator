@@ -23,6 +23,7 @@ import {
   autoBind,
   isCardInstance,
   isCardInstanceAttrib,
+  mostValueUnit,
   refP,
   us,
 } from './utils'
@@ -1078,6 +1079,27 @@ function 德哈卡(r: IRole) {
   }
 }
 
+function 星港(r: IRole) {
+  r.player.bus.on('round-enter', async () => {
+    for (const card of r.player.present.filter(isCardInstance)) {
+      card.replace_unit(
+        card.find(u => isNormal(u) && !getUnit(u).air, r.player.data.level - 1),
+        u => (isHero(u) ? '战列巡航舰' : '怨灵战机')
+      )
+    }
+  })
+  r.player.bus.on('round-finish', async () => {
+    for (const card of r.player.present.filter(isCardInstance)) {
+      const maxi = mostValueUnit(
+        card.data.units.filter(u => !isHero(u) && getUnit(u).air)
+      )
+      if (maxi[0]) {
+        card.replace_unit(card.find('怨灵战机', 1), maxi[0])
+      }
+    }
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -1362,6 +1384,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   响尾蛇,
   混合体,
   德哈卡,
+  星港,
   锻炉,
   扎加拉,
   大力神,

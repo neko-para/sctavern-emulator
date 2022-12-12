@@ -5,6 +5,7 @@ value = 250
 utype = "normal"
 tag = ["轻甲", "机械单位"]
 health = 140
+air = true
 [[unit.weapon]]
 name = "反冲火箭"
 damage = 12
@@ -349,9 +350,10 @@ race = "T"
 value = 200
 utype = "normal"
 tag = ["重甲", "机械单位"]
-rmrk = "自动模式不会使用后燃推进系统"
 health = 150
 power = 200
+air = true
+rmrk = "自动模式不会使用后燃推进系统"
 [unit.armor]
 name = "人类舰船钢板"
 defense = 1
@@ -400,9 +402,10 @@ race = "T"
 value = 300
 utype = "normal"
 tag = ["轻甲", "机械单位"]
-rmrk = "初始能量100, 自动模式不会使用制造自动机炮"
 health = 140
 power = 200
+air = true
+rmrk = "初始能量100, 自动模式不会使用制造自动机炮"
 [unit.armor]
 name = "人类舰船钢板"
 defense = 1
@@ -433,6 +436,7 @@ value = 225
 utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 135
+air = true
 [[unit.weapon]]
 name = "兰泽尔飞雷"
 damage = "10, vs 重甲 14"
@@ -470,6 +474,7 @@ value = 300
 utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 180
+air = true
 [[unit.weapon]]
 name = "列克星敦火箭"
 damage = 5
@@ -547,6 +552,7 @@ value = 250
 utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 180
+air = true
 [[unit.weapon]]
 name = "脉冲激光炮"
 damage = 13
@@ -572,6 +578,7 @@ value = 275
 utype = "normal"
 tag = ["轻甲", "机械单位"]
 health = 155
+air = true
 [[unit.weapon]]
 name = "尖啸飞弹"
 damage = 18
@@ -749,8 +756,9 @@ race = "T"
 value = 700
 utype = "normal"
 tag = ["重甲", "机械单位", "重型单位"]
-rmrk = "大和炮冷却21秒, 伤害240"
 health = 550
+air = true
+rmrk = "大和炮冷却21秒, 伤害240"
 [[unit.weapon]]
 name = "空对地激光炮组"
 damage = 8
@@ -855,6 +863,7 @@ value = 225
 utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 180
+air = true
 [[unit.weapon]]
 name = "兰泽尔飞雷"
 damage = "14, vs 重甲 20"

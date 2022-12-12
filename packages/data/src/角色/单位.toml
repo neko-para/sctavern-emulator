@@ -6,6 +6,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
 health = 130
 shield = 60
+air = true
 [[unit.weapon]]
 name = "斥力炮"
 damage = 8
@@ -28,6 +29,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "重型单位", "英雄单位"]
 health = 350
 shield = 350
+air = true
 [[unit.weapon]]
 name = "净化光束"
 damage = 18
@@ -182,7 +184,6 @@ speed = 0
 name = "星灵等离子护盾"
 defense = 0
 
-
 [[unit]]
 name = "奥丁"
 race = "T"
@@ -216,6 +217,7 @@ value = 9000
 utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 6000
+air = true
 [[unit.weapon]]
 name = "主激光炮组"
 damage = 20
@@ -234,6 +236,7 @@ value = 800
 utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 800
+air = true
 [[unit.weapon]]
 name = "兰泽尔鱼雷"
 damage = "12, vs 重甲 16"
@@ -321,6 +324,7 @@ value = 1700
 utype = "normal"
 tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
 health = 1600
+air = true
 [[unit.weapon]]
 name = "大和炮"
 damage = 240
@@ -358,6 +362,7 @@ utype = "normal"
 tag = ["重甲", "生物单位", "英雄单位"]
 health = 150
 shield = 100
+air = true
 [[unit.weapon]]
 name = "湮灭光束"
 damage = 15
@@ -442,6 +447,7 @@ value = 350
 utype = "normal"
 tag = ["重甲", "生物单位"]
 health = 350
+air = true
 [[unit.weapon]]
 name = "酸性孢子"
 damage = "30, vs 重甲 45"

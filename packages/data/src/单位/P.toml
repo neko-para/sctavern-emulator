@@ -29,6 +29,7 @@ tag = ["重甲", "机械单位", "灵能单位"]
 health = 100
 shield = 60
 power = 200
+air = true
 rmrk = "初始100能量"
 [[unit.weapon]]
 name = "脉冲光束"
@@ -236,6 +237,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位"]
 health = 80
 shield = 100
+air = true
 [unit.armor]
 name = "星灵护板"
 defense = 0
@@ -342,6 +344,7 @@ utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 150
 shield = 100
+air = true
 [[unit.weapon]]
 name = "棱镜光束"
 damage = "6, vs 重甲 10"
@@ -386,6 +389,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "重型单位"]
 health = 300
 shield = 150
+air = true
 [[unit.weapon]]
 name = "拦截机"
 damage = 5
@@ -409,6 +413,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "重型单位"]
 health = 200
 shield = 100
+air = true
 [[unit.weapon]]
 name = "谐振盘"
 damage = 60
@@ -438,6 +443,7 @@ tag = ["重甲", "机械单位"]
 rmrk = "大主教座驾"
 health = 100
 shield = 60
+air = true
 [[unit.weapon]]
 name = "光子冲击炮"
 damage = 8
@@ -467,6 +473,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 150
 shield = 150
+air = true
 [[unit.weapon]]
 name = "能量光束"
 damage = 15
@@ -490,6 +497,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 500
 shield = 300
+air = true
 [[unit.weapon]]
 name = "棱镜光束"
 damage = 10
@@ -512,6 +520,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
 health = 500
 shield = 500
+air = true
 [[unit.weapon]]
 name = "棱镜射线"
 damage = 40
@@ -534,6 +543,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "灵能单位", "英雄单位"]
 health = 500
 shield = 500
+air = true
 [unit.armor]
 name = "星灵护板"
 defense = 2
@@ -595,6 +605,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "重型单位", "英雄单位"]
 health = 600
 shield = 300
+air = true
 [[unit.weapon]]
 name = "太阳能射线"
 damage = "10, vs 重甲 16"
@@ -654,6 +665,7 @@ utype = "normal"
 tag = ["重甲", "机械单位", "英雄单位"]
 health = 300
 shield = 500
+air = true
 [[unit.weapon]]
 name = "裂空光炮"
 damage = 20
@@ -894,6 +906,7 @@ utype = "normal"
 tag = ["重甲", "机械单位"]
 health = 250
 shield = 150
+air = true
 [[unit.weapon]]
 name = "棱镜光束"
 damage = "8, vs 重甲 12"

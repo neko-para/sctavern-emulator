@@ -14,7 +14,7 @@ import {
   autoBindSome,
   autoBindUnique,
   isCardInstance,
-  refC,
+  mostValueUnit,
   us,
 } from '../utils'
 import { 科挂X } from './terran'
@@ -298,27 +298,20 @@ const data: CardDescriptorTable = {
       if (es.length === 0) {
         return
       }
-      const us = es
-        .map(c => c.data.units)
-        .reduce((a, b) => a.concat(b), [])
-        .filter(u => gold || !isHero(u))
-        .map((u, i) => [getUnit(u), i] as [Unit, number])
-        .sort(([ua, ia], [ub, ib]) => {
-          if (ua.value === ub.value) {
-            return ia - ib
-          } else {
-            return ub.value - ua.value
-          }
-        })
-        .slice(0, 1)
+      const units = mostValueUnit(
+        es
+          .map(c => c.data.units)
+          .reduce((a, b) => a.concat(b), [])
+          .filter(u => gold || !isHero(u))
+      )
       for (const e of es) {
         card.player.destroy(e)
       }
-      if (us.length === 0) {
+      if (!units[0]) {
         return
       }
       for (const c of card.player.all_of('Z')) {
-        await c.obtain_unit([us[0][0].name])
+        await c.obtain_unit([units[0]])
       }
     }),
   ],

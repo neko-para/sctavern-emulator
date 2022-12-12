@@ -1,5 +1,5 @@
 import { reactive } from '@vue/reactivity'
-import { UnitKey } from '@sctavern-emulator/data'
+import { getUnit, UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
@@ -130,6 +130,28 @@ export function fake(): DescriptorGenerator {
 
 export function us(u: UnitKey, n: number): UnitKey[] {
   return Array(n).fill(u)
+}
+
+export function mostValueUnit(
+  u: UnitKey[],
+  cmp: (v1: number, v2: number) => boolean = (v1, v2) => v1 > v2,
+  cv: (u: UnitKey) => number = u => getUnit(u).value
+): [UnitKey | null, number] {
+  if (u.length === 0) {
+    return [null, -1]
+  }
+  let cur = u[0],
+    curi = 0,
+    curv = cv(u[0])
+  for (let i = 1; i < u.length; i++) {
+    const nv = cv(u[i])
+    if (cmp(nv, curv)) {
+      cur = u[i]
+      curi = i
+      curv = nv
+    }
+  }
+  return [cur, curi]
 }
 
 export async function postItem<T>(into: Postable<T>, item: LogItem) {
