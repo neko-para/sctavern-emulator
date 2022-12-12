@@ -1419,6 +1419,20 @@ function 解放者(r: IRole) {
   }
 }
 
+function 干扰者(r: IRole) {
+  r.player.bus.on('round-enter', async () => {
+    r.player.data.upgrade_cost = Math.max(
+      0,
+      r.player.data.upgrade_cost -
+        Math.floor(
+          r.player.data.hand.filter(
+            c => c && getCard(c).attr.type !== 'support'
+          ).length / 2
+        )
+    )
+  })
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1465,6 +1479,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   斯托科夫,
   解放者,
   '解放者(防卫模式)': 白板,
+  干扰者,
 }
 
 export function create_role(p: Player, r: RoleKey) {

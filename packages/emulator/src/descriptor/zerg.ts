@@ -72,13 +72,8 @@ const data: CardDescriptorTable = {
       'round-start',
       card => card.data.units.filter(isNormal).filter(isBiological),
       card =>
-        card
-          .around()
-          .filter(
-            c =>
-              c.data.race === 'Z' ||
-              card.player.data.ability.data.name === '分裂池'
-          ).length === 2,
+        card.around().filter(c => c.data.race === 'Z').length === 2 ||
+        card.player.data.ability.data.name === '分裂池',
       async card => {
         card.player.obtain_resource({
           mineral: 1,
