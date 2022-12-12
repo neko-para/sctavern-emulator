@@ -606,7 +606,7 @@ export class Player {
         ...refC(card),
         target,
       })
-      await card.clear_desc()
+      card.clear_desc()
       return null
     }
     let pos = this.data.first_hole
@@ -682,8 +682,8 @@ export class Player {
 
     cs[0].data.occupy.push(...cs[1].data.occupy, cardt.name)
 
-    await cs[0].clear_desc()
-    await cs[1].clear_desc()
+    cs[0].clear_desc()
+    cs[1].clear_desc()
 
     this.unput(cs[1])
 
@@ -741,7 +741,7 @@ export class Player {
         pos,
       })
     }
-    await card.clear_desc()
+    card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
     if (doPost) {
       await this.post('card-selled', {
@@ -773,7 +773,7 @@ export class Player {
     if (overwhelm) {
       await this.post('post-enter', refC(card))
     }
-    await card.clear_desc()
+    card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
     if (card.data.level > 0) {
       for (const c of around) {
