@@ -1392,6 +1392,14 @@ function 解放者(r: IRole) {
       : getRole('解放者')
   }) as unknown as Role
 
+  r.data.enpower = computed<boolean>(() => {
+    return r.player.persisAttrib.get('R解放者_模式')
+      ? false
+      : r.player.attrib.get('R解放者_刷新')
+      ? false
+      : true
+  }) as unknown as boolean
+
   r.refresh_cost = () => {
     return r.player.persisAttrib.get('R解放者_模式')
       ? 9999
@@ -1487,7 +1495,15 @@ const RoleSet: Record<RoleKey, RoleBind> = {
 
 function 地嗪外溢(r: IRole) {
   r.player.data.config.MaxUpgradePerCard = 8
-  return 斯台特曼(r)
+
+  r.player.bus.on('card-entered', async ({ target }) => {
+    await r.player.discover(
+      r.player.game.shuffle(AllUpgrade.filter(x => x !== '献祭')).slice(0, 3),
+      {
+        target,
+      }
+    )
+  })
 }
 
 function 作战规划(r: IRole) {

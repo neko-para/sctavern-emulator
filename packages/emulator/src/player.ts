@@ -1122,6 +1122,9 @@ export class Player {
       if (this.data.gas < this.data.config.MaxGas) {
         this.data.gas += 1
       }
+      if (this.persisAttrib.get('R解放者_模式')) {
+        return
+      }
       if (!this.data.locked) {
         this.game.pool.drop(
           (this.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
