@@ -1380,6 +1380,45 @@ function 斯托科夫(r: IRole) {
   }
 }
 
+function 解放者(r: IRole) {
+  r.player.persisAttrib.config('R解放者_模式', 0)
+
+  r.data.data = computed<Role>(() => {
+    return r.player.persisAttrib.get('R解放者_模式')
+      ? getRole('解放者(防卫模式)')
+      : getRole('解放者')
+  }) as unknown as Role
+
+  r.refresh_cost = () => {
+    return r.player.persisAttrib.get('R解放者_模式')
+      ? 9999
+      : r.player.attrib.get('R解放者_刷新')
+      ? 1
+      : 0
+  }
+  r.buy_cost = () => {
+    return r.player.persisAttrib.get('R解放者_模式') ? 2 : 4
+  }
+  r.player.bus.on('refreshed', async () => {
+    r.player.attrib.config(
+      'R解放者_刷新',
+      1 - r.player.attrib.get('R解放者_刷新')
+    )
+  })
+
+  r.player.bus.on('round-enter', async () => {
+    r.data.enable = true
+  })
+
+  return async () => {
+    r.player.persisAttrib.set(
+      'R解放者_模式',
+      1 - r.player.persisAttrib.get('R解放者_模式')
+    )
+    r.data.enable = false
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1424,6 +1463,8 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   先知,
   阿尔达瑞斯,
   斯托科夫,
+  解放者,
+  '解放者(防卫模式)': 白板,
 }
 
 export function create_role(p: Player, r: RoleKey) {
