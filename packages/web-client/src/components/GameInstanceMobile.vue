@@ -54,8 +54,9 @@ const extraDlg = ref(false)
             {{ player.data.upgrade_cost }} 总价值 {{ player.data.value }}</span
           >
           <span
-            >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
-            {{ player.data.gas }} / {{ player.data.config.MaxGas }}</span
+            >生命 {{ player.data.life }} 晶矿 {{ player.data.mineral }} /
+            {{ player.data.mineral_max }} 瓦斯 {{ player.data.gas }} /
+            {{ player.data.config.MaxGas }}</span
           >
         </div>
 

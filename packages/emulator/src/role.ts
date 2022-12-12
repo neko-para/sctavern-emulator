@@ -1350,6 +1350,36 @@ function 阿尔达瑞斯(r: IRole) {
   }
 }
 
+function 斯托科夫(r: IRole) {
+  r.data.prog_cur = computed<number>(() => {
+    return r.player.data.level * 3 - 3
+  }) as unknown as number
+  r.data.enable = computed<boolean>(() => {
+    return (
+      r.player.data.life > r.data.prog_cur && !r.player.attrib.get('R斯托科夫')
+    )
+  }) as unknown as boolean
+  return async () => {
+    if (r.player.data.life <= r.data.prog_cur) {
+      return
+    }
+    r.player.data.life -= r.data.prog_cur
+    r.player.attrib.config('R斯托科夫', 1)
+
+    r.player.game.pool.drop(
+      (r.player.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
+    )
+    r.player.data.store = r.player.game.pool
+      .discover(
+        c => c.level === r.player.data.level,
+        r.player.data.store.length,
+        false
+      )
+      .map(c => c.name)
+    await r.player.post('refreshed', refP(r.player))
+  }
+}
+
 const RoleSet: Record<RoleKey, RoleBind> = {
   白板,
   执政官,
@@ -1393,6 +1423,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   米拉,
   先知,
   阿尔达瑞斯,
+  斯托科夫,
 }
 
 export function create_role(p: Player, r: RoleKey) {

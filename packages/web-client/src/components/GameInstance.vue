@@ -37,8 +37,9 @@ const project_tree = `${project}/tree/${gitHashFull}`
           {{ player.data.upgrade_cost }} 总价值 {{ player.data.value }}</span
         >
         <span
-          >晶矿 {{ player.data.mineral }} / {{ player.data.mineral_max }} 瓦斯
-          {{ player.data.gas }} / {{ player.data.config.MaxGas }}</span
+          >生命 {{ player.data.life }} 晶矿 {{ player.data.mineral }} /
+          {{ player.data.mineral_max }} 瓦斯 {{ player.data.gas }} /
+          {{ player.data.config.MaxGas }}</span
         >
         <div class="d-flex mb-1 justify-space-between pr-2">
           <v-btn

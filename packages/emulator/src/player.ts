@@ -49,6 +49,7 @@ export type StoreStatus = {
 export interface PlayerAttrib {
   level: number
   upgrade_cost: number
+  life: number
 
   mineral: number
   mineral_max: number
@@ -107,6 +108,8 @@ export class Player {
     this.data = reactive({
       level: 1,
       upgrade_cost: 6,
+      life: 100,
+
       mineral: 0,
       mineral_max: 2,
       gas: -1,
