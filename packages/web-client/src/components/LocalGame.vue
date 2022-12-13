@@ -204,6 +204,7 @@ function doExport() {
     pack: replay.pack,
     seed: replay.seed,
     role: replay.role,
+    mutation: replay.mutation,
     log: game.slave.game.log,
   })
   expDlg.value = true

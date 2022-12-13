@@ -432,17 +432,17 @@ export class CardInstance {
       upgrade?: boolean // 是否夺取升级
     }
   ) {
-    await this.obtain_unit(target.data.units)
-    if (option?.upgrade) {
-      for (const u of target.data.upgrades) {
-        await this.obtain_upgrade(u)
-      }
-    }
     if (!option?.unreal) {
       await this.post('seize', {
         ...refC(this),
         target,
       })
+    }
+    await this.obtain_unit(target.data.units)
+    if (option?.upgrade) {
+      for (const u of target.data.upgrades) {
+        await this.obtain_upgrade(u)
+      }
     }
     await this.player.destroy(target)
   }

@@ -301,7 +301,9 @@ function 副官(r: IRole) {
     r.player.persisAttrib.config('R副官', r.player.data.mineral)
   })
   r.refreshed = async () => {
-    r.data.prog_cur -= 1
+    if (r.data.prog_cur > 0) {
+      r.data.prog_cur -= 1
+    }
   }
 }
 
@@ -1055,6 +1057,7 @@ function 德哈卡(r: IRole) {
       r.data.prog_cur -= 6
       const cardt = getCard('原始刺蛇')
       card.clear_desc()
+      card.attrib.cleanView()
       const descs = Descriptors[cardt.name]
       if (descs) {
         for (let i = 0; i < descs.length; i++) {
@@ -1066,9 +1069,11 @@ function 德哈卡(r: IRole) {
       card.data.name = '原始刺蛇'
       card.data.level = 2
       card.data.race = 'N'
+      card.data.belong = 'origin'
       if (card.data.color === 'darkgold') {
         card.data.color = 'gold'
       }
+      card.bindDef()
     }
   }
 }
