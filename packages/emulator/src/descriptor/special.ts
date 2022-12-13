@@ -9,7 +9,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable } from '../types'
-import { autoBind, autoBindPlayer, autoBindUnique, fake, us } from '../utils'
+import { autoBind, autoBindUnique, fake, us } from '../utils'
 import { RenewPolicy, 任务 } from './terran'
 
 function 制造X(
@@ -141,7 +141,7 @@ const data: CardDescriptorTable = {
       card.remove_unit(card.find('自动机炮'))
       await card.obtain_unit(us('风暴对地导弹塔', cnt * 2))
     }),
-    autoBindPlayer('task-done', async (card, gold) => {
+    autoBind('task-done', async (card, gold) => {
       await card.obtain_unit(us('风暴对地导弹塔', gold ? 3 : 2))
     }),
   ],

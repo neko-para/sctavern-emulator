@@ -13,7 +13,6 @@ import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import {
   autoBind,
-  autoBindPlayer,
   autoBindUnique,
   fake,
   isCardInstance,
@@ -340,7 +339,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   死亡之翼: [
-    autoBindPlayer('seize', async (card, gold, { target }) => {
+    autoBind('seize', async (card, gold, { target }) => {
       if (target === card) {
         await card.obtain_unit(us('天霸', gold ? 2 : 1))
       }
@@ -378,7 +377,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   深渊行者: [
-    autoBindPlayer('seize', async (card, gold) => {
+    autoBind('seize', async (card, gold) => {
       await card.obtain_unit(us('先锋', gold ? 2 : 1))
     }),
   ],

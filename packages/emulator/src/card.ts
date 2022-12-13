@@ -26,6 +26,7 @@ import {
   isCardInstanceAttrib,
   mostValueUnit,
   refC,
+  refP,
   us,
 } from './utils'
 
@@ -232,7 +233,10 @@ export class CardInstance {
       default:
         return
     }
-    await this.post('infr-changed', refC(this))
+    await this.post('infr-changed', {
+      ...refP(this.player),
+      target: this,
+    })
     await this.fast_prod()
   }
 
@@ -245,7 +249,10 @@ export class CardInstance {
       case 'reactor':
       case 'scilab':
         this.replace_unit([pos], '高级科技实验室')
-        await this.post('infr-changed', refC(this))
+        await this.post('infr-changed', {
+          ...refP(this.player),
+          target: this,
+        })
         await this.fast_prod()
         break
     }
@@ -434,8 +441,9 @@ export class CardInstance {
   ) {
     if (!option?.unreal) {
       await this.post('seize', {
-        ...refC(this),
+        ...refP(this.player),
         target,
+        from: this,
       })
     }
     await this.obtain_unit(target.data.units)

@@ -128,6 +128,19 @@ type PlayerBusTemplate = {
     target: CardInstance
   }
 
+  seize: {
+    // 夺取
+    target: CardInstance
+    from: CardInstance
+  }
+  'task-done': {
+    target: CardInstance
+  }
+  'infr-changed': {
+    // 挂件切换
+    target: CardInstance
+  }
+
   incubate: {
     // 孵化
     from: CardInstance
@@ -163,12 +176,6 @@ type CardBusTemplate = {
     upgrade: UpgradeKey
   }
 
-  'task-done': {
-    //
-  }
-  'infr-changed': {
-    // 挂件切换
-  }
   'fast-prod': {
     // 快速生产
   }
@@ -194,10 +201,6 @@ type CardBusTemplate = {
     pos: number // 用于供养等, 定位
   }
   'post-deploy': {
-    target: CardInstance
-  }
-  seize: {
-    // 夺取
     target: CardInstance
   }
 }

@@ -11,10 +11,10 @@ import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
 import {
   autoBind,
-  autoBindPlayer,
   autoBindUnique,
   isCardInstance,
   refC,
+  refP,
   us,
 } from '../utils'
 
@@ -46,7 +46,10 @@ export function 任务<T extends keyof LogicBus>(
         card.attrib.set('task', n)
         if (n === count) {
           await reward(card, gold)
-          await card.player.game.post('task-done', refC(card))
+          await card.post('task-done', {
+            ...refP(card.player),
+            target: card,
+          })
           if (policy === RenewPolicy.instant) {
             n = 0
             card.attrib.set('task', 0)
@@ -190,7 +193,7 @@ const data: CardDescriptorTable = {
   陆军学院: [科挂(3, '战狼', 1, 2), 快速生产('维京战机<机甲>', 3, 5)],
   空军学院: [
     快速生产('维京战机', 3, 5),
-    autoBindPlayer('task-done', async (card, gold) => {
+    autoBind('task-done', async (card, gold) => {
       await card.obtain_unit(us('解放者', gold ? 2 : 1))
     }),
   ],
@@ -283,9 +286,8 @@ const data: CardDescriptorTable = {
     }),
   ],
   游骑兵: [
-    autoBindPlayer('infr-changed', async (card, gold, { card: cp }) => {
-      const c = card.player.present[cp as number] as CardInstance
-      await c.obtain_unit(us('雷诺(狙击手)', gold ? 2 : 1))
+    autoBind('infr-changed', async (card, gold, { target }) => {
+      await target.obtain_unit(us('雷诺(狙击手)', gold ? 2 : 1))
     }),
     反应堆('雷诺(狙击手)'),
   ],
@@ -367,7 +369,7 @@ const data: CardDescriptorTable = {
   帝国敢死队: [
     快速生产('诺娃', 2, 2),
     反应堆('诺娃'),
-    autoBindPlayer('task-done', async (card, gold) => {
+    autoBind('task-done', async (card, gold) => {
       await card.obtain_unit(us('诺娃', gold ? 2 : 1))
     }),
   ],
