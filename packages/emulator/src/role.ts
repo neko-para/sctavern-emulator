@@ -232,7 +232,7 @@ function SCV(r: IRole) {
   return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(
       role,
-      card => card.data.race === 'T' && card.data.infr[0] === 'hightech'
+      card => card.data.race === 'T' && card.data.infr[0] !== 'hightech'
     )
     if (!card) {
       return false

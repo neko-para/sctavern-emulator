@@ -309,7 +309,7 @@ const data: CardDescriptorTable = {
         .filter(isCardInstance)
         .filter(c => c.data.name === '凯瑞甘')
       if (around.length > 0) {
-        await around[0].clear_desc()
+        around[0].clear_desc()
         around[0].data.name = '刀锋女王'
         const descs = data.刀锋女王
         if (descs) {
