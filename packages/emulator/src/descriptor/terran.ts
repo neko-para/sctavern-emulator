@@ -294,9 +294,7 @@ const data: CardDescriptorTable = {
   沃菲尔德: [
     autoBind('round-end', async (card, gold) => {
       for (const c of card.player.present.filter(isCardInstance)) {
-        if (c.data.race === 'T') {
-          c.replace_unit(c.find('陆战队员(精英)', gold ? 2 : 1), '帝盾卫兵')
-        }
+        c.replace_unit(c.find('陆战队员(精英)', gold ? 2 : 1), '帝盾卫兵')
       }
     }),
     autoBindUnique((card, desc) => {
