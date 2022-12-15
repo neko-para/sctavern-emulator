@@ -1005,10 +1005,13 @@ export class Player {
       if (!this.data.hand[place]) {
         return
       }
+      const c = getCard(this.data.hand[place] as CardKey)
       this.data.hand[place] = null
-      this.obtain_resource({
-        mineral: 1,
-      })
+      if (c.attr.type !== 'support') {
+        this.obtain_resource({
+          mineral: 1,
+        })
+      }
     })
     this.bus.on('$present-upgrade', async ({ place }) => {
       if (
