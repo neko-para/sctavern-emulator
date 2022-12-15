@@ -181,6 +181,7 @@ const data: CardDescriptorTable = {
       const idx = target
         .filter(isBiological)
         .filter(u => u !== '被感染的陆战队员')
+        .slice(0, 5)
       await target.player.inject(us('被感染的陆战队员', idx.length))
     }),
   ],
