@@ -1,4 +1,4 @@
-import type { Card, UpgradeKey } from '@sctavern-emulator/data'
+import type { Card, Upgrade } from '@sctavern-emulator/data'
 import {
   Client,
   SlaveGame,
@@ -40,17 +40,17 @@ export class WebClient extends Client {
     this.status.model = false
   }
 
-  async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {
+  async begin_discover(item: (Card | Upgrade | string)[], extra?: string) {
     this.status.discover = true
     this.status.discoverItems = item
-    this.status.discoverCancel = cancel
+    this.status.discoverExtra = extra || null
     this.status.model = true
   }
 
   async end_discover() {
     this.status.discover = false
     this.status.discoverItems = []
-    this.status.discoverCancel = false
+    this.status.discoverExtra = null
     this.status.model = false
   }
 }

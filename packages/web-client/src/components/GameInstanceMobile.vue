@@ -38,10 +38,10 @@ const extraDlg = ref(false)
             :client="client"
           ></discover-item>
         </v-card-text>
-        <v-card-actions v-if="status.discoverCancel">
-          <v-btn @click="client.discoverChoose({ pos: -1 })" color="red"
-            >放弃</v-btn
-          >
+        <v-card-actions v-if="status.discoverExtra">
+          <v-btn @click="client.discoverChoose({ pos: -1 })" color="red">{{
+            status.discoverExtra
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

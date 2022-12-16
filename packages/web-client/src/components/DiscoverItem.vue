@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Card, UpgradeKey } from '@sctavern-emulator/data'
+import type { Card, Upgrade } from '@sctavern-emulator/data'
 import type { Client } from '@sctavern-emulator/emulator'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  item: Card | UpgradeKey
+  item: Card | Upgrade | string
   model: boolean
   pos: number
   client: Client
@@ -27,7 +27,7 @@ const elv = ref(5)
       })
     "
   >
-    <template v-if="typeof item !== 'string'">
+    <template v-if="typeof item !== 'string' && item.type === 'card'">
       <div class="d-flex">
         <race-icon class="mt-1" :race="item.race"></race-icon>
         <span class="text-h5 mt-2">{{ item.name }}</span>
@@ -36,7 +36,9 @@ const elv = ref(5)
     </template>
     <template v-else>
       <div class="d-flex">
-        <span class="text-h5 ml-2 mt-2">{{ item }}</span>
+        <span class="text-h5 ml-2 mt-2">{{
+          typeof item === 'string' ? item : item.name
+        }}</span>
       </div>
     </template>
   </v-card>

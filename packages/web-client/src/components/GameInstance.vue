@@ -129,11 +129,11 @@ const project_tree = `${project}/tree/${gitHashFull}`
             :client="client"
           ></discover-item>
           <v-btn
-            v-if="status.discoverCancel"
+            v-if="status.discoverExtra"
             variant="text"
             @click="client.discoverChoose({ pos: -1 })"
             color="red"
-            >放弃</v-btn
+            >{{ status.discoverExtra }}</v-btn
           >
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Card, CardKey, UnitKey, UpgradeKey } from '@sctavern-emulator/data'
+import { Card, CardKey, UnitKey, Upgrade } from '@sctavern-emulator/data'
 import { Emitter } from './emitter'
 import { Game } from './game'
 import { Player } from './player'
@@ -16,7 +16,10 @@ interface IClient {
   pos: number
 
   selected(choice: string): Promise<void>
-  begin_discover(item: (Card | UpgradeKey)[], cancel: boolean): Promise<void>
+  begin_discover(
+    item: (Card | Upgrade | string)[],
+    extra?: string
+  ): Promise<void>
   end_discover(): Promise<void>
   begin_deploy(): Promise<void>
   end_deploy(): Promise<void>
@@ -87,8 +90,8 @@ export class SlaveGame {
     this.game.obus.child[client.pos] = bus
 
     bus.on('selected', ({ choice }) => client.selected(choice))
-    bus.on('begin-discover', ({ item, cancel }) =>
-      client.begin_discover(item, cancel)
+    bus.on('begin-discover', ({ item, extra }) =>
+      client.begin_discover(item, extra)
     )
     bus.on('end-discover', () => client.end_discover())
     bus.on('begin-deploy', () => client.begin_deploy())
@@ -210,7 +213,7 @@ export class Client implements IClient {
     //
   }
 
-  async begin_discover(item: (Card | UpgradeKey)[], cancel: boolean) {
+  async begin_discover(item: (Card | Upgrade | string)[], extra?: string) {
     //
   }
 

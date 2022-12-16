@@ -1,4 +1,4 @@
-import type { Card, UpgradeKey } from '@sctavern-emulator/data'
+import type { Card, Upgrade } from '@sctavern-emulator/data'
 
 export interface ClientStatus {
   model: boolean
@@ -6,6 +6,6 @@ export interface ClientStatus {
   deploy: boolean
   insert: boolean
   selected: string
-  discoverItems: (Card | UpgradeKey)[]
-  discoverCancel: boolean
+  discoverItems: (Card | Upgrade | string)[]
+  discoverExtra: string | null
 }

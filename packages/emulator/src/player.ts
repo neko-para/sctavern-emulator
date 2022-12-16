@@ -8,7 +8,6 @@ import {
   Race,
   UnitKey,
   Upgrade,
-  UpgradeKey,
   RoleKey,
 } from '@sctavern-emulator/data'
 import { AttributeManager } from './attribute'
@@ -326,15 +325,15 @@ export class Player {
   }
 
   async discover(
-    item: (Card | UpgradeKey)[],
+    item: (Card | Upgrade | string)[],
     option?: {
       target?: CardInstance
-      cancel?: boolean
+      extra?: string
       nodrop?: boolean
       fake?: (cho: number) => void
     }
   ): Promise<boolean> {
-    const choice = await this.queryDiscover(item, !!option?.cancel)
+    const choice = await this.queryDiscover(item, option?.extra)
     if (choice === -1) {
       return false
     }
@@ -344,7 +343,10 @@ export class Player {
     }
     const cho = item[choice]
     if (typeof cho === 'string') {
-      await option?.target?.obtain_upgrade(cho)
+      return true
+    }
+    if (cho.type === 'upgrade') {
+      await option?.target?.obtain_upgrade(cho.name)
     } else {
       await this.obtain_card(cho)
       item.splice(choice, 1)
@@ -704,7 +706,7 @@ export class Player {
       ...refC(cs[0]),
     })
 
-    const reward: (Card | UpgradeKey)[] = this.game.pool.discover(
+    const reward: (Card | Upgrade)[] = this.game.pool.discover(
       c => c.level === Math.min(6, this.data.level + 1),
       3,
       true
@@ -715,7 +717,7 @@ export class Player {
           AllUpgrade.map(getUpgrade)
             .filter(u => u.category === '3')
             .filter(u => !cs[0].data.upgrades.includes(u.name))
-        )[0].name
+        )[0]
       )
     }
 
@@ -803,7 +805,7 @@ export class Player {
     })
   }
 
-  async queryDiscover(item: (Card | UpgradeKey)[], cancel: boolean) {
+  async queryDiscover(item: (Card | Upgrade | string)[], extra?: string) {
     const client = this.pos
     return new Promise<number>(resolve => {
       let quit = false
@@ -820,7 +822,7 @@ export class Player {
       this.game.postOutput('begin-discover', {
         client,
         item,
-        cancel,
+        extra,
       })
       this.game.slave.poll(() => quit)
     })
@@ -1067,13 +1069,10 @@ export class Player {
         gas: -2,
       })
       if (
-        !(await this.discover(
-          item.map(u => u.name),
-          {
-            target: c,
-            cancel: true,
-          }
-        ))
+        !(await this.discover(item, {
+          target: c,
+          extra: '放弃',
+        }))
       ) {
         this.obtain_resource({
           gas: 1,

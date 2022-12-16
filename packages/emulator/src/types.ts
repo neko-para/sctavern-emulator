@@ -226,8 +226,8 @@ type OutputBusTemplate = {
     //
   }
   'begin-discover': {
-    item: (Card | UpgradeKey)[]
-    cancel: boolean
+    item: (Card | Upgrade | string)[]
+    extra?: string
   }
   'end-discover': {
     //

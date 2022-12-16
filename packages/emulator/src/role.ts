@@ -381,7 +381,10 @@ function 矿骡(r: IRole) {
 function 斯台特曼(r: IRole) {
   r.player.bus.on('card-entered', async ({ target }) => {
     await r.player.discover(
-      r.player.game.shuffle(AllUpgrade.filter(x => x !== '献祭')).slice(0, 3),
+      r.player.game
+        .shuffle(AllUpgrade.filter(x => x !== '献祭'))
+        .slice(0, 3)
+        .map(getUpgrade),
       {
         target,
       }
@@ -839,7 +842,7 @@ function 雷神(r: IRole) {
     let choice = -1
     if (
       !(await r.player.discover(items, {
-        cancel: true,
+        extra: '放弃',
         fake: cho => {
           choice = cho
         },
@@ -1261,7 +1264,8 @@ function 凯瑞甘(r: IRole) {
         await r.player.discover(
           r.player.game
             .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
-            .slice(0, 3),
+            .slice(0, 3)
+            .map(getUpgrade),
           {
             target,
           }
@@ -1310,7 +1314,8 @@ function 先知(r: IRole) {
     await r.player.discover(
       r.player.game
         .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
-        .slice(0, 3),
+        .slice(0, 3)
+        .map(getUpgrade),
       {
         target: card,
       }
@@ -1496,7 +1501,10 @@ function 地嗪外溢(r: IRole) {
 
   r.player.bus.on('card-entered', async ({ target }) => {
     await r.player.discover(
-      r.player.game.shuffle(AllUpgrade.filter(x => x !== '献祭')).slice(0, 3),
+      r.player.game
+        .shuffle(AllUpgrade.filter(x => x !== '献祭'))
+        .slice(0, 3)
+        .map(getUpgrade),
       {
         target,
       }
