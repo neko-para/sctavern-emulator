@@ -314,6 +314,8 @@ function 追猎者(r: IRole) {
     if (r.data.enpower || !r.player.attrib.get('R追猎者')) {
       r.player.attrib.config('R追猎者', 1)
       await r.player.do_refresh()
+
+      await r.refreshed()
     }
   }
   r.player.bus.on('round-enter', async () => {
