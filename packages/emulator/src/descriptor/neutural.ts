@@ -13,6 +13,7 @@ import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import {
   autoBind,
+  autoBindSome,
   autoBindUnique,
   fake,
   isCardInstance,
@@ -328,7 +329,16 @@ const data: CardDescriptorTable = {
   ],
   刀锋女王: [fake()],
   虚空构造体: [fake()], // TODO: show void attribute
-  死亡舰队: [黑暗容器_获得('毁灭者', 1, 2), 黑暗容器_复活(10)],
+  死亡舰队: [
+    黑暗容器_获得('毁灭者', 1, 2),
+    autoBind('round-end', async (card, gold) => {
+      const use = gold ? 5 : 10
+      if (card.attrib.get('dark') >= use) {
+        await card.gain_darkness(-use)
+        await card.obtain_unit(['塔达林母舰'])
+      }
+    }),
+  ],
   虚空裂痕: [
     黑暗容器_获得('百夫长', 1, 2),
     黑暗容器_复活(5),
