@@ -3,6 +3,7 @@ import {
   CardKey,
   RoleKey,
   UnitKey,
+  Upgrade,
   UpgradeKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from './card'

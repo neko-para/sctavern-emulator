@@ -5,7 +5,7 @@ import { tr } from '@sctavern-emulator/data'
 import type { Client } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
-  item: Card | Upgrade | string
+  item: Card | Upgrade | String
   model: boolean
   pos: number
   client: Client
@@ -27,7 +27,7 @@ const elv = ref(5)
       })
     "
   >
-    <template v-if="typeof item !== 'string' && item.type === 'card'">
+    <template v-if="!(item instanceof String) && item.type === 'card'">
       <div class="d-flex text-h6 mx-1 w-100">
         <span>{{ tr[item.race] }}</span>
         <span class="ml-1">{{ item.name }}</span>
@@ -37,7 +37,7 @@ const elv = ref(5)
     <template v-else>
       <div class="d-flex">
         <span class="text-h5 ml-2 mt-2">{{
-          typeof item === 'string' ? item : item.name
+          item instanceof String ? item : item.name
         }}</span>
       </div>
     </template>

@@ -5,7 +5,7 @@ import type { Client } from '@sctavern-emulator/emulator'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
-  item: Card | Upgrade | string
+  item: Card | Upgrade | String
   model: boolean
   pos: number
   client: Client
@@ -27,7 +27,7 @@ const elv = ref(5)
       })
     "
   >
-    <template v-if="typeof item !== 'string' && item.type === 'card'">
+    <template v-if="!(item instanceof String) && item.type === 'card'">
       <div class="d-flex">
         <race-icon class="mt-1" :race="item.race"></race-icon>
         <span class="text-h5 mt-2">{{ item.name }}</span>
@@ -37,7 +37,7 @@ const elv = ref(5)
     <template v-else>
       <div class="d-flex">
         <span class="text-h5 ml-2 mt-2">{{
-          typeof item === 'string' ? item : item.name
+          item instanceof String ? item : item.name
         }}</span>
       </div>
     </template>
