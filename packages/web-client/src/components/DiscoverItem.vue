@@ -27,7 +27,12 @@ const elv = ref(5)
       })
     "
   >
-    <template v-if="!(item instanceof String) && item.type === 'card'">
+    <template
+      v-if="
+        !(item instanceof String || typeof item === 'string') &&
+        item.type === 'card'
+      "
+    >
       <div class="d-flex">
         <race-icon class="mt-1" :race="item.race"></race-icon>
         <span class="text-h5 mt-2">{{ item.name }}</span>
@@ -37,7 +42,7 @@ const elv = ref(5)
     <template v-else>
       <div class="d-flex">
         <span class="text-h5 ml-2 mt-2">{{
-          item instanceof String ? item : item.name
+          item instanceof String || typeof item === 'string' ? item : item.name
         }}</span>
       </div>
     </template>

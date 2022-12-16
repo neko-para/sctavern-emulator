@@ -26,6 +26,10 @@ export class Shuffler {
     }
     return array
   }
+
+  int(max: number, min = 0) {
+    return this.gen.int(min, max)
+  }
 }
 
 export function refC(card: CardInstance) {

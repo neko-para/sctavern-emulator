@@ -482,3 +482,27 @@ target = "GA"
 name = "异虫地面生物甲壳"
 defense = 0
 speed = 3.15
+
+[[unit]]
+name = "王兽"
+race = "Z"
+value = 2500
+utype = "normal"
+tag = ["重甲", "生物单位", "重型单位", "英雄单位"]
+health = 2400
+[[unit.weapon]]
+name = "死神之镰"
+damage = 60
+range = 1.5
+speed = 0.86
+target = "G"
+[[unit.weapon]]
+name = "头冲"
+damage = 120
+range = 1
+speed = 1.19
+target = "G"
+[unit.armor]
+name = "异虫骨板"
+defense = 6
+speed = 4.9

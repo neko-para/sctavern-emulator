@@ -2,7 +2,9 @@ import { computed, reactive } from '@vue/reactivity'
 import {
   AllCard,
   AllUpgrade,
+  canElite,
   CardKey,
+  elited,
   getCard,
   getRole,
   getUnit,
@@ -1104,6 +1106,129 @@ function 星港(r: IRole) {
   })
 }
 
+interface ZergMutation {
+  from: UnitKey
+  to: UnitKey
+  count: number
+}
+
+function 进化腔(r: IRole) {
+  const genNormal: () => UnitKey = () => {
+    const v = r.player.game.gen.int(21, 100)
+    if (v <= 30) {
+      return '守卫'
+    } else if (v <= 35) {
+      return '破坏者'
+    } else if (v <= 50) {
+      return '跳虫'
+    } else if (v <= 60) {
+      return '蟑螂'
+    } else if (v <= 70) {
+      return '异龙'
+    } else if (v <= 80) {
+      return '爆虫'
+    } else if (v <= 90) {
+      return '刺蛇'
+    } else {
+      return '虫后'
+    }
+  }
+  const genMedium: () => UnitKey = () => {
+    const v = r.player.game.gen.int(1, 30)
+    if (v <= 5) {
+      return '雷兽'
+    } else if (v <= 10) {
+      return '潜伏者'
+    } else if (v <= 20) {
+      return '异龙(精英)'
+    } else {
+      return '刺蛇(精英)'
+    }
+  }
+  const genGreat: () => UnitKey = () => {
+    const v = r.player.game.gen.int(1, 10)
+    if (v <= 1) {
+      return '利维坦'
+    } else if (v <= 2) {
+      return '王兽'
+    } else if (v <= 4) {
+      return '莽兽'
+    } else if (v <= 6) {
+      return '飞蛇'
+    } else if (v <= 8) {
+      return '感染者'
+    } else {
+      return '巢虫领主'
+    }
+  }
+  const genMutation: (maxi: number) => ZergMutation = maxi => {
+    const k = r.player.game.gen.int(1, maxi)
+    const type = k <= 5 ? 3 : k <= 20 ? 2 : 1
+    return {
+      from: genNormal(),
+      to: type === 3 ? genGreat() : type === 2 ? genMedium() : genNormal(),
+      count:
+        type === 3
+          ? 1
+          : type === 2
+          ? r.player.game.gen.int(1, 2)
+          : r.player.game.gen.int(2, 5),
+    }
+  }
+  r.player.bus.on('round-enter', async ({ round }) => {
+    if (round === 1) {
+      return
+    }
+    let maxi = 100
+    for (;;) {
+      const muts: ZergMutation[] = []
+      while (muts.length < 3) {
+        const mut = genMutation(maxi)
+        if (
+          muts.filter(m => m.from === mut.from && m.to === mut.to).length > 0
+        ) {
+          continue
+        }
+        muts.push(mut)
+      }
+      let cho = -1
+      if (
+        !(await r.player.discover(
+          muts.map(m => `${m.count}${m.from} -> ${m.count}${m.to}`),
+          {
+            extra: r.player.data.mineral > 0 ? '刷新' : undefined,
+            fake: c => {
+              cho = c
+            },
+          }
+        ))
+      ) {
+        r.player.obtain_resource({
+          mineral: -1,
+        })
+        if (maxi > 5) {
+          maxi -= 5
+        }
+        continue
+      }
+      const mutation = muts[cho]
+      for (const card of r.player.all_of('Z')) {
+        card.replace_unit(
+          card.find(
+            unit => unit === mutation.from || unit === elited(mutation.from),
+            mutation.count
+          ),
+          unit =>
+            unit === elited(mutation.from) && canElite(mutation.to)
+              ? elited(mutation.to)
+              : mutation.to
+        )
+      }
+      break
+    }
+  })
+}
+
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
@@ -1482,6 +1607,7 @@ const RoleSet: Record<RoleKey, RoleBind> = {
   混合体,
   德哈卡,
   星港,
+  进化腔,
   锻炉,
   扎加拉,
   大力神,
