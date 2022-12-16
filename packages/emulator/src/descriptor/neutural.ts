@@ -224,7 +224,7 @@ const data: CardDescriptorTable = {
           return
         }
         if (card.player.data.mineral >= 1) {
-          card.player.persisAttrib.config('德哈卡', 1)
+          card.player.persisAttrib.set('德哈卡', 1)
         }
       })
       card.bus.on('round-start', async () => {

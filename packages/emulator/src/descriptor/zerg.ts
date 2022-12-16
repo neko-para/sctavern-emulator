@@ -239,8 +239,8 @@ const data: CardDescriptorTable = {
   ],
   斯托科夫: [
     autoBindUnique((card, desc) => {
-      card.player.persisAttrib.config('斯托科夫', 0, 'add', false)
-      card.attrib.setView('斯托科夫', () => {
+      card.player.persisAttrib.alter('斯托科夫', 0)
+      card.view.set('斯托科夫', () => {
         if (desc.disabled) {
           return '禁用'
         } else if (desc.gold || card.player.persisAttrib.get('斯托科夫')) {

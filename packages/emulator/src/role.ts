@@ -174,7 +174,7 @@ function 执政官(r: IRole) {
     for (const b of leftBinds) {
       right.bind_desc(b.bind, b.text, b.data)
     }
-    right.attrib.cleanView()
+    right.view.clean()
     right.bindDef()
     return true
   })
@@ -300,7 +300,7 @@ function 副官(r: IRole) {
     }
   })
   r.player.bus.on('round-end', async () => {
-    r.player.persisAttrib.config('R副官', r.player.data.mineral)
+    r.player.persisAttrib.set('R副官', r.player.data.mineral)
   })
   r.refreshed = async () => {
     if (r.data.prog_cur > 0) {
@@ -311,10 +311,10 @@ function 副官(r: IRole) {
 
 function 追猎者(r: IRole) {
   r.data.prog_max = 5
-  r.player.persisAttrib.config('R追猎者', 0)
+  r.player.persisAttrib.set('R追猎者', 0)
   r.bought = async () => {
     if (r.data.enpower || !r.player.attrib.get('R追猎者')) {
-      r.player.attrib.config('R追猎者', 1)
+      r.player.attrib.set('R追猎者', 1)
       await r.player.do_refresh()
 
       await r.refreshed()
@@ -366,13 +366,13 @@ function 矿骡(r: IRole) {
       r.player.obtain_resource({
         mineral: 2 - r.player.data.mineral_max,
       })
-      r.player.persisAttrib.config('R矿骡', 0)
+      r.player.persisAttrib.set('R矿骡', 0)
     } else {
       r.data.enable = true
     }
   })
   return async () => {
-    r.player.persisAttrib.config('R矿骡', 1)
+    r.player.persisAttrib.set('R矿骡', 1)
     r.data.enable = false
     r.player.obtain_resource({
       mineral: Math.max(0, r.player.data.mineral_max - r.player.data.mineral),
@@ -496,7 +496,7 @@ function 科学球(r: IRole) {
     r.player.obtain_resource({
       gas: -1,
     })
-    r.player.attrib.config('R科学球', 1)
+    r.player.attrib.set('R科学球', 1)
     const c = await r.player.enter(getCard('观察样本'))
     await c?.obtain_unit(
       (Object.keys(record) as UnitKey[]).map(k => us(k, record[k] || 0)).flat(1)
@@ -577,7 +577,7 @@ function 拟态虫(r: IRole) {
       if (!card) {
         return false
       }
-      role.player.persisAttrib.config('R拟态虫', card.data.pos)
+      role.player.persisAttrib.set('R拟态虫', card.data.pos)
       role.player.obtain_resource({
         mineral: -2,
       })
@@ -877,7 +877,7 @@ function 机械哨兵(r: IRole) {
   r.data.prog_cur = 3
   r.player.bus.on('round-enter', async () => {
     if (r.data.prog_cur === 0) {
-      r.player.attrib.config('R机械哨兵', 1)
+      r.player.attrib.set('R机械哨兵', 1)
     }
   })
   r.data.enable = computed(() => {
@@ -903,18 +903,18 @@ function 机械哨兵(r: IRole) {
       mineral: -4,
     })
     await r.player.obtain_card(getCard(card.data.occupy[0]))
-    r.player.attrib.config('R机械哨兵', 1)
+    r.player.attrib.set('R机械哨兵', 1)
     r.data.prog_cur -= 1
   }
 }
 
 function 异龙(r: IRole) {
-  r.player.persisAttrib.config('R异龙', 1)
+  r.player.persisAttrib.set('R异龙', 1)
   r.data.enable = computed<boolean>(() => {
     return !!r.player.persisAttrib.get('R异龙') && r.player.data.mineral >= 2
   }) as unknown as boolean
   r.player.bus.on('tavern-upgraded', async () => {
-    r.player.persisAttrib.config('R异龙', 1)
+    r.player.persisAttrib.set('R异龙', 1)
   })
   return async () => {
     if (!r.player.persisAttrib.get('R异龙') || r.player.data.mineral < 2) {
@@ -930,7 +930,7 @@ function 异龙(r: IRole) {
         false
       )
     )
-    r.player.persisAttrib.config('R异龙', 0)
+    r.player.persisAttrib.set('R异龙', 0)
   }
 }
 
@@ -1064,7 +1064,6 @@ function 德哈卡(r: IRole) {
       r.data.prog_cur -= 6
       const cardt = getCard('原始刺蛇')
       card.clear_desc()
-      card.attrib.cleanView()
       const descs = Descriptors[cardt.name]
       if (descs) {
         for (let i = 0; i < descs.length; i++) {
@@ -1080,6 +1079,7 @@ function 德哈卡(r: IRole) {
       if (card.data.color === 'darkgold') {
         card.data.color = 'gold'
       }
+      card.view.clean()
       card.bindDef()
     }
   }
@@ -1341,7 +1341,7 @@ function 凯瑞甘(r: IRole) {
   r.data.prog_max = 5
   r.player.bus.begin()
   r.player.bus.on('tavern-upgraded', async () => {
-    r.player.attrib.config('R凯瑞甘_刷新', 1)
+    r.player.attrib.set('R凯瑞甘_刷新', 1)
   })
   r.player.bus.on('round-enter', async () => {
     r.data.prog_cur = 0
@@ -1351,7 +1351,7 @@ function 凯瑞甘(r: IRole) {
     return r.player.attrib.get('R凯瑞甘_刷新') ? 0 : 1
   }
   r.refreshed = async () => {
-    r.player.attrib.config('R凯瑞甘_刷新', 0)
+    r.player.attrib.set('R凯瑞甘_刷新', 0)
   }
   r.bought = async () => {
     r.data.prog_cur += 1
@@ -1423,7 +1423,7 @@ function 先知(r: IRole) {
       r.player.obtain_resource({
         gas: 1,
       })
-      r.player.attrib.config('R先知', 1)
+      r.player.attrib.set('R先知', 1)
     }
   })
   r.player.data.config.MaxUpgradePerCard += 1
@@ -1495,7 +1495,7 @@ function 斯托科夫(r: IRole) {
       return
     }
     r.player.data.life -= r.data.prog_cur
-    r.player.attrib.config('R斯托科夫', 1)
+    r.player.attrib.set('R斯托科夫', 1)
 
     r.player.game.pool.drop(
       (r.player.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
@@ -1512,7 +1512,7 @@ function 斯托科夫(r: IRole) {
 }
 
 function 解放者(r: IRole) {
-  r.player.persisAttrib.config('R解放者_模式', 0)
+  r.player.persisAttrib.set('R解放者_模式', 0)
 
   r.data.data = computed<Role>(() => {
     return r.player.persisAttrib.get('R解放者_模式')
@@ -1539,10 +1539,7 @@ function 解放者(r: IRole) {
     return r.player.persisAttrib.get('R解放者_模式') ? 2 : 4
   }
   r.refreshed = async () => {
-    r.player.attrib.config(
-      'R解放者_刷新',
-      1 - r.player.attrib.get('R解放者_刷新')
-    )
+    r.player.attrib.set('R解放者_刷新', 1 - r.player.attrib.get('R解放者_刷新'))
   }
 
   r.player.bus.on('round-enter', async () => {

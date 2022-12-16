@@ -87,7 +87,7 @@ const data: CardDescriptorTable = {
   折跃信标: [
     autoBindUnique(
       (card, desc) => {
-        card.attrib.setView('折跃信标', () => (desc.disabled ? '停用' : '启用'))
+        card.view.set('折跃信标', () => (desc.disabled ? '停用' : '启用'))
         card.bus.on('wrap', async param => {
           if (desc.disabled) {
             return
@@ -189,7 +189,7 @@ const data: CardDescriptorTable = {
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
   尤尔兰: [
     (card, gold) => {
-      card.attrib.config('供能', gold ? 8 : 5)
+      card.attrib.set('供能', gold ? 8 : 5)
       return reactive({
         gold,
 
@@ -220,7 +220,7 @@ const data: CardDescriptorTable = {
         desc.manualDisable = computed<boolean>(() => {
           return card.data.units.indexOf('泰坦棱镜') === -1
         }) as unknown as boolean
-        card.attrib.setView('光复艾尔', () =>
+        card.view.set('光复艾尔', () =>
           card.find('泰坦棱镜').length > 0
             ? desc.disabled
               ? '停用'

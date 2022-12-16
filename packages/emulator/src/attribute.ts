@@ -1,28 +1,36 @@
-import { computed, reactive, ComputedRef } from '@vue/reactivity'
+import { computed, reactive } from '@vue/reactivity'
 
-type CombinePolicy = 'add' | 'max' | 'discard'
-interface AttributeEntry {
-  value: number
-  policy: CombinePolicy
+export class AttributeViewer {
+  view: Record<string, string>
+
+  constructor() {
+    this.view = reactive({})
+  }
+
+  set(name: string, v: () => string) {
+    this.view[name] = computed<string>(v) as unknown as string
+  }
+
+  clean() {
+    Object.keys(this.view).forEach(k => {
+      delete this.view[k]
+    })
+  }
+
+  views(): string[] {
+    const res: string[] = []
+    for (const k in this.view) {
+      res.push(this.view[k])
+    }
+    return res.filter(s => s)
+  }
 }
 
 export class AttributeManager {
-  attrib: Record<string, AttributeEntry>
-  view: Record<string, string>
-
-  views: ComputedRef<string[]>
+  attrib: Record<string, number>
 
   constructor() {
     this.attrib = reactive({})
-    this.view = reactive({})
-
-    this.views = computed(() => {
-      const res: string[] = []
-      for (const k in this.view) {
-        res.push(this.view[k])
-      }
-      return res.filter(s => s)
-    })
   }
 
   has(name: string): boolean {
@@ -30,70 +38,37 @@ export class AttributeManager {
   }
 
   get(name: string, def = 0): number {
-    return this.has(name) ? this.attrib[name].value : def
-  }
-
-  config(
-    name: string,
-    value: number,
-    policy: CombinePolicy = 'add',
-    override = true
-  ) {
-    if (name in this.attrib && !override) {
-      return
-    }
-    this.attrib[name] = {
-      value,
-      policy,
-    }
+    return this.has(name) ? this.attrib[name] : def
   }
 
   set(name: string, value: number) {
-    if (this.has(name)) {
-      this.attrib[name].value = value
-    }
+    this.attrib[name] = value
+  }
+
+  alter(name: string, delta: number) {
+    this.attrib[name] = (this.attrib[name] || 0) + delta
   }
 
   clean() {
-    for (const ak in this.attrib) {
-      this.attrib[ak].value = 0
-    }
+    Object.keys(this.attrib).forEach(k => {
+      delete this.attrib[k]
+    })
   }
+}
 
-  setView(name: string, view: () => string) {
-    this.view[name] = computed(view) as unknown as string
+export function CombineAttribute(
+  a: AttributeManager,
+  b: AttributeManager,
+  process: (name: string, v1: number, v2: number) => number
+): AttributeManager {
+  const result = new AttributeManager()
+  for (const k of new Set([
+    ...Object.keys(a.attrib),
+    ...Object.keys(b.attrib),
+  ])) {
+    const v1 = a.get(k)
+    const v2 = b.get(k)
+    result.set(k, process(k, v1, v2))
   }
-
-  cleanView() {
-    this.view = reactive({})
-  }
-
-  combine(a: AttributeManager) {
-    this.cleanView()
-    for (const ak of new Set([
-      ...Object.keys(this.attrib),
-      ...Object.keys(a.attrib),
-    ])) {
-      const desc0 = this.attrib[ak]
-      const desc1 = a.attrib[ak]
-      if (desc0 && desc1 && desc0.policy !== desc1.policy) {
-        console.warn('Combined attribute have difference policy')
-      }
-      const policy = (desc0 || desc1).policy
-      const value = ((policy: CombinePolicy) => {
-        switch (policy) {
-          case 'add':
-            return (desc0?.value || 0) + (desc1?.value || 0)
-          case 'max':
-            return Math.max(desc0?.value || 0, desc1?.value || 0)
-          case 'discard':
-            return 0
-        }
-      })(policy)
-      this.attrib[ak] = {
-        policy,
-        value,
-      }
-    }
-  }
+  return result
 }
