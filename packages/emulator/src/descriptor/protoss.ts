@@ -11,15 +11,21 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
-import { autoBind, autoBindUnique, isCardInstance, refC, us } from '../utils'
+import {
+  autoBind,
+  autoBindSome,
+  autoBindUnique,
+  isCardInstance,
+  refC,
+  us,
+} from '../utils'
 
 function 集结X(
   power: number,
   func: (card: CardInstance, gold: boolean) => Promise<void>,
   id = 0
 ): DescriptorGenerator {
-  return (card, gold) => {
-    card.bus.begin()
+  return autoBindSome((card, gold) => {
     card.bus.on('round-end', async () => {
       const n = Math.min(2, Math.floor(card.data.power / power))
       for (let i = 0; i < n; i++) {
@@ -31,12 +37,7 @@ function 集结X(
         await func(card, gold)
       }
     })
-    return reactive({
-      gold,
-
-      unbind: card.bus.end(),
-    })
-  }
+  })
 }
 
 function 集结(

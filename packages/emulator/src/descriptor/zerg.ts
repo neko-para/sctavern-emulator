@@ -239,7 +239,6 @@ const data: CardDescriptorTable = {
   ],
   斯托科夫: [
     autoBindUnique((card, desc) => {
-      card.player.persisAttrib.alter('斯托科夫', 0)
       card.view.set('斯托科夫', () => {
         if (desc.disabled) {
           return '禁用'
@@ -316,7 +315,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   基因突变: [
-    (card, gold) => {
+    autoBindSome((card, gold) => {
       async function proc() {
         for (const c of card
           .around()
@@ -344,16 +343,9 @@ const data: CardDescriptorTable = {
           )
         }
       }
-
-      card.bus.begin()
       card.bus.on('post-enter', proc)
       card.bus.on('post-sell', proc)
-      return reactive({
-        gold,
-
-        unbind: card.bus.end(),
-      })
-    },
+    }),
   ],
   机械感染: [
     孵化('round-end', '被感染的女妖', 1, 2),

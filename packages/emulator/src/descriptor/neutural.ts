@@ -13,7 +13,6 @@ import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import {
   autoBind,
-  autoBindSome,
   autoBindUnique,
   fake,
   isCardInstance,
