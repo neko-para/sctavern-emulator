@@ -5,6 +5,7 @@ import {
   UpgradeKey,
   RoleKey,
   PossibleKey,
+  MutationKey,
 } from './pubdata'
 
 export type Race = 'T' | 'P' | 'Z' | 'N' | 'G'
@@ -137,12 +138,19 @@ export interface Role {
   ext?: true
 }
 
+export interface Mutation {
+  name: MutationKey
+  type: 'mutation'
+  prole?: RoleKey
+}
+
 export interface Data {
   card: Card[]
   term: Term[]
   unit: Unit[]
   upgrade: Upgrade[]
   role: Role[]
+  mutation: Mutation[]
   tr: Record<string, string>
   attr: Record<string, string>
   order: Record<string, string[]>
