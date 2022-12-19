@@ -187,6 +187,10 @@ export class CardInstance {
     if (this.attrib.has('dark')) {
       this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
     }
+
+    if (this.attrib.get('void')) {
+      this.attrib.setView('void', () => '虚空投影')
+    }
   }
 
   async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
@@ -215,7 +219,6 @@ export class CardInstance {
 
   set_void() {
     this.attrib.config('void', 1, 'max')
-    this.attrib.setView('void', () => '虚空投影')
   }
 
   async switch_infr() {
