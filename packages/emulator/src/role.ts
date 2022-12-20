@@ -13,6 +13,7 @@ import {
   isHero,
   isMachine,
   isNormal,
+  MutationKey,
   Role,
   RoleKey,
   royalized,
@@ -30,7 +31,7 @@ import {
 } from './utils'
 import { Descriptors } from './descriptor'
 import { RenewPolicy, 任务, 反应堆 } from './descriptor/terran'
-import { DescriptorGenerator, MutationKey } from './types'
+import { DescriptorGenerator } from './types'
 
 export interface RoleData {
   data: Role
