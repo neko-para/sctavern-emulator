@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { type RoleKey, order, AllRole, getRole } from '@sctavern-emulator/data'
+import {
+  type RoleKey,
+  order,
+  AllRole,
+  getRole,
+  type MutationKey,
+  getMutation,
+  AllMutation,
+} from '@sctavern-emulator/data'
 import {
   type LogItem,
   Shuffler,
-  AllMutations,
   type GameReplay,
-  MutationPreventRole,
-  type MutationKey,
 } from '@sctavern-emulator/emulator'
 import { compress, decompress, isMobile } from '@/utils'
 
@@ -55,7 +60,7 @@ const AllRoleChoice = computed<RoleKey[]>(() => {
       if (!mutationConfig.value[m]) {
         continue
       }
-      if (MutationPreventRole[m as MutationKey] === r) {
+      if (getMutation(m as MutationKey).prole === r) {
         return false
       }
     }
@@ -188,7 +193,7 @@ function apply() {
                 <v-col v-for="x in 2" cols="4" :key="`muta-col-${x}`">
                   <v-checkbox
                     hide-details
-                    v-for="(m, i) in AllMutations.slice(x * 4 - 4, x * 4)"
+                    v-for="(m, i) in AllMutation.slice(x * 4 - 4, x * 4)"
                     :key="`muta-${i}-${x}`"
                     v-model="mutationConfig[m]"
                     :label="m"

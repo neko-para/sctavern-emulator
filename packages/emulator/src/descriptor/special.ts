@@ -92,7 +92,7 @@ const data: CardDescriptorTable = {
       await card.obtain_unit(us('行星要塞', n))
     }),
     autoBindUnique(async (card, desc) => {
-      card.attrib.setView('行星要塞', () => (desc.disabled ? '停用' : '启用'))
+      card.view.set('行星要塞', () => (desc.disabled ? '停用' : '启用'))
       card.bus.on('card-selled', async ({ target }) => {
         if (desc.disabled) {
           return

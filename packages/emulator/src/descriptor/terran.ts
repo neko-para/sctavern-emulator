@@ -9,14 +9,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
-import {
-  autoBind,
-  autoBindUnique,
-  isCardInstance,
-  refC,
-  refP,
-  us,
-} from '../utils'
+import { autoBind, autoBindUnique, isCardInstance, refP, us } from '../utils'
 
 export enum RenewPolicy {
   never,
@@ -32,8 +25,8 @@ export function 任务<T extends keyof LogicBus>(
   policy: RenewPolicy = RenewPolicy.never
 ): DescriptorGenerator {
   return (card, gold) => {
-    card.attrib.config('task', 0, 'discard')
-    card.attrib.setView(
+    card.attrib.set('task', 0)
+    card.view.set(
       '任务',
       () => `任务进度: ${card.attrib.get('task')} / ${count}`
     )
@@ -298,8 +291,8 @@ const data: CardDescriptorTable = {
       }
     }),
     autoBindUnique((card, desc) => {
-      card.player.attrib.config('沃菲尔德', 0, 'add', false)
-      card.attrib.setView('沃菲尔德', () => {
+      card.player.attrib.alter('沃菲尔德', 0)
+      card.view.set('沃菲尔德', () => {
         if (desc.disabled) {
           return '禁用'
         }
@@ -317,18 +310,10 @@ const data: CardDescriptorTable = {
         if (target.data.race !== 'T') {
           return
         }
-        card.player.attrib.setView(
-          '沃菲尔德',
-          () =>
-            `本回合沃菲尔德已回收的卡牌数: ${card.player.attrib.get(
-              '沃菲尔德'
-            )}`
-        )
-        const v = card.player.attrib.get('沃菲尔德')
-        if (v >= (desc.gold ? 2 : 1)) {
+        if (card.player.attrib.get('沃菲尔德') >= (desc.gold ? 2 : 1)) {
           return
         }
-        card.player.attrib.set('沃菲尔德', v + 1)
+        card.player.attrib.alter('沃菲尔德', 1)
         await card.obtain_unit(target.data.units.filter(isNormal))
       })
     }, '沃菲尔德'),

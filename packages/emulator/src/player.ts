@@ -10,7 +10,7 @@ import {
   Upgrade,
   RoleKey,
 } from '@sctavern-emulator/data'
-import { AttributeManager } from './attribute'
+import { AttributeManager, CombineAttribute } from './attribute'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
@@ -680,7 +680,21 @@ export class Player {
       this.data.config.MaxUpgradePerCard
     )
 
-    cs[0].attrib.combine(cs[1].attrib)
+    cs[0].attrib = CombineAttribute(
+      cs[0].attrib,
+      cs[1].attrib,
+      (name, v1, v2) => {
+        switch (name) {
+          case 'task':
+            return 0
+          case 'void':
+            return Math.max(v1, v2)
+          default:
+            return v1 + v2
+        }
+      }
+    )
+    cs[0].view.clean()
 
     cs[0].data.occupy.push(...cs[1].data.occupy, cardt.name)
 

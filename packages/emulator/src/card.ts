@@ -9,7 +9,7 @@ import {
   UnitKey,
   UpgradeKey,
 } from '@sctavern-emulator/data'
-import { AttributeManager } from './attribute'
+import { AttributeManager, AttributeViewer } from './attribute'
 import { Descriptors } from './descriptor'
 import { Emitter } from './emitter'
 import { Player } from './player'
@@ -65,6 +65,7 @@ export class CardInstance {
   readonly data: CardInstanceAttrib
 
   attrib: AttributeManager
+  view: AttributeViewer
 
   constructor(player: Player, cardt: Card) {
     this.bus = new Emitter('', [])
@@ -83,7 +84,7 @@ export class CardInstance {
       occupy: [],
 
       attribs: computed(() => {
-        return this.attrib.views.value
+        return this.view.views()
       }),
       left: computed(() => {
         if (this.data.pos > 0 && this.player.data.present[this.data.pos - 1]) {
@@ -144,6 +145,7 @@ export class CardInstance {
     })
 
     this.attrib = new AttributeManager()
+    this.view = new AttributeViewer()
 
     if (cardt.attr.origin) {
       this.data.belong = 'origin'
@@ -155,7 +157,7 @@ export class CardInstance {
     }
 
     if (cardt.attr.dark) {
-      this.attrib.config('dark', 0, 'add')
+      this.attrib.set('dark', 0)
     }
 
     this.bind()
@@ -165,18 +167,18 @@ export class CardInstance {
   bindDef() {
     switch (this.data.belong) {
       case 'origin':
-        this.attrib.setView('origin', () => {
+        this.view.set('origin', () => {
           return '属于原始虫群'
         })
         break
       case 'building':
-        this.attrib.setView('building', () => {
+        this.view.set('building', () => {
           return '建筑卡'
         })
         break
     }
 
-    this.attrib.setView('power', () => {
+    this.view.set('power', () => {
       if (this.data.race === 'P' || this.data.power > 0) {
         return `能量强度: ${this.data.power}`
       } else {
@@ -184,13 +186,21 @@ export class CardInstance {
       }
     })
 
-    if (this.attrib.has('dark')) {
-      this.attrib.setView('dark', () => `黑暗值: ${this.attrib.get('dark')}`)
-    }
+    this.view.set('dark', () => {
+      if (this.attrib.has('dark')) {
+        return `黑暗值: ${this.attrib.get('dark')}`
+      } else {
+        return ''
+      }
+    })
 
-    if (this.attrib.get('void')) {
-      this.attrib.setView('void', () => '虚空投影')
-    }
+    this.view.set('void', () => {
+      if (this.attrib.has('void')) {
+        return '虚空投影'
+      } else {
+        return ''
+      }
+    })
   }
 
   async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
@@ -218,7 +228,7 @@ export class CardInstance {
   }
 
   set_void() {
-    this.attrib.config('void', 1, 'max')
+    this.attrib.set('void', 1)
   }
 
   async switch_infr() {
@@ -334,30 +344,27 @@ export class CardInstance {
           const vsum = rst.map(u => u.value).reduce((a, b) => a + b, 0)
 
           this.data.units = [this.data.units[idx]]
-          this.attrib.config('献祭', sum)
-          this.attrib.config('献祭价值', vsum)
-          this.attrib.setView(
+          this.attrib.set('献祭', sum)
+          this.attrib.set('献祭价值', vsum)
+          this.view.set(
             '献祭',
             () => `献祭的生命值: ${this.attrib.get('献祭')}`
           )
           this.add_desc(
             autoBind('obtain-unit-prev', async (card, gold, param) => {
-              card.attrib.set(
+              card.attrib.alter(
                 '献祭',
-                card.attrib.get('献祭') +
-                  param.units
-                    .map(getUnit)
-                    .map(u => u.health + (u.shield || 0))
-                    .reduce((a, b) => a + b, 0) *
-                    1.5
+                param.units
+                  .map(getUnit)
+                  .map(u => u.health + (u.shield || 0))
+                  .reduce((a, b) => a + b, 0) * 1.5
               )
-              card.attrib.set(
+              card.attrib.alter(
                 '献祭价值',
-                card.attrib.get('献祭价值') +
-                  param.units
-                    .map(getUnit)
-                    .map(u => u.value)
-                    .reduce((a, b) => a + b, 0)
+                param.units
+                  .map(getUnit)
+                  .map(u => u.value)
+                  .reduce((a, b) => a + b, 0)
               )
               param.units = []
             }),
@@ -476,7 +483,7 @@ export class CardInstance {
     if (!this.attrib.has('dark')) {
       return
     }
-    this.attrib.set('dark', this.attrib.get('dark') + dark)
+    this.attrib.alter('dark', dark)
     if (dark > 0) {
       await this.post('gain-darkness', {
         ...refC(this),

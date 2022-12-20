@@ -1,11 +1,4 @@
-import { AllMutations, MutationPreventRole } from './types'
-import type {
-  MutationKey,
-  GameConfig,
-  GameReplay,
-  InputBus,
-  LogItem,
-} from './types'
+import type { GameConfig, GameReplay, InputBus, LogItem } from './types'
 import { Game } from './game'
 import { Player } from './player'
 import { CardInstance, type CardInstanceAttrib } from './card'
@@ -21,15 +14,12 @@ import {
 export type {
   LogItem,
   GameReplay,
-  MutationKey,
   GameConfig,
   InputBus,
   CardInstanceAttrib,
   Adapter,
 }
 export {
-  AllMutations,
-  MutationPreventRole,
   Game,
   Player,
   CardInstance,

@@ -7,6 +7,7 @@ import type {
   Unit,
   Upgrade,
   Role,
+  Mutation,
   Weapon,
   Armor,
   SArmor,
@@ -20,6 +21,7 @@ import {
   AllTerm,
   AllUpgrade,
   AllRole,
+  AllMutation,
   hash,
   hash_full,
 } from './pubdata'
@@ -29,20 +31,41 @@ import type {
   UnitKey,
   UpgradeKey,
   RoleKey,
+  MutationKey,
   PossibleKey,
 } from './pubdata'
-const { card, term, unit, upgrade, role, attr, tr, order } = raw
+const { card, term, unit, upgrade, role, mutation, attr, tr, order } = raw
 
 export const Cards: Map<CardKey, Card> = new Map()
 export const Terms: Map<TermKey, Term> = new Map()
 export const Units: Map<UnitKey, Unit> = new Map()
 export const Upgrades: Map<UpgradeKey, Upgrade> = new Map()
 export const Roles: Map<RoleKey, Role> = new Map()
+export const Mutations: Map<MutationKey, Mutation> = new Map()
 
 export { attr, tr, order, hash, hash_full }
-export { AllCard, AllUnit, AllTerm, AllUpgrade, AllRole }
-export { CardKey, TermKey, UnitKey, UpgradeKey, RoleKey, PossibleKey }
-export { Race, Card, Term, Unit, Upgrade, Role, Weapon, Armor, SArmor }
+export { AllCard, AllUnit, AllTerm, AllUpgrade, AllRole, AllMutation }
+export {
+  CardKey,
+  TermKey,
+  UnitKey,
+  UpgradeKey,
+  RoleKey,
+  MutationKey,
+  PossibleKey,
+}
+export {
+  Race,
+  Card,
+  Term,
+  Unit,
+  Upgrade,
+  Role,
+  Mutation,
+  Weapon,
+  Armor,
+  SArmor,
+}
 export { SplitResult, SplitResultRefer }
 
 card.forEach(c => Cards.set(c.name, c))
@@ -50,6 +73,7 @@ term.forEach(t => Terms.set(t.name, t))
 unit.forEach(u => Units.set(u.name, u))
 upgrade.forEach(u => Upgrades.set(u.name, u))
 role.forEach(r => Roles.set(r.name, r))
+mutation.forEach(m => Mutations.set(m.name, m))
 
 export function getCard(key: CardKey) {
   return Cards.get(key) as Card
@@ -65,6 +89,9 @@ export function getUpgrade(key: UpgradeKey) {
 }
 export function getRole(key: RoleKey) {
   return Roles.get(key) as Role
+}
+export function getMutation(key: MutationKey) {
+  return Mutations.get(key) as Mutation
 }
 export function canElite(key: UnitKey) {
   return AllUnit.includes((key + '(精英)') as UnitKey)
