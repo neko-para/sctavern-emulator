@@ -1032,6 +1032,9 @@ function 德哈卡(r: IRole) {
       return
     }
     if (card.data.belong === 'origin') {
+      if (r.data.prog_cur < 1) {
+        return
+      }
       const evolution: Record<
         | '原始蟑螂'
         | '原始刺蛇'
