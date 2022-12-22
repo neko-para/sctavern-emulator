@@ -178,10 +178,10 @@ const data: CardDescriptorTable = {
   不法之徒: [],
   生化实验室: [
     autoBind('post-deploy', async (card, gold, { target }) => {
-      const idx = target
-        .filter(isBiological)
-        .filter(u => u !== '被感染的陆战队员')
-        .slice(0, 5)
+      const idx = target.filter(
+        u => isBiological(u) && u !== '被感染的陆战队员',
+        5
+      )
       await target.player.inject(us('被感染的陆战队员', idx.length))
     }),
   ],

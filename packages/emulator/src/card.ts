@@ -388,10 +388,13 @@ export class CardInstance {
     })
   }
 
-  filter(func: (unit: UnitKey, pos: number) => boolean) {
+  filter(func: (unit: UnitKey, pos: number) => boolean, maxi = -1) {
     const taked: UnitKey[] = []
+    if (maxi === -1) {
+      maxi = this.data.units.length
+    }
     this.data.units = this.data.units.filter((u, i) => {
-      if (func(u, i)) {
+      if (func(u, i) && taked.length < maxi) {
         taked.push(u)
         return false
       } else {
