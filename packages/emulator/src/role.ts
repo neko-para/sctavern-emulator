@@ -1385,7 +1385,11 @@ function 凯瑞甘(r: IRole) {
           units.push(...us(u as UnitKey, cardt.unit[u as UnitKey] as number))
         }
         if (card.data.color === 'gold') {
-          units.push(...units)
+          units.push(
+            ...units.filter(
+              u => !['反应堆', '科技实验室', '高级科技实验室'].includes(u)
+            )
+          )
         }
         await card.obtain_unit(units)
       }
