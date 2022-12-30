@@ -9,7 +9,7 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable } from '../types'
-import { autoBind, autoBindUnique, fake, us } from '../utils'
+import { autoBind, autoBindX, fake, us } from '../utils'
 import { RenewPolicy, 任务 } from './terran'
 
 function 制造X(
@@ -91,18 +91,25 @@ const data: CardDescriptorTable = {
       card.remove_unit(card.find('自动机炮', n * r))
       await card.obtain_unit(us('行星要塞', n))
     }),
-    autoBindUnique(async (card, desc) => {
-      card.view.set('行星要塞', () => (desc.disabled ? '停用' : '启用'))
-      card.bus.on('card-selled', async ({ target }) => {
-        if (desc.disabled) {
-          return
-        }
-        if (target.data.race !== 'N') {
-          return
-        }
-        await card.obtain_unit(target.filter(isBuilding))
-      })
-    }, '行星要塞'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-selled': async ({ target }) => {
+          if (desc.disabled) {
+            return
+          }
+          if (target.data.race !== 'N') {
+            return
+          }
+          await card.obtain_unit(target.filter(isBuilding))
+        },
+      }),
+      {
+        unique: '行星要塞',
+        init: (card, gold, desc) => {
+          card.view.set('行星要塞', () => (desc.disabled ? '停用' : '启用'))
+        },
+      }
+    ),
   ],
   星门: [
     autoBind('round-end', async (card, gold) => {

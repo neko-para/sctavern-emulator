@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getCard, type CardKey } from '@sctavern-emulator/data'
-import type { Client } from '@sctavern-emulator/emulator'
+import type { PlayerClient } from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   card: CardKey | null
   model: boolean
   pos: number
   selected: boolean
-  client: Client
+  client: PlayerClient
 }>()
 
 const cardInfo = computed(() => {
@@ -28,7 +28,14 @@ const cardInfo = computed(() => {
       selected: selected,
       special: client.player.data.storeStatus[props.pos].special && !selected,
     }"
-    @click="!model && client.selectChoose(card ? `S${pos}` : 'none')"
+    @click="
+      !model &&
+        client.post({
+          msg: '$select',
+          area: card ? 'store' : 'none',
+          choice: card ? pos : -1,
+        })
+    "
   >
     <template v-if="card && cardInfo">
       <div class="d-flex mx-1 w-100" v-if="!selected">
@@ -42,7 +49,7 @@ const cardInfo = computed(() => {
           variant="flat"
           :color="act.name === '三连' ? 'yellow' : ''"
           :disabled="model || !act.enable"
-          @click="client.post(act.message, { player: client.pos, place: pos })"
+          @click="client.post(act.message)"
           >{{ act.name }}</v-btn
         >
       </div>

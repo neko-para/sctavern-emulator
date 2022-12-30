@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
+import type {
+  CardInstanceAttrib,
+  PlayerClient,
+} from '@sctavern-emulator/emulator'
 import { AllCard, type CardKey } from '@sctavern-emulator/data'
 import type { UnitKey } from '@sctavern-emulator/data'
 import TemplateRefer from './TemplateRefer.vue'
@@ -14,7 +17,7 @@ const props = defineProps<{
   insert: boolean
   deploy: boolean
   selected: boolean
-  client: Client
+  client: PlayerClient
 }>()
 
 const allUnit = computed(() => {
@@ -47,7 +50,14 @@ const elv = ref(5)
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="!model && client.selectChoose(card ? `P${pos}` : 'none')"
+    @click="
+      !model &&
+        client.post({
+          msg: '$select',
+          area: card ? 'present' : 'none',
+          choice: card ? pos : -1,
+        })
+    "
   >
     <template v-if="card">
       <div class="d-flex">
@@ -102,7 +112,7 @@ const elv = ref(5)
           :key="`Act-${i}`"
           variant="text"
           :disabled="model || !act.enable"
-          @click="client.post(act.message, { player: client.pos, place: pos })"
+          @click="client.post(act.message)"
           >{{ act.name }}</v-btn
         >
         <v-btn
@@ -110,8 +120,10 @@ const elv = ref(5)
           v-if="insert"
           variant="text"
           @click="
-            client.insertChoose({
-              pos,
+            client.post({
+              msg: '$choice',
+              category: 'insert',
+              choice: pos,
             })
           "
           >这里</v-btn
@@ -121,8 +133,10 @@ const elv = ref(5)
           v-if="deploy"
           variant="text"
           @click="
-            client.deployChoose({
-              pos,
+            client.post({
+              msg: '$choice',
+              category: 'deploy',
+              choice: pos,
             })
           "
           >这里</v-btn
@@ -135,8 +149,10 @@ const elv = ref(5)
         v-if="insert"
         variant="text"
         @click="
-          client.insertChoose({
-            pos,
+          client.post({
+            msg: '$choice',
+            category: 'insert',
+            choice: pos,
           })
         "
         >这里</v-btn

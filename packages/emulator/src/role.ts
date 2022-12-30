@@ -26,7 +26,6 @@ import {
   isCardInstance,
   isCardInstanceAttrib,
   mostValueUnit,
-  refP,
   us,
 } from './utils'
 import { Descriptors } from './descriptor'
@@ -50,7 +49,7 @@ interface IRole {
 
   buy_cost(
     card: CardKey,
-    act: 'enter' | 'combine' | 'cache',
+    act: 'enter' | 'combine' | 'stage',
     pos: number
   ): number
   refresh_cost(): number
@@ -71,7 +70,7 @@ export class RoleImpl implements IRole {
 
   buy_cost: (
     card: CardKey,
-    act: 'enter' | 'combine' | 'cache',
+    act: 'enter' | 'combine' | 'stage',
     pos: number
   ) => number
   refresh_cost: () => number
@@ -114,8 +113,10 @@ function ActPerRound(
   e: (r: IRole) => boolean = () => true
 ) {
   r.data.prog_max = c
-  r.player.bus.on('round-enter', async () => {
-    r.data.prog_cur = c
+  r.player.$on({
+    'round-enter': async () => {
+      r.data.prog_cur = c
+    },
   })
   r.data.enable = computed(() => {
     return r.data.prog_cur > 0 && e(r)
@@ -220,7 +221,7 @@ function 感染虫(r: IRole) {
     card.data.color = 'darkgold'
     card.data.race = 'Z'
     card.data.name = `被感染的${card.data.name}`
-    await card.clear_desc()
+    card.clear_desc()
     card.add_desc(
       autoBind('round-end', async card => {
         await role.player.inject(card.data.units.filter(isNormal).slice(0, 1))
@@ -272,18 +273,20 @@ function 阿巴瑟(r: IRole) {
 }
 
 function 工蜂(r: IRole) {
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round % 2 === 1) {
-      if (r.player.data.gas < 6) {
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round % 2 === 1) {
+        if (r.player.data.gas < 6) {
+          r.player.obtain_resource({
+            gas: 1,
+          })
+        }
+      } else {
         r.player.obtain_resource({
-          gas: 1,
+          mineral: 1,
         })
       }
-    } else {
-      r.player.obtain_resource({
-        mineral: 1,
-      })
-    }
+    },
   })
 }
 
@@ -292,16 +295,18 @@ function 副官(r: IRole) {
   r.refresh_cost = () => {
     return r.data.prog_cur > 0 ? 0 : 1
   }
-  r.player.bus.on('round-enter', async () => {
-    r.data.prog_cur = 1
-    if (r.player.persisAttrib.get('R副官')) {
-      r.player.obtain_resource({
-        mineral: 1,
-      })
-    }
-  })
-  r.player.bus.on('round-end', async () => {
-    r.player.persisAttrib.set('R副官', r.player.data.mineral)
+  r.player.$on({
+    'round-enter': async () => {
+      r.data.prog_cur = 1
+      if (r.player.persisAttrib.get('R副官')) {
+        r.player.obtain_resource({
+          mineral: 1,
+        })
+      }
+    },
+    'round-end': async () => {
+      r.player.persisAttrib.set('R副官', r.player.data.mineral)
+    },
   })
   r.refreshed = async () => {
     if (r.data.prog_cur > 0) {
@@ -321,10 +326,12 @@ function 追猎者(r: IRole) {
       await r.refreshed()
     }
   }
-  r.player.bus.on('round-enter', async () => {
-    if (!r.data.enpower) {
-      r.data.prog_cur = 0
-    }
+  r.player.$on({
+    'round-enter': async () => {
+      if (!r.data.enpower) {
+        r.data.prog_cur = 0
+      }
+    },
   })
   r.refreshed = async () => {
     if (!r.data.enpower && r.data.prog_cur < r.data.prog_max) {
@@ -355,22 +362,26 @@ function 使徒(r: IRole) {
   r.buy_cost = (ck, act) => {
     return r.data.enpower && act !== 'combine' ? 1 : 3
   }
-  r.player.bus.on('round-start', async () => {
-    r.data.prog_cur = 0
+  r.player.$on({
+    'round-start': async () => {
+      r.data.prog_cur = 0
+    },
   })
 }
 
 function 矿骡(r: IRole) {
-  r.player.bus.on('round-enter', async () => {
-    if (r.player.persisAttrib.get('R矿骡')) {
-      r.data.enable = false
-      r.player.obtain_resource({
-        mineral: 2 - r.player.data.mineral_max,
-      })
-      r.player.persisAttrib.set('R矿骡', 0)
-    } else {
-      r.data.enable = true
-    }
+  r.player.$on({
+    'round-enter': async () => {
+      if (r.player.persisAttrib.get('R矿骡')) {
+        r.data.enable = false
+        r.player.obtain_resource({
+          mineral: 2 - r.player.data.mineral_max,
+        })
+        r.player.persisAttrib.set('R矿骡', 0)
+      } else {
+        r.data.enable = true
+      }
+    },
   })
   return async () => {
     r.player.persisAttrib.set('R矿骡', 1)
@@ -382,28 +393,30 @@ function 矿骡(r: IRole) {
 }
 
 function 斯台特曼(r: IRole) {
-  r.player.bus.on('card-entered', async ({ target }) => {
-    await r.player.discover(
-      r.player.game
-        .shuffle(AllUpgrade.filter(x => x !== '献祭'))
-        .slice(0, 3)
-        .map(getUpgrade),
-      {
-        target,
-      }
-    )
-  })
-  r.player.bus.on('tavern-upgraded', async () => {
-    r.player.obtain_resource({
-      gas: 1,
-    })
-  })
-  r.player.bus.on('round-start', async ({ round }) => {
-    if (round > 1) {
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      await r.player.discover(
+        r.player.game
+          .shuffle(AllUpgrade.filter(x => x !== '献祭'))
+          .slice(0, 3)
+          .map(getUpgrade),
+        {
+          target,
+        }
+      )
+    },
+    'tavern-upgraded': async () => {
       r.player.obtain_resource({
-        gas: -1,
+        gas: 1,
       })
-    }
+    },
+    'round-start': async ({ round }) => {
+      if (round > 1) {
+        r.player.obtain_resource({
+          gas: -1,
+        })
+      }
+    },
   })
 }
 
@@ -420,7 +433,7 @@ function 雷诺(r: IRole) {
     }
     card.data.color = 'gold'
     const descs = card.data.descriptors
-    await card.clear_desc()
+    card.clear_desc()
     for (const d of descs) {
       card.add_desc(d.data.desc, d.data.text)
     }
@@ -432,35 +445,37 @@ function 雷诺(r: IRole) {
 function 阿塔尼斯(r: IRole) {
   r.data.prog_max = 9
   r.data.prog_cur = 0
-  r.player.bus.on('card-entered', async ({ target }) => {
-    if (r.data.prog_cur === -1) {
-      return
-    }
-    if (target.data.race !== 'P') {
-      return
-    }
-    r.data.prog_cur += 1
-    if (r.data.prog_cur === r.data.prog_max) {
-      r.data.prog_cur = -1
-      const cardt = getCard('阿塔尼斯')
-      const units: UnitKey[] = []
-      for (const k in cardt.unit) {
-        units.push(...Array(cardt.unit[k as UnitKey]).fill(k))
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      if (r.data.prog_cur === -1) {
+        return
       }
-      await target.obtain_unit(units)
-
-      const descs = Descriptors[cardt.name]
-      if (descs) {
-        for (let i = 0; i < descs.length; i++) {
-          target.add_desc(descs[i], cardt.desc[i])
+      if (target.data.race !== 'P') {
+        return
+      }
+      r.data.prog_cur += 1
+      if (r.data.prog_cur === r.data.prog_max) {
+        r.data.prog_cur = -1
+        const cardt = getCard('阿塔尼斯')
+        const units: UnitKey[] = []
+        for (const k in cardt.unit) {
+          units.push(...Array(cardt.unit[k as UnitKey]).fill(k))
         }
-      } else {
-        console.log('WARN: Card Not Implement Yet')
-      }
+        await target.obtain_unit(units)
 
-      target.data.name = '大主教的卫队'
-      target.data.color = 'darkgold'
-    }
+        const descs = Descriptors[cardt.name]
+        if (descs) {
+          for (let i = 0; i < descs.length; i++) {
+            target.add_desc(descs[i], cardt.desc[i])
+          }
+        } else {
+          console.log('WARN: Card Not Implement Yet')
+        }
+
+        target.data.name = '大主教的卫队'
+        target.data.color = 'darkgold'
+      }
+    },
   })
 }
 
@@ -478,11 +493,13 @@ function 科学球(r: IRole) {
     return (Object.keys(record) as UnitKey[]).map(k => `${k}: ${record[k]}`)
     // .join('\n')
   }) as unknown as string[]
-  r.player.bus.on('card-entered', async ({ target }) => {
-    const [unit] = mostValueUnit(target.data.units)
-    if (unit) {
-      record[unit] = (record[unit] || 0) + 1
-    }
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      const [unit] = mostValueUnit(target.data.units)
+      if (unit) {
+        record[unit] = (record[unit] || 0) + 1
+      }
+    },
   })
   return async () => {
     if (
@@ -508,39 +525,43 @@ function 科学球(r: IRole) {
 function 母舰核心(r: IRole) {
   r.data.prog_max = 2
   r.data.prog_cur = 0
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round === 1) {
-      r.player.obtain_resource({
-        mineral: -3,
-      })
-      await r.player.enter(getCard('母舰核心'))
-    }
-  })
-  r.player.bus.on('card-combined', async () => {
-    const cs = r.player.find_name(r.data.enpower ? '母舰' : '母舰核心')
-    const c = cs.length > 0 ? cs[0] : null
-    if (r.data.prog_cur < r.data.prog_max && r.data.prog_cur !== -1) {
-      r.data.prog_cur += 1
-      if (r.data.prog_cur === r.data.prog_max) {
-        r.data.enpower = true
-        r.data.prog_cur = -1
-        if (c) {
-          c.data.name = '母舰'
-          c.replace_unit(c.find('母舰核心', 1), '母舰')
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round === 1) {
+        r.player.obtain_resource({
+          mineral: -3,
+        })
+        await r.player.enter(getCard('母舰核心'))
+      }
+    },
+    'card-combined': async () => {
+      const cs = r.player.find_name(r.data.enpower ? '母舰' : '母舰核心')
+      const c = cs.length > 0 ? cs[0] : null
+      if (r.data.prog_cur < r.data.prog_max && r.data.prog_cur !== -1) {
+        r.data.prog_cur += 1
+        if (r.data.prog_cur === r.data.prog_max) {
+          r.data.enpower = true
+          r.data.prog_cur = -1
+          if (c) {
+            c.data.name = '母舰'
+            c.replace_unit(c.find('母舰核心', 1), '母舰')
+          }
         }
       }
-    }
-    if (c) {
-      await c.obtain_unit(us('虚空辉光舰', r.player.data.level))
-    }
+      if (c) {
+        await c.obtain_unit(us('虚空辉光舰', r.player.data.level))
+      }
+    },
   })
 }
 
 function 行星要塞(r: IRole) {
-  r.player.bus.on('card-entered', async ({ target }) => {
-    if (target.data.belong === 'building') {
-      await target.obtain_unit(us('自动机炮', target.player.data.level + 1))
-    }
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      if (target.data.belong === 'building') {
+        await target.obtain_unit(us('自动机炮', target.player.data.level + 1))
+      }
+    },
   })
   return ActPerRound(
     r,
@@ -602,8 +623,10 @@ function 拟态虫(r: IRole) {
 }
 
 function 探机(r: IRole) {
-  r.player.bus.on('card-entered', async ({ target }) => {
-    await target.obtain_unit(['水晶塔'])
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      await target.obtain_unit(['水晶塔'])
+    },
   })
   return ActPerRound(
     r,
@@ -631,126 +654,130 @@ function 探机(r: IRole) {
 }
 
 function 泰凯斯(r: IRole) {
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round === 1) {
-      if (r.player.data.mineral === 3) {
-        // 考虑到存在作为辅助角色碰到母舰的情况
-        r.player.obtain_resource({
-          mineral: -3,
-        })
-      }
-      const card = (await r.player.enter(getCard('不法之徒'))) as CardInstance
-      let reactor: [DescriptorGenerator, [string, string]] | null = null
-      const tasks: [DescriptorGenerator, string][] = [
-        [
-          任务('refreshed', 4, async card => {
-            card.player.data.upgrade_cost = Math.max(
-              0,
-              card.player.data.upgrade_cost - 4
-            )
-            await card.obtain_unit(['反应堆'])
-            card.data.level = 2
-            reactor = [
-              反应堆('陆战队员'),
-              ['反应堆生产陆战队员', '反应堆生产陆战队员'],
-            ]
-            pop()
-          }),
-          '任务: 刷新4次酒馆\n奖励: 酒馆升级费用降低4并获得反应堆, 生产陆战队员',
-        ],
-        [
-          任务('card-entered', 2, async card => {
-            await card.obtain_unit(us('陆战队员', 4))
-            card.data.level = 3
-            pop()
-          }),
-          '任务: 进场2张卡牌\n奖励: 获得4个陆战队员',
-        ],
-        [
-          任务('refreshed', 4, async card => {
-            await card.obtain_upgrade('强化药剂')
-            await card.player.discover(
-              card.player.game.pool.discover(
-                c => c.level === card.player.data.level,
-                3
-              )
-            )
-            card.data.level = 4
-            pop()
-          }),
-          '任务: 刷新4次酒馆\n奖励: 获得强化药剂升级, 获得当前酒馆等级的卡牌',
-        ],
-        [
-          任务('refreshed', 6, async card => {
-            await card.player.discover(
-              card.player.game.pool.discover(
-                c => c.level === card.player.data.level,
-                3
-              )
-            )
-            card.data.level = 5
-            reactor = [
-              反应堆('陆战队员(精英)'),
-              ['反应堆生产陆战队员(精英)', '反应堆生产陆战队员(精英)'],
-            ]
-            pop()
-          }),
-          '任务: 刷新6次酒馆\n奖励: 获得当前酒馆等级的卡牌, 反应堆生产陆战队员(精英)',
-        ],
-        [
-          任务('card-entered', 4, async card => {
-            card.player.obtain_resource({
-              mineral: 4,
-            })
-            await card.obtain_unit(us('攻城坦克', 2))
-            card.data.level = 6
-            pop()
-          }),
-          '任务: 进场4张卡牌\n奖励: 获得4晶体矿和2攻城坦克',
-        ],
-        [
-          任务('card-entered', 6, async card => {
-            await card.obtain_unit(['奥丁'])
-            card.data.level = 7
-            pop()
-          }),
-          '任务: 进场6张卡牌\n奖励: 获得1奥丁',
-        ],
-        [
-          任务(
-            'card-entered',
-            4,
-            async card => {
-              await card.obtain_unit(['雷神'])
-            },
-            () => true,
-            RenewPolicy.instant
-          ),
-          '任务: 进场4张卡牌\n奖励: 获得1雷神',
-        ],
-      ]
-      const pop = () => {
-        const task = tasks.shift()
-        if (task) {
-          card.clear_desc()
-          if (reactor) {
-            card.add_desc(reactor[0], reactor[1])
-          }
-          card.add_desc(task[0], [task[1], task[1]])
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round === 1) {
+        if (r.player.data.mineral === 3) {
+          // 考虑到存在作为辅助角色碰到母舰的情况
+          r.player.obtain_resource({
+            mineral: -3,
+          })
         }
+        const card = (await r.player.enter(getCard('不法之徒'))) as CardInstance
+        let reactor: [DescriptorGenerator, [string, string]] | null = null
+        const tasks: [DescriptorGenerator, string][] = [
+          [
+            任务('store-refreshed', 4, async card => {
+              card.player.data.upgrade_cost = Math.max(
+                0,
+                card.player.data.upgrade_cost - 4
+              )
+              await card.obtain_unit(['反应堆'])
+              card.data.level = 2
+              reactor = [
+                反应堆('陆战队员'),
+                ['反应堆生产陆战队员', '反应堆生产陆战队员'],
+              ]
+              pop()
+            }),
+            '任务: 刷新4次酒馆\n奖励: 酒馆升级费用降低4并获得反应堆, 生产陆战队员',
+          ],
+          [
+            任务('card-entered', 2, async card => {
+              await card.obtain_unit(us('陆战队员', 4))
+              card.data.level = 3
+              pop()
+            }),
+            '任务: 进场2张卡牌\n奖励: 获得4个陆战队员',
+          ],
+          [
+            任务('store-refreshed', 4, async card => {
+              await card.obtain_upgrade('强化药剂')
+              await card.player.discover(
+                card.player.game.pool.discover(
+                  c => c.level === card.player.data.level,
+                  3
+                )
+              )
+              card.data.level = 4
+              pop()
+            }),
+            '任务: 刷新4次酒馆\n奖励: 获得强化药剂升级, 获得当前酒馆等级的卡牌',
+          ],
+          [
+            任务('store-refreshed', 6, async card => {
+              await card.player.discover(
+                card.player.game.pool.discover(
+                  c => c.level === card.player.data.level,
+                  3
+                )
+              )
+              card.data.level = 5
+              reactor = [
+                反应堆('陆战队员(精英)'),
+                ['反应堆生产陆战队员(精英)', '反应堆生产陆战队员(精英)'],
+              ]
+              pop()
+            }),
+            '任务: 刷新6次酒馆\n奖励: 获得当前酒馆等级的卡牌, 反应堆生产陆战队员(精英)',
+          ],
+          [
+            任务('card-entered', 4, async card => {
+              card.player.obtain_resource({
+                mineral: 4,
+              })
+              await card.obtain_unit(us('攻城坦克', 2))
+              card.data.level = 6
+              pop()
+            }),
+            '任务: 进场4张卡牌\n奖励: 获得4晶体矿和2攻城坦克',
+          ],
+          [
+            任务('card-entered', 6, async card => {
+              await card.obtain_unit(['奥丁'])
+              card.data.level = 7
+              pop()
+            }),
+            '任务: 进场6张卡牌\n奖励: 获得1奥丁',
+          ],
+          [
+            任务(
+              'card-entered',
+              4,
+              async card => {
+                await card.obtain_unit(['雷神'])
+              },
+              () => true,
+              RenewPolicy.instant
+            ),
+            '任务: 进场4张卡牌\n奖励: 获得1雷神',
+          ],
+        ]
+        const pop = () => {
+          const task = tasks.shift()
+          if (task) {
+            card.clear_desc()
+            if (reactor) {
+              card.add_desc(reactor[0], reactor[1])
+            }
+            card.add_desc(task[0], [task[1], task[1]])
+          }
+        }
+        pop()
       }
-      pop()
-    }
+    },
   })
 }
 
 function 诺娃(r: IRole) {
-  r.player.bus.on('round-enter', async () => {
-    await r.player.discover(
-      r.player.game
-        .shuffle(AllCard.map(getCard).filter(c => c.attr.type === 'support'))
-        .slice(0, 2)
-    )
+  r.player.$on({
+    'round-enter': async () => {
+      await r.player.discover(
+        r.player.game
+          .shuffle(AllCard.map(getCard).filter(c => c.attr.type === 'support'))
+          .slice(0, 2)
+      )
+    },
   })
 }
 
@@ -783,8 +810,10 @@ function 跳虫() {
 
 function 蒙斯克(r: IRole) {
   r.data.prog_cur = 12
-  r.player.bus.on('round-start', async () => {
-    r.data.prog_cur = Math.max(0, r.data.prog_cur - 3)
+  r.player.$on({
+    'round-start': async () => {
+      r.data.prog_cur = Math.max(0, r.data.prog_cur - 3)
+    },
   })
   r.data.enable = computed<boolean>(() => {
     return r.player.data.mineral >= r.data.prog_cur
@@ -824,8 +853,10 @@ function 蒙斯克(r: IRole) {
 
 function 雷神(r: IRole) {
   r.data.enable = true
-  r.player.bus.on('tavern-upgraded', async () => {
-    r.data.enable = true
+  r.player.$on({
+    'tavern-upgraded': async () => {
+      r.data.enable = true
+    },
   })
   return async () => {
     const card = ExpectSelected(r, card => card.data.level < 6)
@@ -865,9 +896,12 @@ function 雷神(r: IRole) {
       console.log('WARN: Card Not Implement Yet')
     }
 
-    await r.player.post('card-entered', {
-      ...refP(r.player),
+    await r.player.post({
+      msg: 'card-entered',
       target: card,
+    })
+    await card.post({
+      msg: 'post-enter',
     })
     r.data.enable = false
   }
@@ -876,16 +910,18 @@ function 雷神(r: IRole) {
 function 机械哨兵(r: IRole) {
   r.data.prog_max = 3
   r.data.prog_cur = 3
-  r.player.bus.on('round-enter', async () => {
-    if (r.data.prog_cur === 0) {
-      r.player.attrib.set('R机械哨兵', 1)
-    }
+  r.player.$on({
+    'round-enter': async () => {
+      if (r.data.prog_cur === 0) {
+        r.player.attrib.set('R机械哨兵', 1)
+      }
+    },
   })
   r.data.enable = computed(() => {
     return (
       !r.player.attrib.get('R机械哨兵') &&
       r.player.data.mineral >= 4 &&
-      r.player.can_cache()
+      r.player.can_stage()
     )
   }) as unknown as boolean
 
@@ -897,7 +933,7 @@ function 机械哨兵(r: IRole) {
     if (!card) {
       return
     }
-    if (r.player.data.mineral < 4 || !r.player.can_cache()) {
+    if (r.player.data.mineral < 4 || !r.player.can_stage()) {
       return
     }
     r.player.obtain_resource({
@@ -914,8 +950,10 @@ function 异龙(r: IRole) {
   r.data.enable = computed<boolean>(() => {
     return !!r.player.persisAttrib.get('R异龙') && r.player.data.mineral >= 2
   }) as unknown as boolean
-  r.player.bus.on('tavern-upgraded', async () => {
-    r.player.persisAttrib.set('R异龙', 1)
+  r.player.$on({
+    'tavern-upgraded': async () => {
+      r.player.persisAttrib.set('R异龙', 1)
+    },
   })
   return async () => {
     if (!r.player.persisAttrib.get('R异龙') || r.player.data.mineral < 2) {
@@ -972,10 +1010,12 @@ function 分裂池(r: IRole) {
 function 响尾蛇(r: IRole) {
   r.data.prog_cur = 0
   r.data.prog_max = 3
-  r.player.bus.on('tavern-upgraded', async () => {
-    if (r.data.prog_cur === r.data.prog_max) {
-      r.data.prog_cur = 0
-    }
+  r.player.$on({
+    'tavern-upgraded': async () => {
+      if (r.data.prog_cur === r.data.prog_max) {
+        r.data.prog_cur = 0
+      }
+    },
   })
   r.refreshed = async () => {
     if (r.data.prog_cur < r.data.prog_max) {
@@ -997,34 +1037,38 @@ function 响尾蛇(r: IRole) {
 }
 
 function 混合体(r: IRole) {
-  r.player.bus.on('round-finish', async () => {
-    const hybrid: Record<number, UnitKey> = {
-      1: '混合体掠夺者',
-      2: '混合体天罚者',
-      3: '混合体毁灭者',
-      4: '混合体巨兽',
-      5: '混合体支配者',
-      6: '混合体实验体',
-    }
-    for (let i = 1; i <= 6; i++) {
-      const ps = r.player.all_of('P').filter(c => c.data.level === i)
-      const zs = r.player.all_of('Z').filter(c => c.data.level === i)
-      while (ps.length > 0 && zs.length > 0) {
-        const cs = r.player.game.shuffle([
-          ps.shift() as CardInstance,
-          zs.shift() as CardInstance,
-        ])
-        await cs[0].obtain_unit([hybrid[i]])
+  r.player.$on({
+    'round-leave': async () => {
+      const hybrid: Record<number, UnitKey> = {
+        1: '混合体掠夺者',
+        2: '混合体天罚者',
+        3: '混合体毁灭者',
+        4: '混合体巨兽',
+        5: '混合体支配者',
+        6: '混合体实验体',
       }
-    }
+      for (let i = 1; i <= 6; i++) {
+        const ps = r.player.all_of('P').filter(c => c.data.level === i)
+        const zs = r.player.all_of('Z').filter(c => c.data.level === i)
+        while (ps.length > 0 && zs.length > 0) {
+          const cs = r.player.game.shuffle([
+            ps.shift() as CardInstance,
+            zs.shift() as CardInstance,
+          ])
+          await cs[0].obtain_unit([hybrid[i]])
+        }
+      }
+    },
   })
 }
 
 function 德哈卡(r: IRole) {
   r.data.enable = true
   r.data.prog_cur = 0
-  r.player.bus.on('round-enter', async () => {
-    r.data.prog_cur += r.player.data.gas
+  r.player.$on({
+    'round-enter': async () => {
+      r.data.prog_cur += r.player.data.gas
+    },
   })
   return async () => {
     const card = ExpectSelected(r)
@@ -1090,23 +1134,28 @@ function 德哈卡(r: IRole) {
 }
 
 function 星港(r: IRole) {
-  r.player.bus.on('round-enter', async () => {
-    for (const card of r.player.present.filter(isCardInstance)) {
-      card.replace_unit(
-        card.find(u => isNormal(u) && !getUnit(u).air, r.player.data.level - 1),
-        u => (isHero(u) ? '战列巡航舰' : '怨灵战机')
-      )
-    }
-  })
-  r.player.bus.on('round-finish', async () => {
-    for (const card of r.player.present.filter(isCardInstance)) {
-      const maxi = mostValueUnit(
-        card.data.units.filter(u => !isHero(u) && getUnit(u).air)
-      )
-      if (maxi[0]) {
-        card.replace_unit(card.find('怨灵战机', 1), maxi[0])
+  r.player.$on({
+    'round-enter': async () => {
+      for (const card of r.player.present.filter(isCardInstance)) {
+        card.replace_unit(
+          card.find(
+            u => isNormal(u) && !getUnit(u).air,
+            r.player.data.level - 1
+          ),
+          u => (isHero(u) ? '战列巡航舰' : '怨灵战机')
+        )
       }
-    }
+    },
+    'round-leave': async () => {
+      for (const card of r.player.present.filter(isCardInstance)) {
+        const maxi = mostValueUnit(
+          card.data.units.filter(u => !isHero(u) && getUnit(u).air)
+        )
+        if (maxi[0]) {
+          card.replace_unit(card.find('怨灵战机', 1), maxi[0])
+        }
+      }
+    },
   })
 }
 
@@ -1179,69 +1228,73 @@ function 进化腔(r: IRole) {
           : r.player.game.gen.int(2, 5),
     }
   }
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round === 1) {
-      return
-    }
-    let maxi = 100
-    for (;;) {
-      const muts: ZergMutation[] = []
-      while (muts.length < 3) {
-        const mut = genMutation(maxi)
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round === 1) {
+        return
+      }
+      let maxi = 100
+      for (;;) {
+        const muts: ZergMutation[] = []
+        while (muts.length < 3) {
+          const mut = genMutation(maxi)
+          if (
+            muts.filter(m => m.from === mut.from && m.to === mut.to).length > 0
+          ) {
+            continue
+          }
+          muts.push(mut)
+        }
+        let cho = -1
         if (
-          muts.filter(m => m.from === mut.from && m.to === mut.to).length > 0
+          !(await r.player.discover(
+            muts.map(m => `${m.count}${m.from} -> ${m.count}${m.to}`),
+            {
+              extra: r.player.data.mineral > 0 ? '刷新' : undefined,
+              fake: c => {
+                cho = c
+              },
+            }
+          ))
         ) {
+          r.player.obtain_resource({
+            mineral: -1,
+          })
+          if (maxi > 5) {
+            maxi -= 5
+          }
           continue
         }
-        muts.push(mut)
-      }
-      let cho = -1
-      if (
-        !(await r.player.discover(
-          muts.map(m => `${m.count}${m.from} -> ${m.count}${m.to}`),
-          {
-            extra: r.player.data.mineral > 0 ? '刷新' : undefined,
-            fake: c => {
-              cho = c
-            },
-          }
-        ))
-      ) {
-        r.player.obtain_resource({
-          mineral: -1,
-        })
-        if (maxi > 5) {
-          maxi -= 5
+        const mutation = muts[cho]
+        for (const card of r.player.all_of('Z')) {
+          card.replace_unit(
+            card.find(
+              unit => unit === mutation.from || unit === elited(mutation.from),
+              mutation.count
+            ),
+            unit =>
+              unit === elited(mutation.from) && canElite(mutation.to)
+                ? elited(mutation.to)
+                : mutation.to
+          )
         }
-        continue
+        break
       }
-      const mutation = muts[cho]
-      for (const card of r.player.all_of('Z')) {
-        card.replace_unit(
-          card.find(
-            unit => unit === mutation.from || unit === elited(mutation.from),
-            mutation.count
-          ),
-          unit =>
-            unit === elited(mutation.from) && canElite(mutation.to)
-              ? elited(mutation.to)
-              : mutation.to
-        )
-      }
-      break
-    }
+    },
   })
 }
 
 function 锻炉(r: IRole) {
   r.data.prog_max = 50
   r.data.prog_cur = 0
-  r.player.bus.on('card-selled', async ({ target }) => {
-    if (target.data.name !== '虫卵') {
-      if (r.data.prog_cur < r.data.prog_max) {
-        r.data.prog_cur += 2
+  r.player.$on({
+    'card-selled': async ({ target }) => {
+      if (target.data.name !== '虫卵') {
+        if (r.data.prog_cur < r.data.prog_max) {
+          r.data.prog_cur += 2
+        }
       }
-    }
+    },
   })
 }
 
@@ -1250,73 +1303,77 @@ function 扎加拉(r: IRole) {
     return r.player.data.present.filter(isCardInstanceAttrib).length
   }) as unknown as number
   r.data.prog_max = 6
-  r.player.bus.on('round-enter', async () => {
-    if (r.data.prog_cur >= r.data.prog_max) {
-      const max_pos = r.player.data.present
-        .map((c, i) => [c, i] as [CardInstanceAttrib, number])
-        .filter(([c]) => isCardInstanceAttrib(c))
-        .map(([c, i]) => [c.value, i] as [number, number])
-        .sort(([va, ia], [vb, ib]) => {
-          if (va === vb) {
-            return ia - ib
-          } else {
-            return vb - va
-          }
-        })[0][1]
-      await r.player.destroy(r.player.present[max_pos] as CardInstance)
+  r.player.$on({
+    'round-enter': async () => {
+      if (r.data.prog_cur >= r.data.prog_max) {
+        const max_pos = r.player.data.present
+          .map((c, i) => [c, i] as [CardInstanceAttrib, number])
+          .filter(([c]) => isCardInstanceAttrib(c))
+          .map(([c, i]) => [c.value, i] as [number, number])
+          .sort(([va, ia], [vb, ib]) => {
+            if (va === vb) {
+              return ia - ib
+            } else {
+              return vb - va
+            }
+          })[0][1]
+        await r.player.destroy(r.player.present[max_pos] as CardInstance)
 
-      const min_pos = r.player.data.present
-        .map((c, i) => [c, i] as [CardInstanceAttrib, number])
-        .filter(([c]) => isCardInstanceAttrib(c))
-        .map(([c, i]) => [c.value, i] as [number, number])
-        .sort(([va, ia], [vb, ib]) => {
-          if (va === vb) {
-            return ia - ib
-          } else {
-            return va - vb
-          }
-        })[0][1]
-      await r.player.destroy(r.player.present[min_pos] as CardInstance)
-      r.player.obtain_resource({
-        mineral: 11,
-      })
-    }
+        const min_pos = r.player.data.present
+          .map((c, i) => [c, i] as [CardInstanceAttrib, number])
+          .filter(([c]) => isCardInstanceAttrib(c))
+          .map(([c, i]) => [c.value, i] as [number, number])
+          .sort(([va, ia], [vb, ib]) => {
+            if (va === vb) {
+              return ia - ib
+            } else {
+              return va - vb
+            }
+          })[0][1]
+        await r.player.destroy(r.player.present[min_pos] as CardInstance)
+        r.player.obtain_resource({
+          mineral: 11,
+        })
+      }
+    },
   })
 }
 
 function 大力神(r: IRole) {
   let cho3: CardKey = '不死队',
     cho5: CardKey = '不死队'
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round === 1) {
-      const c5 = r.player.game.pool.discover(c => c.level === 5, 3)
-      await r.player.discover(c5, {
-        fake: cho => {
-          cho5 = c5[cho].name
-        },
-      })
-      const c3 = r.player.game.pool.discover(c => c.level === 3, 3)
-      await r.player.discover(c3, {
-        fake: cho => {
-          cho3 = c3[cho].name
-        },
-      })
-      r.player.game.pool.drop([...c3, ...c5])
-    }
-  })
-  r.player.bus.on('tavern-upgraded', async ({ level }) => {
-    switch (level) {
-      case 2:
-      case 4:
-        r.player.data.upgrade_cost += 1
-        break
-      case 3:
-        await r.player.obtain_card(getCard(cho3))
-        break
-      case 5:
-        await r.player.obtain_card(getCard(cho5))
-        break
-    }
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round === 1) {
+        const c5 = r.player.game.pool.discover(c => c.level === 5, 3)
+        await r.player.discover(c5, {
+          fake: cho => {
+            cho5 = c5[cho].name
+          },
+        })
+        const c3 = r.player.game.pool.discover(c => c.level === 3, 3)
+        await r.player.discover(c3, {
+          fake: cho => {
+            cho3 = c3[cho].name
+          },
+        })
+        r.player.game.pool.drop([...c3, ...c5])
+      }
+    },
+    'tavern-upgraded': async ({ level }) => {
+      switch (level) {
+        case 2:
+        case 4:
+          r.player.data.upgrade_cost += 1
+          break
+        case 3:
+          await r.player.obtain_card(getCard(cho3))
+          break
+        case 5:
+          await r.player.obtain_card(getCard(cho5))
+          break
+      }
+    },
   })
   return ActPerRound(r, 1, async role => {
     const card = ExpectSelected(role)
@@ -1343,14 +1400,14 @@ function 大力神(r: IRole) {
 
 function 凯瑞甘(r: IRole) {
   r.data.prog_max = 5
-  r.player.bus.begin()
-  r.player.bus.on('tavern-upgraded', async () => {
-    r.player.attrib.set('R凯瑞甘_刷新', 1)
+  const obj = r.player.$on({
+    'tavern-upgraded': async () => {
+      r.player.attrib.set('R凯瑞甘_刷新', 1)
+    },
+    'round-enter': async () => {
+      r.data.prog_cur = 0
+    },
   })
-  r.player.bus.on('round-enter', async () => {
-    r.data.prog_cur = 0
-  })
-  const cl = r.player.bus.end()
   r.refresh_cost = () => {
     return r.player.attrib.get('R凯瑞甘_刷新') ? 0 : 1
   }
@@ -1371,7 +1428,7 @@ function 凯瑞甘(r: IRole) {
       r.bought = async () => {
         //
       }
-      cl()
+      r.player.$off(obj)
 
       r.player.data.gas = 0
       r.player.data.config.MaxGas = 0
@@ -1393,16 +1450,18 @@ function 凯瑞甘(r: IRole) {
         }
         await card.obtain_unit(units)
       }
-      r.player.bus.on('card-entered', async ({ target }) => {
-        await r.player.discover(
-          r.player.game
-            .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
-            .slice(0, 3)
-            .map(getUpgrade),
-          {
-            target,
-          }
-        )
+      r.player.$on({
+        'card-entered': async ({ target }) => {
+          await r.player.discover(
+            r.player.game
+              .shuffle(AllUpgrade.filter(u => getUpgrade(u).category === '3'))
+              .slice(0, 3)
+              .map(getUpgrade),
+            {
+              target,
+            }
+          )
+        },
       })
     }
   }
@@ -1410,13 +1469,15 @@ function 凯瑞甘(r: IRole) {
 
 function 米拉(r: IRole) {
   r.data.prog_cur = 6
-  r.player.bus.on('card-entered', async ({ target }) => {
-    if (target.data.level > r.data.prog_cur) {
-      r.player.obtain_resource({
-        mineral: 1,
-      })
-    }
-    r.data.prog_cur = target.data.level
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      if (target.data.level > r.data.prog_cur) {
+        r.player.obtain_resource({
+          mineral: 1,
+        })
+      }
+      r.data.prog_cur = target.data.level
+    },
   })
 }
 
@@ -1426,13 +1487,15 @@ function 先知(r: IRole) {
   r.data.enable = computed<boolean>(() => {
     return r.data.prog_cur > 0
   }) as unknown as boolean
-  r.player.bus.on('upgrade-cancelled', async () => {
-    if (!r.player.attrib.get('R先知')) {
-      r.player.obtain_resource({
-        gas: 1,
-      })
-      r.player.attrib.set('R先知', 1)
-    }
+  r.player.$on({
+    'upgrade-cancelled': async () => {
+      if (!r.player.attrib.get('R先知')) {
+        r.player.obtain_resource({
+          gas: 1,
+        })
+        r.player.attrib.set('R先知', 1)
+      }
+    },
   })
   r.player.data.config.MaxUpgradePerCard += 1
   return async () => {
@@ -1465,18 +1528,20 @@ function 阿尔达瑞斯(r: IRole) {
       special: prevLockedPlace.includes(i),
     }))
   }) as unknown as StoreStatus[]
-  r.player.bus.on('$lock', async () => {
-    lockedPlace = r.player.data.store
-      .map((c, i) => [c, i] as [CardKey | null, number])
-      .filter(([c]) => c)
-      .map(([c, i]) => i)
-  })
-  r.player.bus.on('$unlock', async () => {
-    lockedPlace = []
-  })
-  r.player.bus.on('round-end', async () => {
-    prevLockedPlace = lockedPlace
-    lockedPlace = []
+  r.player.$on({
+    $lock: async () => {
+      lockedPlace = r.player.data.store
+        .map((c, i) => [c, i] as [CardKey | null, number])
+        .filter(([c]) => c)
+        .map(([c, i]) => i)
+    },
+    $unlock: async () => {
+      lockedPlace = []
+    },
+    'round-end': async () => {
+      prevLockedPlace = lockedPlace
+      lockedPlace = []
+    },
   })
   r.buy_cost = (c, a, p) => {
     return prevLockedPlace.includes(p) ? 2 : 3
@@ -1515,7 +1580,9 @@ function 斯托科夫(r: IRole) {
         false
       )
       .map(c => c.name)
-    await r.player.post('refreshed', refP(r.player))
+    await r.player.post({
+      msg: 'store-refreshed',
+    })
   }
 }
 
@@ -1550,8 +1617,10 @@ function 解放者(r: IRole) {
     r.player.attrib.set('R解放者_刷新', 1 - r.player.attrib.get('R解放者_刷新'))
   }
 
-  r.player.bus.on('round-enter', async () => {
-    r.data.enable = true
+  r.player.$on({
+    'round-enter': async () => {
+      r.data.enable = true
+    },
   })
 
   return async () => {
@@ -1564,16 +1633,18 @@ function 解放者(r: IRole) {
 }
 
 function 干扰者(r: IRole) {
-  r.player.bus.on('round-enter', async () => {
-    r.player.data.upgrade_cost = Math.max(
-      0,
-      r.player.data.upgrade_cost -
-        Math.floor(
-          r.player.data.hand.filter(
-            c => c && getCard(c).attr.type !== 'support'
-          ).length / 2
-        )
-    )
+  r.player.$on({
+    'round-enter': async () => {
+      r.player.data.upgrade_cost = Math.max(
+        0,
+        r.player.data.upgrade_cost -
+          Math.floor(
+            r.player.data.hand.filter(
+              c => c && getCard(c).attr.type !== 'support'
+            ).length / 2
+          )
+      )
+    },
   })
 }
 
@@ -1630,16 +1701,18 @@ const RoleSet: Record<RoleKey, RoleBind> = {
 function 地嗪外溢(r: IRole) {
   r.player.data.config.MaxUpgradePerCard = 8
 
-  r.player.bus.on('card-entered', async ({ target }) => {
-    await r.player.discover(
-      r.player.game
-        .shuffle(AllUpgrade.filter(x => x !== '献祭'))
-        .slice(0, 3)
-        .map(getUpgrade),
-      {
-        target,
-      }
-    )
+  r.player.$on({
+    'card-entered': async ({ target }) => {
+      await r.player.discover(
+        r.player.game
+          .shuffle(AllUpgrade.filter(x => x !== '献祭'))
+          .slice(0, 3)
+          .map(getUpgrade),
+        {
+          target,
+        }
+      )
+    },
   })
 }
 
@@ -1647,41 +1720,43 @@ function 作战规划(r: IRole) {
   let cho2: CardKey = '不死队',
     cho4: CardKey = '不死队',
     cho6: CardKey = '不死队'
-  r.player.bus.on('round-enter', async ({ round }) => {
-    if (round === 1) {
-      const c6 = r.player.game.pool.discover(c => c.level === 6, 3)
-      await r.player.discover(c6, {
-        fake: cho => {
-          cho6 = c6[cho].name
-        },
-      })
-      const c4 = r.player.game.pool.discover(c => c.level === 4, 3)
-      await r.player.discover(c4, {
-        fake: cho => {
-          cho4 = c4[cho].name
-        },
-      })
-      const c2 = r.player.game.pool.discover(c => c.level === 2, 3)
-      await r.player.discover(c2, {
-        fake: cho => {
-          cho2 = c2[cho].name
-        },
-      })
-      r.player.game.pool.drop([...c2, ...c4, ...c6])
-    }
-  })
-  r.player.bus.on('tavern-upgraded', async ({ level }) => {
-    switch (level) {
-      case 2:
-        await r.player.obtain_card(getCard(cho2))
-        break
-      case 4:
-        await r.player.obtain_card(getCard(cho4))
-        break
-      case 6:
-        await r.player.obtain_card(getCard(cho6))
-        break
-    }
+  r.player.$on({
+    'round-enter': async ({ round }) => {
+      if (round === 1) {
+        const c6 = r.player.game.pool.discover(c => c.level === 6, 3)
+        await r.player.discover(c6, {
+          fake: cho => {
+            cho6 = c6[cho].name
+          },
+        })
+        const c4 = r.player.game.pool.discover(c => c.level === 4, 3)
+        await r.player.discover(c4, {
+          fake: cho => {
+            cho4 = c4[cho].name
+          },
+        })
+        const c2 = r.player.game.pool.discover(c => c.level === 2, 3)
+        await r.player.discover(c2, {
+          fake: cho => {
+            cho2 = c2[cho].name
+          },
+        })
+        r.player.game.pool.drop([...c2, ...c4, ...c6])
+      }
+    },
+    'tavern-upgraded': async ({ level }) => {
+      switch (level) {
+        case 2:
+          await r.player.obtain_card(getCard(cho2))
+          break
+        case 4:
+          await r.player.obtain_card(getCard(cho4))
+          break
+        case 6:
+          await r.player.obtain_card(getCard(cho6))
+          break
+      }
+    },
   })
 }
 

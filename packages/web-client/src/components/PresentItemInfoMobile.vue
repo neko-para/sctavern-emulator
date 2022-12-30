@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
+import type {
+  CardInstanceAttrib,
+  PlayerClient,
+} from '@sctavern-emulator/emulator'
 import type { UnitKey } from '@sctavern-emulator/data'
 
 const props = defineProps<{
   card: CardInstanceAttrib
   model: boolean
   pos: number
-  client: Client
+  client: PlayerClient
 }>()
 
 const allUnit = computed(() => {
@@ -92,7 +95,7 @@ const Color = {
         :key="`Act-${i}`"
         variant="text"
         :disabled="model || !act.enable"
-        @click="client.post(act.message, { player: client.pos, place: pos })"
+        @click="client.post(act.message)"
         >{{ act.name }}</v-btn
       >
     </div>

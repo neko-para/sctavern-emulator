@@ -1,4 +1,3 @@
-import { reactive } from '@vue/reactivity'
 import {
   elited,
   getUnit,
@@ -8,48 +7,49 @@ import {
   Unit,
   UnitKey,
 } from '@sctavern-emulator/data'
-import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
+import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import {
   autoBind,
-  autoBindSome,
-  autoBindUnique,
+  autoBindX,
   isCardInstance,
   mostValueUnit,
   us,
 } from '../utils'
 import { 科挂X } from './terran'
 import { CardInstance } from '../card'
+import { InnerMsg } from '../events'
+import { GetMsg, MsgKeyOf } from '../dispatcher'
 
-function 孵化X<T extends keyof LogicBus>(
+function 孵化X<T extends MsgKeyOf<InnerMsg>>(
   time: T,
   getu: (card: CardInstance, gold: boolean) => UnitKey[],
   test: (
     card: CardInstance,
     gold: boolean,
-    param: LogicBus[T]
+    param: GetMsg<InnerMsg, T>
   ) => boolean = () => true,
   post: (card: CardInstance, gold: boolean) => Promise<void> = async () => {
     //
   },
   id = 0
 ): DescriptorGenerator {
-  return autoBindSome((card, gold) => {
-    card.bus.on(time, async param => {
+  return autoBindX((card, gold) => ({
+    [time]: async (param: GetMsg<InnerMsg, T>) => {
       if (test(card, gold, param)) {
         await card.incubate(id)
       }
-    })
-    card.bus.on('req_incubate', async ({ id: rid }) => {
+    },
+    'req-incubate': async ({ id: rid }) => {
       if (rid === id || rid === -1) {
         await card.player.incubate(card, getu(card, gold))
         await post(card, gold)
       }
-    })
-  })
+    },
+  }))
 }
 
 function 孵化(
-  time: keyof LogicBus,
+  time: MsgKeyOf<InnerMsg>,
   unit: UnitKey,
   nc: number,
   gc: number,
@@ -124,17 +124,22 @@ const data: CardDescriptorTable = {
         )
       )
     ),
-    autoBindUnique((card, desc) => {
-      card.bus.on('card-selled', async ({ target }) => {
-        if (desc.disabled) {
-          return
-        }
-        await card.obtain_unit([
-          ...us('爆虫', target.find('跳虫').length),
-          ...us('爆虫(精英)', target.find('跳虫(精英)').length),
-        ])
-      })
-    }, '爆虫滚滚'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-selled': async ({ target }) => {
+          if (desc.disabled) {
+            return
+          }
+          await card.obtain_unit([
+            ...us('爆虫', target.find('跳虫').length),
+            ...us('爆虫(精英)', target.find('跳虫(精英)').length),
+          ])
+        },
+      }),
+      {
+        unique: '爆虫滚滚',
+      }
+    ),
   ],
   飞龙骑脸: [孵化('post-sell', '异龙', 2, 4)],
   凶残巨兽: [
@@ -151,17 +156,19 @@ const data: CardDescriptorTable = {
     }),
   ],
   孵化所: [
-    autoBindUnique((card, desc) => {
-      card.bus.on('obtain-unit-post', async ({ units, way }) => {
-        if (desc.disabled || way !== 'incubate') {
-          return
-        }
-        await card.obtain_unit(
-          us(units[units.length - 1], desc.gold ? 3 : 2)
-          // 'incubate'
-        )
-      })
-    }, '孵化所'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'obtain-unit': async ({ time, units, way }) => {
+          if (time !== 'post' || desc.disabled || way !== 'incubate') {
+            return
+          }
+          await card.obtain_unit(us(units[units.length - 1], desc.gold ? 3 : 2))
+        },
+      }),
+      {
+        unique: '孵化所',
+      }
+    ),
   ],
   地底伏击: [孵化('post-enter', '潜伏者', 1, 2)],
   孵化刺蛇: [孵化('round-end', '刺蛇(精英)', 1, 2)],
@@ -225,46 +232,58 @@ const data: CardDescriptorTable = {
     }),
   ],
   扎加拉: [
-    autoBindUnique((card, desc) => {
-      card.bus.on('incubate', async ({ units }) => {
-        if (desc.disabled) {
-          return
-        }
-        await card.obtain_unit(units, 'incubate')
-        if (desc.gold) {
-          await card.obtain_unit(['巢虫领主'])
-        }
-      })
-    }, '扎加拉'),
+    autoBindX(
+      (card, gold, desc) => ({
+        incubate: async ({ units }) => {
+          if (desc.disabled) {
+            return
+          }
+          await card.obtain_unit(units, 'incubate')
+          if (desc.gold) {
+            await card.obtain_unit(['巢虫领主'])
+          }
+        },
+      }),
+      {
+        unique: '扎加拉',
+      }
+    ),
   ],
   斯托科夫: [
-    autoBindUnique((card, desc) => {
-      card.view.set('斯托科夫', () => {
-        if (desc.disabled) {
-          return '禁用'
-        } else if (desc.gold || card.player.persisAttrib.get('斯托科夫')) {
-          return '注卵'
-        } else {
-          return '非注卵'
-        }
-      })
-      card.bus.on('card-entered', async ({ target }) => {
-        if (desc.disabled) {
-          return
-        }
-        if (target.data.race === 'Z' || target.data.level >= 6) {
-          return
-        }
-        const v = card.player.persisAttrib.get('斯托科夫')
-        card.player.persisAttrib.set('斯托科夫', desc.gold ? 0 : 1 - v)
-        if (desc.gold || v === 1) {
-          await card.player.inject(
-            target.data.units.filter(isNormal).filter(u => !isHero(u)),
-            true
-          )
-        }
-      })
-    }, '斯托科夫'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-entered': async ({ target }) => {
+          if (desc.disabled) {
+            return
+          }
+          if (target.data.race === 'Z' || target.data.level >= 6) {
+            return
+          }
+          const v = card.player.persisAttrib.get('斯托科夫')
+          card.player.persisAttrib.set('斯托科夫', desc.gold ? 0 : 1 - v)
+          if (desc.gold || v === 1) {
+            await card.player.inject(
+              target.data.units.filter(isNormal).filter(u => !isHero(u)),
+              true
+            )
+          }
+        },
+      }),
+      {
+        unique: '斯托科夫',
+        init: (card, gold, desc) => {
+          card.view.set('斯托科夫', () => {
+            if (desc.disabled) {
+              return '禁用'
+            } else if (desc.gold || card.player.persisAttrib.get('斯托科夫')) {
+              return '注卵'
+            } else {
+              return '非注卵'
+            }
+          })
+        },
+      }
+    ),
   ],
   守卫巢穴: [
     autoBind('round-end', async (card, gold) => {
@@ -315,7 +334,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   基因突变: [
-    autoBindSome((card, gold) => {
+    autoBindX((card, gold) => {
       async function proc() {
         for (const c of card
           .around()
@@ -343,26 +362,33 @@ const data: CardDescriptorTable = {
           )
         }
       }
-      card.bus.on('post-enter', proc)
-      card.bus.on('post-sell', proc)
+      return {
+        'post-enter': proc,
+        'post-sell': proc,
+      }
     }),
   ],
   机械感染: [
     孵化('round-end', '被感染的女妖', 1, 2),
-    autoBindUnique((card, desc) => {
-      card.bus.on('card-selled', async ({ target }) => {
-        if (desc.disabled) {
-          return
-        }
-        if (
-          target.data.value >= 3600 &&
-          target.data.name !== '虫卵' &&
-          target.data.race === 'Z'
-        ) {
-          await card.obtain_unit(us('末日巨兽', 1))
-        }
-      })
-    }, '机械感染'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-selled': async ({ target }) => {
+          if (desc.disabled) {
+            return
+          }
+          if (
+            target.data.value >= 3600 &&
+            target.data.name !== '虫卵' &&
+            target.data.race === 'Z'
+          ) {
+            await card.obtain_unit(us('末日巨兽', 1))
+          }
+        },
+      }),
+      {
+        unique: '机械感染',
+      }
+    ),
   ],
 }
 

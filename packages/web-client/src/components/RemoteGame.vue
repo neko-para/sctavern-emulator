@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { SlaveGame } from '@sctavern-emulator/emulator'
+import { SlaveGame } from '@nekosu/game-framework'
+import { GameInstance, type $SlaveGame } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import type { ClientStatus } from './types'
-import { ClientAdapter, WebClient } from './WebClient'
+import { WebClient } from './WebClient'
 
 const props = defineProps<{
   target: string
@@ -18,19 +19,23 @@ const status = reactive<ClientStatus>({
   insert: false,
   selected: 'none',
   discoverItems: [],
-  discoverCancel: false,
+  discoverExtra: null,
 })
 
-const game = new SlaveGame(
-  {
-    pack: ['核心'],
-    seed: '1',
-    role: ['SCV', '副官'],
-  },
-  new ClientAdapter(() => {
-    game.game.start()
-  })
+const game: $SlaveGame = new SlaveGame(
+  sg =>
+    new GameInstance(
+      {
+        pack: ['核心'],
+        seed: '1',
+        role: ['SCV', '副官'],
+        mutation: [],
+      },
+      sg
+    )
 )
+
+// game.getClientConnection()
 
 const client = new WebClient(game, props.pos, status)
 
@@ -52,18 +57,24 @@ function handleKey(ev: KeyboardEvent) {
     case '7': {
       const pos = Number(ev.key) - 1
       if (client.player.data.present[pos]) {
-        client.selectChoose(`P${pos}`)
+        client.post({
+          msg: '$select',
+          area: 'present',
+          choice: pos,
+        })
       } else {
-        client.selectChoose('none')
+        client.post({
+          msg: '$select',
+          area: 'none',
+          choice: -1,
+        })
       }
       break
     }
     default: {
       for (const act of client.player.data.globalActs) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message, {
-            player: client.pos,
-          })
+          client.post(act.message)
         }
       }
       const m = /^([HSP])(\d)$/.exec(status.selected)
@@ -84,10 +95,7 @@ function handleKey(ev: KeyboardEvent) {
       })()
       for (const act of acts) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message, {
-            player: client.pos,
-            place: pos,
-          })
+          client.post(act.message)
         }
       }
     }

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { CardInstanceAttrib, Client } from '@sctavern-emulator/emulator'
+import type {
+  CardInstanceAttrib,
+  PlayerClient,
+} from '@sctavern-emulator/emulator'
 
 const props = defineProps<{
   card: CardInstanceAttrib | null
@@ -8,7 +11,7 @@ const props = defineProps<{
   insert: boolean
   deploy: boolean
   selected: boolean
-  client: Client
+  client: PlayerClient
 }>()
 
 const Color = {
@@ -27,7 +30,14 @@ const Color = {
     :class="{
       selected: selected,
     }"
-    @click="!model && client.selectChoose(card ? `P${pos}` : 'none')"
+    @click="
+      !model &&
+        client.post({
+          msg: '$select',
+          area: card ? 'present' : 'none',
+          choice: card ? pos : -1,
+        })
+    "
   >
     <div class="d-flex mx-1 w-100">
       <template v-if="card">
@@ -39,8 +49,10 @@ const Color = {
         v-if="insert"
         variant="text"
         @click="
-          client.insertChoose({
-            pos,
+          client.post({
+            msg: '$choice',
+            category: 'insert',
+            choice: pos,
           })
         "
         >这里</v-btn
@@ -50,8 +62,10 @@ const Color = {
         v-if="deploy"
         variant="text"
         @click="
-          client.deployChoose({
-            pos,
+          client.post({
+            msg: '$choice',
+            category: 'deploy',
+            choice: pos,
           })
         "
         >这里</v-btn

@@ -3,13 +3,9 @@ import { getUnit, UnitKey } from '@sctavern-emulator/data'
 import { Random, RNG } from 'random'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Player } from './player'
-import {
-  Descriptor,
-  DescriptorGenerator,
-  LogicBus,
-  LogItem,
-  Postable,
-} from './types'
+import { Descriptor, DescriptorGenerator, LogItem, Postable } from './types'
+import { DispatchEndpoint, GetMsg, MsgKeyOf } from './dispatcher'
+import { InnerMsg } from './events'
 
 export class Shuffler {
   gen: Random
@@ -32,19 +28,6 @@ export class Shuffler {
   }
 }
 
-export function refC(card: CardInstance) {
-  return {
-    player: card.player.pos,
-    card: card.data.pos === -1 ? card.bus : card.data.pos,
-  }
-}
-
-export function refP(player: Player) {
-  return {
-    player: player.pos,
-  }
-}
-
 export function isCardInstance(
   card: CardInstance | null
 ): card is CardInstance {
@@ -57,48 +40,59 @@ export function isCardInstanceAttrib(
   return !!card
 }
 
-export function autoBindSome(
-  func: (card: CardInstance, gold: boolean) => void
-): DescriptorGenerator {
-  return (card, gold) => {
-    card.bus.begin()
-    func(card, gold)
-    return reactive({
-      gold,
-
-      unbind: card.bus.end(),
-    })
+export function autoBindX(
+  factory: (
+    card: CardInstance,
+    gold: boolean,
+    desc: Descriptor
+  ) => DispatchEndpoint<MsgKeyOf<InnerMsg>, InnerMsg>,
+  option?: {
+    unique?: string
+    uniqueNoGold?: true
+    init?: (card: CardInstance, gold: boolean, desc: Descriptor) => void
+    attr?: Record<string, number>
   }
-}
-
-export function autoBind<T extends keyof LogicBus>(
-  msg: T,
-  func: (card: CardInstance, gold: boolean, param: LogicBus[T]) => Promise<void>
-): DescriptorGenerator {
-  return autoBindSome((c, g) => {
-    c.bus.on(msg, async param => {
-      await func(c, g, param)
-    })
-  })
-}
-
-export function autoBindUnique(
-  func: (card: CardInstance, desc: Descriptor) => void,
-  unique: string,
-  uniqueNoGold = false
 ): DescriptorGenerator {
   return (card, gold) => {
-    const ret: Descriptor = reactive({
+    const desc: Descriptor = reactive({
       gold,
       disabled: false,
-      unique,
-      uniqueNoGold,
+      unique: option?.unique,
+      uniqueNoGold: !!option?.uniqueNoGold,
     })
-    card.bus.begin()
-    func(card, ret)
-    ret.unbind = card.bus.end()
-    return ret
+    option?.init?.(card, gold, desc)
+    if (option?.attr) {
+      for (const k in option.attr) {
+        card.attrib.alter(k, option.attr[k])
+      }
+    }
+    const obj = factory(card, gold, desc)
+    card.$on(obj)
+    desc.unbind = () => {
+      if (option?.attr) {
+        for (const k in option.attr) {
+          card.attrib.alter(k, -option.attr[k])
+        }
+      }
+      card.$off(obj)
+    }
+    return desc
   }
+}
+
+export function autoBind<T extends MsgKeyOf<InnerMsg>>(
+  msg: T,
+  func: (
+    card: CardInstance,
+    gold: boolean,
+    param: GetMsg<InnerMsg, T>
+  ) => Promise<void>
+) {
+  return autoBindX((card, gold) => ({
+    [msg]: async (param: GetMsg<InnerMsg, T>) => {
+      await func(card, gold, param)
+    },
+  }))
 }
 
 export function fake(): DescriptorGenerator {
@@ -133,8 +127,4 @@ export function mostValueUnit(
     }
   }
   return [cur, curi]
-}
-
-export async function postItem<T>(into: Postable<T>, item: LogItem) {
-  await into.post(item.msg as keyof T, item.param as T[keyof T])
 }

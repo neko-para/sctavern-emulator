@@ -1,34 +1,33 @@
 import { reactive, computed } from '@vue/reactivity'
+import { AttributeManager, AttributeViewer } from './attribute'
 import {
-  Card,
-  CardKey,
-  getCard,
-  getUnit,
-  getUpgrade,
   Race,
   UnitKey,
   UpgradeKey,
+  CardKey,
+  Card,
+  getUnit,
+  getUpgrade,
+  getCard,
 } from '@sctavern-emulator/data'
-import { AttributeManager, AttributeViewer } from './attribute'
 import { Descriptors } from './descriptor'
-import { Emitter } from './emitter'
 import { Player } from './player'
 import {
-  LogicBus,
   Descriptor,
   DescriptorGenerator,
   ObtainUnitWay,
   DescriptorInfo,
+  DistributiveOmit,
 } from './types'
 import {
   autoBind,
   isCardInstance,
   isCardInstanceAttrib,
   mostValueUnit,
-  refC,
-  refP,
   us,
 } from './utils'
+import { InnerMsg } from './events'
+import { DispatchTranslator, MsgKeyOf } from './dispatcher'
 
 export interface CardInstanceAttrib {
   pos: number
@@ -58,8 +57,10 @@ export interface CardInstanceAttrib {
   infr: ['reactor' | 'scilab' | 'hightech' | 'none', number]
 }
 
-export class CardInstance {
-  bus: Emitter<LogicBus>
+export class CardInstance extends DispatchTranslator<
+  MsgKeyOf<InnerMsg>,
+  InnerMsg
+> {
   player: Player
 
   readonly data: CardInstanceAttrib
@@ -68,7 +69,8 @@ export class CardInstance {
   view: AttributeViewer
 
   constructor(player: Player, cardt: Card) {
-    this.bus = new Emitter('', [])
+    super(() => [])
+
     this.player = player
 
     this.data = reactive({
@@ -203,8 +205,19 @@ export class CardInstance {
     })
   }
 
-  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
-    await this.player.game.post(msg, param)
+  async post<
+    T extends DistributiveOmit<
+      Extract<InnerMsg, { player: number; card: number | CardInstance }>,
+      'player' | 'card'
+    >
+  >(msg: T): Promise<T & { player: number; card: number | CardInstance }> {
+    const rm = {
+      player: this.player.pos,
+      card: this.data.pos === -1 ? this : this.data.pos,
+      ...msg,
+    }
+    await this.player.game.mainBroadcast.emit(rm)
+    return rm
   }
 
   left(): CardInstance | null {
@@ -246,8 +259,8 @@ export class CardInstance {
       default:
         return
     }
-    await this.post('infr-changed', {
-      ...refP(this.player),
+    await this.player.post({
+      msg: 'infr-changed',
       target: this,
     })
     await this.fast_prod()
@@ -262,8 +275,8 @@ export class CardInstance {
       case 'reactor':
       case 'scilab':
         this.replace_unit([pos], '高级科技实验室')
-        await this.post('infr-changed', {
-          ...refP(this.player),
+        await this.player.post({
+          msg: 'infr-changed',
           target: this,
         })
         await this.fast_prod()
@@ -272,20 +285,27 @@ export class CardInstance {
   }
 
   async fast_prod() {
-    await this.post('fast-prod', refC(this))
+    await this.post({
+      msg: 'fast-produce',
+    })
   }
 
   async obtain_unit(units: UnitKey[], way: ObtainUnitWay = 'normal') {
-    const p = {
-      ...refC(this),
+    const p = await this.post({
+      msg: 'obtain-unit',
+      time: 'prev',
       units,
       way,
-    }
-    await this.post('obtain-unit-prev', p)
+    })
     this.data.units = this.data.units
       .concat(p.units)
       .slice(0, this.player.data.config.MaxUnitPerCard)
-    await this.post('obtain-unit-post', p)
+    await this.post({
+      msg: 'obtain-unit',
+      time: 'post',
+      units: p.units,
+      way: p.way,
+    })
   }
 
   remove_unit(index: number[]) {
@@ -351,29 +371,31 @@ export class CardInstance {
             () => `献祭的生命值: ${this.attrib.get('献祭')}`
           )
           this.add_desc(
-            autoBind('obtain-unit-prev', async (card, gold, param) => {
-              card.attrib.alter(
-                '献祭',
-                param.units
-                  .map(getUnit)
-                  .map(u => u.health + (u.shield || 0))
-                  .reduce((a, b) => a + b, 0) * 1.5
-              )
-              card.attrib.alter(
-                '献祭价值',
-                param.units
-                  .map(getUnit)
-                  .map(u => u.value)
-                  .reduce((a, b) => a + b, 0)
-              )
-              param.units = []
+            autoBind('obtain-unit', async (card, gold, msg) => {
+              if (msg.time === 'prev') {
+                card.attrib.alter(
+                  '献祭',
+                  msg.units
+                    .map(getUnit)
+                    .map(u => u.health + (u.shield || 0))
+                    .reduce((a, b) => a + b, 0) * 1.5
+                )
+                card.attrib.alter(
+                  '献祭价值',
+                  msg.units
+                    .map(getUnit)
+                    .map(u => u.value)
+                    .reduce((a, b) => a + b, 0)
+                )
+                msg.units = []
+              }
             }),
             ['新添加的单位也会被献祭', '新添加的单位也会被献祭']
           )
         }
       }
-      await this.post('obtain-upgrade', {
-        ...refC(this),
+      await this.post({
+        msg: 'obtain-upgrade',
         upgrade,
       })
     }
@@ -453,8 +475,8 @@ export class CardInstance {
     }
   ) {
     if (!option?.unreal) {
-      await this.post('seize', {
-        ...refP(this.player),
+      await this.player.post({
+        msg: 'seize',
         target,
         from: this,
       })
@@ -469,28 +491,28 @@ export class CardInstance {
   }
 
   async incubate(id = 0) {
-    await this.post('req_incubate', {
-      ...refC(this),
+    await this.post({
+      msg: 'req-incubate',
       id,
     })
   }
 
   async regroup(id = 0) {
-    await this.post('regroup', {
-      ...refC(this),
+    await this.post({
+      msg: 'req-regroup',
       id,
     })
   }
 
-  async gain_darkness(dark: number) {
+  async gain_darkness(darkness: number) {
     if (!this.attrib.has('dark')) {
       return
     }
-    this.attrib.alter('dark', dark)
-    if (dark > 0) {
-      await this.post('gain-darkness', {
-        ...refC(this),
-        dark,
+    this.attrib.alter('dark', darkness)
+    if (darkness > 0) {
+      await this.post({
+        msg: 'obtain-darkness',
+        darkness,
       })
     }
   }
@@ -505,22 +527,23 @@ export class CardInstance {
   }
 
   bind() {
-    this.bus.on('round-end', async () => {
-      // 高科的快产
-      if (this.data.race === 'T' && this.data.infr[0] === 'hightech') {
-        await this.post('fast-prod', refC(this))
-      }
-    })
-    this.bus.on('post-sell', async () => {
-      const n = this.find('虚空水晶塔').length
-      if (n > 0) {
-        for (const c of this.around()) {
-          if (c.data.race === 'P') {
-            await c.obtain_unit(us('虚空水晶塔', n))
-            break
+    this.$on({
+      'round-end': async () => {
+        if (this.data.race === 'T' && this.data.infr[0] === 'hightech') {
+          await this.fast_prod()
+        }
+      },
+      'post-sell': async () => {
+        const n = this.find('虚空水晶塔').length
+        if (n > 0) {
+          for (const c of this.around()) {
+            if (c.data.race === 'P') {
+              await c.obtain_unit(us('虚空水晶塔', n))
+              break
+            }
           }
         }
-      }
+      },
     })
   }
 }

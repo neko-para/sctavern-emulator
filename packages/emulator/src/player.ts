@@ -13,28 +13,21 @@ import {
 import { AttributeManager, CombineAttribute } from './attribute'
 import { CardInstance, CardInstanceAttrib } from './card'
 import { Descriptors } from './descriptor'
-import { Emitter } from './emitter'
-import { Game } from './game'
 import { create_mutation, create_role, RoleData, RoleImpl } from './role'
 import {
   Descriptor,
   DescriptorGenerator,
-  InputBus,
-  LogicBus,
+  DistributiveOmit,
   PlayerConfig,
 } from './types'
-import {
-  autoBind,
-  isCardInstance,
-  isCardInstanceAttrib,
-  refC,
-  refP,
-  us,
-} from './utils'
+import { autoBind, isCardInstance, isCardInstanceAttrib, us } from './utils'
+import { DispatchTranslator, GetMsg, MsgKeyOf } from './dispatcher'
+import { InputMsg, InnerMsg, OutterMsg } from './events'
+import { GameInstance } from './game'
 
 interface ActionItem {
   name: string
-  message: keyof InputBus
+  message: InputMsg
   accelerator: string
   enable: boolean
 }
@@ -53,7 +46,10 @@ export interface PlayerAttrib {
   mineral_max: number
   gas: number
 
-  selected: string
+  selected: {
+    area: 'hand' | 'store' | 'present' | 'none'
+    choice: number
+  }
   locked: boolean
   doned: boolean
 
@@ -80,9 +76,8 @@ interface UniqueDescInfo {
   desc: Descriptor
 }
 
-export class Player {
-  bus: Emitter<LogicBus>
-  game: Game
+export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
+  game: GameInstance
   role: RoleImpl
   pos: number
 
@@ -95,12 +90,25 @@ export class Player {
   attrib: AttributeManager
   persisAttrib: AttributeManager
 
-  insertResolve: ((v: number) => void) | null
-  discoverResolve: ((v: number) => void) | null
-  deployResolve: ((v: number) => void) | null
+  resolves: Record<
+    'insert' | 'discover' | 'deploy',
+    ((v: number) => void) | null
+  >
 
-  constructor(game: Game, pos: number, role: RoleKey) {
-    this.bus = new Emitter('card', [])
+  constructor(game: GameInstance, pos: number, role: RoleKey) {
+    super(msg => {
+      if ('card' in msg) {
+        if (msg.card instanceof CardInstance) {
+          return [msg.card]
+        } else {
+          const s = this.present[msg.card]
+          return s ? [s] : []
+        }
+      } else {
+        return this.present.filter(isCardInstance)
+      }
+    })
+
     this.game = game
     this.pos = pos
     this.data = reactive({
@@ -112,7 +120,10 @@ export class Player {
       mineral_max: 2,
       gas: -1,
 
-      selected: 'none',
+      selected: {
+        area: 'none',
+        choice: -1,
+      },
       locked: false,
       doned: false,
 
@@ -131,25 +142,28 @@ export class Player {
       globalActs: computed<ActionItem[]>(() => [
         {
           name: '升级',
-          message: '$upgrade',
+          message: { msg: '$upgrade', player: this.pos },
           accelerator: 'w',
           enable: this.can_tavern_upgrade(),
         },
         {
           name: '刷新',
-          message: '$refresh',
+          message: { msg: '$refresh', player: this.pos },
           accelerator: 'r',
           enable: this.can_refresh(),
         },
         {
           name: this.data.locked ? '解锁' : '锁定',
-          message: this.data.locked ? '$unlock' : '$lock',
+          message: {
+            msg: this.data.locked ? '$unlock' : '$lock',
+            player: this.pos,
+          },
           accelerator: 'c',
           enable: true,
         },
         {
           name: '下一回合',
-          message: '$done',
+          message: { msg: '$finish', player: this.pos },
           accelerator: 'z',
           enable: !this.data.doned,
         },
@@ -163,23 +177,41 @@ export class Player {
             if (this.can_combine(k)) {
               res.push({
                 name: '三连',
-                message: '$buy-combine',
+                message: {
+                  msg: '$action',
+                  area: 'store',
+                  action: 'combine',
+                  choice: i,
+                  player: this.pos,
+                },
                 accelerator: 'e',
                 enable: this.can_buy(k, 'combine', i),
               })
             } else {
               res.push({
                 name: '进场',
-                message: '$buy-enter',
+                message: {
+                  msg: '$action',
+                  area: 'store',
+                  action: 'enter',
+                  choice: i,
+                  player: this.pos,
+                },
                 accelerator: 'e',
                 enable: this.can_buy(k, 'enter', i) && this.can_enter(k),
               })
             }
             res.push({
               name: '暂存',
-              message: '$buy-cache',
+              message: {
+                msg: '$action',
+                area: 'store',
+                action: 'stage',
+                choice: i,
+                player: this.pos,
+              },
               accelerator: 'v',
-              enable: this.can_buy(k, 'cache', i) && this.can_cache(),
+              enable: this.can_buy(k, 'stage', i) && this.can_stage(),
             })
           }
           return res
@@ -194,27 +226,45 @@ export class Player {
 
       hand: Array(6).fill(null),
       handActs: computed<ActionItem[][]>(() => {
-        return this.data.hand.map(k => {
+        return this.data.hand.map((k, i) => {
           const res: ActionItem[] = []
           if (k) {
             if (this.can_combine(k)) {
               res.push({
                 name: '三连',
-                message: '$hand-combine',
+                message: {
+                  msg: '$action',
+                  area: 'hand',
+                  action: 'combine',
+                  choice: i,
+                  player: this.pos,
+                },
                 accelerator: 'e',
                 enable: true,
               })
             } else {
               res.push({
                 name: '进场',
-                message: '$hand-enter',
+                message: {
+                  msg: '$action',
+                  area: 'hand',
+                  action: 'enter',
+                  choice: i,
+                  player: this.pos,
+                },
                 accelerator: 'e',
                 enable: this.can_enter(k),
               })
             }
             res.push({
               name: '出售',
-              message: '$hand-sell',
+              message: {
+                msg: '$action',
+                area: 'hand',
+                action: 'sell',
+                choice: i,
+                player: this.pos,
+              },
               accelerator: 's',
               enable: true,
             })
@@ -224,18 +274,30 @@ export class Player {
       }),
       present: Array(7).fill(null),
       presentActs: computed<ActionItem[][]>(() => {
-        return this.data.present.map(ca => {
+        return this.data.present.map((ca, i) => {
           const res: ActionItem[] = []
           if (ca) {
             res.push({
               name: '升级',
-              message: '$present-upgrade',
+              message: {
+                msg: '$action',
+                area: 'present',
+                action: 'upgrade',
+                choice: i,
+                player: this.pos,
+              },
               accelerator: 'g',
               enable: this.can_pres_upgrade(ca),
             })
             res.push({
               name: '出售',
-              message: '$present-sell',
+              message: {
+                msg: '$action',
+                area: 'present',
+                action: 'sell',
+                choice: i,
+                player: this.pos,
+              },
               accelerator: 's',
               enable: true,
             })
@@ -279,9 +341,11 @@ export class Player {
     this.attrib = new AttributeManager()
     this.persisAttrib = new AttributeManager()
 
-    this.insertResolve = null
-    this.discoverResolve = null
-    this.deployResolve = null
+    this.resolves = {
+      insert: null,
+      discover: null,
+      deploy: null,
+    }
 
     this.bind_inputs()
     this.bind_default()
@@ -294,8 +358,26 @@ export class Player {
     }
   }
 
-  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
-    await this.game.post(msg, param)
+  async post<
+    T extends DistributiveOmit<Extract<InnerMsg, { player: number }>, 'player'>
+  >(msg: T): Promise<T & { player: number }> {
+    const rm = {
+      player: this.pos,
+      ...msg,
+    }
+    await this.game.mainBroadcast.emit(rm)
+    return rm
+  }
+
+  async postClient<
+    T extends DistributiveOmit<Extract<OutterMsg, { client: number }>, 'client'>
+  >(msg: T): Promise<T & { client: number }> {
+    const rm = {
+      client: this.pos,
+      ...msg,
+    }
+    await this.game.clientSignal.emit(rm)
+    return rm
   }
 
   find_name(name: string) {
@@ -385,8 +467,8 @@ export class Player {
     if (units.length === 0) {
       return
     }
-    await this.post('incubate', {
-      ...refP(this),
+    await this.post({
+      msg: 'incubate',
       from,
       units,
     })
@@ -447,8 +529,8 @@ export class Player {
           await e.obtain_unit(units)
         }
       }
-      await this.post('inject', {
-        ...refP(this),
+      await this.post({
+        msg: 'inject',
         units,
       })
     }
@@ -458,12 +540,11 @@ export class Player {
     if (units.length === 0) {
       return
     }
-    const param: LogicBus['wrap'] = {
-      ...refP(this),
+    const param = await this.post({
+      msg: 'wrap',
       units,
-      into: null,
-    }
-    await this.post('wrap', param)
+      into: null as CardInstance | null,
+    })
     if (param.into === null) {
       const targets = this.present
         .filter(isCardInstance)
@@ -572,20 +653,12 @@ export class Player {
   }
 
   put(card: CardInstance, pos: number) {
-    if (this._put(card, pos)) {
-      for (let i = 0; i < 7; i++) {
-        this.bus.child[i] = this.present[i]?.bus || null
-      }
-      return true
-    } else {
-      return false
-    }
+    return this._put(card, pos)
   }
 
   unput(card: CardInstance) {
     this.present[card.data.pos] = null
     this.data.present[card.data.pos] = null
-    this.bus.child[card.data.pos] = null
   }
 
   async enter(cardt: Card): Promise<CardInstance | null> {
@@ -604,8 +677,8 @@ export class Player {
       } else {
         console.log('WARN: Card Not Implement Yet')
       }
-      await this.post('post-deploy', {
-        ...refC(card),
+      await card.post({
+        msg: 'post-deploy',
         target,
       })
       card.clear_desc()
@@ -637,12 +710,14 @@ export class Player {
       console.log('WARN: Card Not Implement Yet')
     }
 
-    await this.post('card-entered', {
-      ...refP(this),
+    await this.post({
+      msg: 'card-entered',
       target: card,
     })
 
-    await this.post('post-enter', refC(card))
+    await card.post({
+      msg: 'post-enter',
+    })
 
     return card
   }
@@ -711,13 +786,13 @@ export class Player {
     }
     cs[0].bindDef()
 
-    await this.post('card-combined', {
-      ...refP(this),
+    await this.post({
+      msg: 'card-combined',
       target: cs[0],
     })
 
-    await this.post('post-enter', {
-      ...refC(cs[0]),
+    await cs[0].post({
+      msg: 'post-enter',
     })
 
     const reward: (Card | Upgrade)[] = this.game.pool.discover(
@@ -752,16 +827,16 @@ export class Player {
     card.data.pos = -1
     const doPost = card.data.level > 0 || card.data.name === '虫卵'
     if (doPost) {
-      await this.post('post-sell', {
-        ...refC(card),
+      await card.post({
+        msg: 'post-sell',
         pos,
       })
     }
     card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
     if (doPost) {
-      await this.post('card-selled', {
-        ...refP(this),
+      await this.post({
+        msg: 'card-selled',
         target: card,
         flag: false,
         pos,
@@ -787,7 +862,9 @@ export class Player {
     this.unput(card)
     card.data.pos = -1
     if (overwhelm) {
-      await this.post('post-enter', refC(card))
+      await card.post({
+        msg: 'post-enter',
+      })
     }
     card.clear_desc()
     this.game.pool.drop(card.data.occupy.map(getCard))
@@ -802,17 +879,21 @@ export class Player {
     const client = this.pos
     return new Promise<number>(resolve => {
       let quit = false
-      this.insertResolve = (v: number) => {
+      this.resolves.insert = (v: number) => {
         quit = true
-        this.game
-          .postOutput('end-insert', {
+        this.game.clientSignal
+          .emit({
+            msg: 'insert',
+            time: 'end',
             client,
           })
           .then(() => {
             resolve(v)
           })
       }
-      this.game.postOutput('begin-insert', {
+      this.game.clientSignal.emit({
+        msg: 'insert',
+        time: 'begin',
         client,
       })
       this.game.slave.poll(() => quit)
@@ -823,17 +904,23 @@ export class Player {
     const client = this.pos
     return new Promise<number>(resolve => {
       let quit = false
-      this.discoverResolve = (v: number) => {
+      this.resolves.discover = (v: number) => {
         quit = true
-        this.game
-          .postOutput('end-discover', {
+        this.game.clientSignal
+          .emit({
+            msg: 'discover',
+            time: 'end',
             client,
+            item,
+            extra,
           })
           .then(() => {
             resolve(v)
           })
       }
-      this.game.postOutput('begin-discover', {
+      this.game.clientSignal.emit({
+        msg: 'discover',
+        time: 'begin',
         client,
         item,
         extra,
@@ -846,17 +933,21 @@ export class Player {
     const client = this.pos
     return new Promise<number>(resolve => {
       let quit = false
-      this.deployResolve = (v: number) => {
+      this.resolves.deploy = (v: number) => {
         quit = true
-        this.game
-          .postOutput('end-deploy', {
+        this.game.clientSignal
+          .emit({
+            msg: 'deploy',
+            time: 'end',
             client,
           })
           .then(() => {
             resolve(v)
           })
       }
-      this.game.postOutput('begin-deploy', {
+      this.game.clientSignal.emit({
+        msg: 'deploy',
+        time: 'begin',
         client,
       })
       this.game.slave.poll(() => quit)
@@ -877,22 +968,16 @@ export class Player {
   }
 
   current_selected(): CardInstance | CardKey | null {
-    if (this.data.selected === 'none') {
-      return null
+    switch (this.data.selected.area) {
+      case 'hand':
+        return this.data.hand[this.data.selected.choice]
+      case 'store':
+        return this.data.store[this.data.selected.choice]
+      case 'present':
+        return this.present[this.data.selected.choice]
+      case 'none':
+        return null
     }
-    const m = /^([HSP])(\d)$/.exec(this.data.selected)
-    if (!m) {
-      return null
-    }
-    switch (m[1]) {
-      case 'H':
-        return this.data.hand[Number(m[2])]
-      case 'S':
-        return this.data.store[Number(m[2])]
-      case 'P':
-        return this.present[Number(m[2])]
-    }
-    return null
   }
 
   async do_refresh() {
@@ -901,267 +986,308 @@ export class Player {
     )
     this.data.store.fill(null)
     this.fill_store()
-    await this.post('refreshed', refP(this))
+    this.post({
+      msg: 'store-refreshed',
+    })
   }
 
   bind_inputs() {
-    this.bus.on('$upgrade', async () => {
-      if (this.data.level < 6 && this.data.mineral >= this.data.upgrade_cost) {
-        this.data.mineral -= this.data.upgrade_cost
-        this.data.level += 1
-        this.data.upgrade_cost = this.data.config.UpgradeCost[this.data.level]
+    this.$on({
+      $upgrade: async () => {
         if (
-          this.data.store.length < this.data.config.StoreCount[this.data.level]
+          this.data.level < 6 &&
+          this.data.mineral >= this.data.upgrade_cost
         ) {
-          this.data.store.push(null)
-        }
-        await this.post('tavern-upgraded', {
-          ...refP(this),
-          level: this.data.level,
-        })
-      }
-    })
-    this.bus.on('$refresh', async () => {
-      if (this.data.mineral < this.role.refresh_cost()) {
-        return
-      }
-      this.data.mineral -= this.role.refresh_cost()
-      await this.do_refresh()
-
-      await this.role.refreshed()
-    })
-    this.bus.on('$done', async () => {
-      this.data.doned = true
-      await this.game.add_done()
-    })
-    this.bus.on('$ability', async () => {
-      if (!this.data.ability.enable) {
-        return
-      }
-      await this.role.ability()
-    })
-    this.bus.on('$lock', async () => {
-      this.data.locked = true
-    })
-    this.bus.on('$unlock', async () => {
-      this.data.locked = false
-    })
-    this.bus.on('$select', async ({ choice }) => {
-      this.data.selected = choice
-      await this.game.postOutput('selected', {
-        choice,
-        client: this.pos,
-      })
-    })
-    this.bus.on('$insert-choice', async ({ choice }) => {
-      if (this.insertResolve) {
-        this.insertResolve(choice)
-      }
-    })
-    this.bus.on('$deploy-choice', async ({ choice }) => {
-      if (this.deployResolve) {
-        this.deployResolve(choice)
-      }
-    })
-    this.bus.on('$discover-choice', async ({ choice }) => {
-      if (this.discoverResolve) {
-        this.discoverResolve(choice)
-      }
-    })
-    this.bus.on('$buy-enter', async ({ place }) => {
-      const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck, 'enter', place) || !this.can_enter(ck)) {
-        return
-      }
-      this.data.mineral -= this.role.buy_cost(ck, 'enter', place)
-      await this.enter(getCard(ck))
-      this.data.store[place] = null
-
-      await this.role.bought(place)
-    })
-    this.bus.on('$buy-cache', async ({ place }) => {
-      const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck, 'cache', place) || !this.can_cache()) {
-        return
-      }
-      this.data.mineral -= this.role.buy_cost(ck, 'cache', place)
-      this.data.hand[this.data.hand.findIndex(v => v === null)] = ck
-      this.data.store[place] = null
-
-      await this.role.bought(place)
-    })
-    this.bus.on('$buy-combine', async ({ place }) => {
-      const ck = this.data.store[place]
-      if (!ck || !this.can_buy(ck, 'combine', place) || !this.can_combine(ck)) {
-        return
-      }
-      this.data.mineral -= this.role.buy_cost(ck, 'combine', place)
-      await this.combine(getCard(this.data.store[place] as CardKey))
-      this.data.store[place] = null
-
-      // await this.role.bought()
-    })
-    this.bus.on('$hand-enter', async ({ place }) => {
-      const ck = this.data.hand[place]
-      if (!ck || !this.can_enter(ck)) {
-        return
-      }
-      this.data.hand[place] = null
-      await this.enter(getCard(ck))
-    })
-    this.bus.on('$hand-combine', async ({ place }) => {
-      const ck = this.data.hand[place]
-      if (!ck || !this.can_combine(ck)) {
-        return
-      }
-      this.data.hand[place] = null
-      await this.combine(getCard(ck))
-    })
-    this.bus.on('$hand-sell', async ({ place }) => {
-      if (!this.data.hand[place]) {
-        return
-      }
-      const c = getCard(this.data.hand[place] as CardKey)
-      this.data.hand[place] = null
-      if (c.attr.type !== 'support') {
-        this.obtain_resource({
-          mineral: 1,
-        })
-      }
-    })
-    this.bus.on('$present-upgrade', async ({ place }) => {
-      if (
-        !this.present[place] ||
-        !this.can_pres_upgrade((this.present[place] as CardInstance).data)
-      ) {
-        return
-      }
-
-      const c = this.present[place] as CardInstance
-      if (c.data.upgrades.length >= this.data.config.MaxUpgradePerCard) {
-        return
-      }
-      const comm: Upgrade[] = [],
-        spec: Upgrade[] = []
-      AllUpgrade.filter(u => !c.data.upgrades.includes(u))
-        .map(getUpgrade)
-        .forEach(u => {
-          switch (u.category) {
-            case 'O':
-              if (c.data.belong === 'origin') {
-                spec.push(u)
-              }
-              break
-            case 'V':
-              if (c.data.belong === 'void') {
-                spec.push(u)
-              }
-              break
-            case 'T':
-            case 'P':
-            case 'Z':
-              if (c.data.race === u.category) {
-                spec.push(u)
-              }
-              break
-            case 'C':
-              comm.push(u)
-              break
+          this.data.mineral -= this.data.upgrade_cost
+          this.data.level += 1
+          this.data.upgrade_cost = this.data.config.UpgradeCost[this.data.level]
+          if (
+            this.data.store.length <
+            this.data.config.StoreCount[this.data.level]
+          ) {
+            this.data.store.push(null)
           }
+          await this.post({
+            msg: 'tavern-upgraded',
+            level: this.data.level,
+          })
+        }
+      },
+      $refresh: async () => {
+        if (this.data.mineral < this.role.refresh_cost()) {
+          return
+        }
+        this.data.mineral -= this.role.refresh_cost()
+        await this.do_refresh()
+
+        await this.role.refreshed()
+      },
+      $finish: async () => {
+        this.data.doned = true
+        await this.game.add_done()
+      },
+      $ability: async () => {
+        if (!this.data.ability.enable) {
+          return
+        }
+        await this.role.ability()
+      },
+      $lock: async () => {
+        this.data.locked = true
+      },
+      $unlock: async () => {
+        this.data.locked = false
+      },
+      $select: async ({ area, choice }) => {
+        this.data.selected = {
+          area,
+          choice,
+        }
+        await this.postClient({
+          msg: 'selected',
+          area,
+          choice,
         })
-      this.game.gen.shuffle(spec)
-      const firstUpgrade = c.data.upgrades.length === 0
-      const sp = spec.slice(
-        0,
-        firstUpgrade ? (c.data.belong === 'origin' ? 3 : 2) : 1
-      )
-      const item = this.game.gen
-        .shuffle(comm)
-        .slice(0, 4 - sp.length)
-        .concat(sp)
-      this.obtain_resource({
-        gas: -2,
-      })
-      if (
-        !(await this.discover(item, {
-          target: c,
-          extra: '放弃',
-        }))
-      ) {
-        this.obtain_resource({
-          gas: 1,
-        })
-        await this.post('upgrade-cancelled', {
-          ...refP(this),
-          target: c,
-        })
-      }
-    })
-    this.bus.on('$present-sell', async ({ place }) => {
-      if (!this.present[place]) {
-        return
-      }
-      await this.sell(this.present[place] as CardInstance)
-    })
-    this.bus.on('$obtain-card', async ({ card }) => {
-      if (this.data.hand.filter(x => x).length === 6) {
-        return
-      }
-      this.data.hand[this.data.hand.findIndex(v => v === null)] = card
-    })
-    this.bus.on('$obtain-unit', async ({ place, units }) => {
-      if (!this.data.present[place]) {
-        return
-      }
-      this.present[place]?.obtain_unit(units)
-    })
-    this.bus.on('$imr', async () => {
-      this.obtain_resource({
-        mineral: 100,
-        gas: 100,
-      })
+      },
+      $choice: async ({ category, choice }) => {
+        const r = this.resolves[category]
+        if (r) {
+          this.resolves[category] = null
+          r(choice)
+        }
+      },
+      $action: async ({ area, action, choice }) => {
+        switch (area) {
+          case 'store': {
+            const ck = this.data.store[choice]
+            if (!ck || !this.can_buy(ck, action, choice)) {
+              return
+            }
+            switch (action) {
+              case 'enter':
+                if (!this.can_enter(ck)) {
+                  return
+                }
+                break
+              case 'combine':
+                if (!this.can_combine(ck)) {
+                  return
+                }
+                break
+              case 'stage':
+                if (!this.can_stage()) {
+                  return
+                }
+                break
+            }
+            this.data.mineral -= this.role.buy_cost(ck, action, choice)
+
+            switch (action) {
+              case 'enter':
+                await this.enter(getCard(ck))
+                break
+              case 'combine':
+                await this.combine(getCard(ck))
+                break
+              case 'stage':
+                this.data.hand[this.data.hand.findIndex(v => v === null)] = ck
+                break
+            }
+
+            this.data.store[choice] = null
+
+            if (action !== 'combine') {
+              await this.role.bought(choice)
+            }
+            break
+          }
+          case 'hand': {
+            const ck = this.data.hand[choice]
+            if (!ck) {
+              return
+            }
+            switch (action) {
+              case 'enter':
+                if (!this.can_enter(ck)) {
+                  return
+                }
+                break
+              case 'combine':
+                if (!this.can_combine(ck)) {
+                  return
+                }
+                break
+            }
+
+            this.data.hand[choice] = null
+
+            switch (action) {
+              case 'enter':
+                await this.enter(getCard(ck))
+                break
+              case 'combine':
+                await this.combine(getCard(ck))
+                break
+              case 'sell':
+                if (getCard(ck).attr.type !== 'support') {
+                  this.obtain_resource({
+                    mineral: 1,
+                  })
+                }
+                break
+            }
+            break
+          }
+          case 'present': {
+            const c = this.present[choice]
+            if (!c) {
+              return
+            }
+            switch (action) {
+              case 'sell':
+                await this.sell(c)
+                break
+              case 'upgrade': {
+                if (!this.can_pres_upgrade(c.data)) {
+                  return
+                }
+
+                if (
+                  c.data.upgrades.length >= this.data.config.MaxUpgradePerCard
+                ) {
+                  return
+                }
+                const comm: Upgrade[] = [],
+                  spec: Upgrade[] = []
+                AllUpgrade.filter(u => !c.data.upgrades.includes(u))
+                  .map(getUpgrade)
+                  .forEach(u => {
+                    switch (u.category) {
+                      case 'O':
+                        if (c.data.belong === 'origin') {
+                          spec.push(u)
+                        }
+                        break
+                      case 'V':
+                        if (c.data.belong === 'void') {
+                          spec.push(u)
+                        }
+                        break
+                      case 'T':
+                      case 'P':
+                      case 'Z':
+                        if (c.data.race === u.category) {
+                          spec.push(u)
+                        }
+                        break
+                      case 'C':
+                        comm.push(u)
+                        break
+                    }
+                  })
+                this.game.gen.shuffle(spec)
+                const firstUpgrade = c.data.upgrades.length === 0
+                const sp = spec.slice(
+                  0,
+                  firstUpgrade ? (c.data.belong === 'origin' ? 3 : 2) : 1
+                )
+                const item = this.game.gen
+                  .shuffle(comm)
+                  .slice(0, 4 - sp.length)
+                  .concat(sp)
+                this.obtain_resource({
+                  gas: -2,
+                })
+                if (
+                  !(await this.discover(item, {
+                    target: c,
+                    extra: '放弃',
+                  }))
+                ) {
+                  this.obtain_resource({
+                    gas: 1,
+                  })
+                  await this.post({
+                    msg: 'upgrade-cancelled',
+                    target: c,
+                  })
+                }
+                break
+              }
+            }
+            break
+          }
+        }
+      },
+      $cheat: async msg => {
+        switch (msg.type) {
+          case 'card':
+            if (!this.can_stage()) {
+              return
+            }
+            this.data.hand[this.data.hand.findIndex(v => v === null)] =
+              msg.cardt
+            break
+          case 'unit':
+            if (!this.data.present[msg.place]) {
+              return
+            }
+            await this.present[msg.place]?.obtain_unit(msg.units)
+            break
+          case 'resource':
+            this.obtain_resource({
+              mineral: 100,
+              gas: 100,
+            })
+            break
+        }
+      },
     })
   }
 
   bind_default() {
-    this.bus.on('round-start', async () => {
-      this.data.doned = false
-      this.attrib.clean()
-      if (this.data.upgrade_cost > 0) {
-        this.data.upgrade_cost -= 1
-      }
-      if (this.data.mineral_max < this.data.config.MaxMineral) {
-        this.data.mineral_max += 1
-      }
-      this.data.mineral = this.data.mineral_max
-      if (this.data.gas < this.data.config.MaxGas) {
-        this.data.gas += 1
-      }
-      if (this.persisAttrib.get('R解放者_模式')) {
-        return
-      }
-      if (!this.data.locked) {
-        this.game.pool.drop(
-          (this.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
-        )
-        this.data.store.fill(null)
-      }
-      this.data.locked = false
-      this.fill_store()
-    })
-    this.bus.on('card-selled', async ({ target }) => {
-      if (target.data.race === 'N') {
-        // 检查尖塔
-        for (const c of this.present.filter(isCardInstance)) {
-          await c.obtain_unit(
-            us('原始异龙', c.data.upgrades.filter(u => u === '原始尖塔').length)
-          )
+    this.$on({
+      'round-start': async () => {
+        this.data.doned = false
+        this.attrib.clean()
+        if (this.data.upgrade_cost > 0) {
+          this.data.upgrade_cost -= 1
         }
-      }
+        if (this.data.mineral_max < this.data.config.MaxMineral) {
+          this.data.mineral_max += 1
+        }
+        this.data.mineral = this.data.mineral_max
+        if (this.data.gas < this.data.config.MaxGas) {
+          this.data.gas += 1
+        }
+        if (this.persisAttrib.get('R解放者_模式')) {
+          return
+        }
+        if (!this.data.locked) {
+          this.game.pool.drop(
+            (this.data.store.filter(x => x !== null) as CardKey[]).map(getCard)
+          )
+          this.data.store.fill(null)
+        }
+        this.data.locked = false
+        this.fill_store()
+      },
+      'card-selled': async ({ target }) => {
+        if (target.data.race === 'N') {
+          for (const c of this.present.filter(isCardInstance)) {
+            await c.obtain_unit(
+              us(
+                '原始异龙',
+                c.data.upgrades.filter(u => u === '原始尖塔').length
+              )
+            )
+          }
+        }
+      },
     })
   }
 
-  can_buy(ck: CardKey, act: 'enter' | 'combine' | 'cache', place: number) {
+  can_buy(ck: CardKey, act: 'enter' | 'combine' | 'stage', place: number) {
     return this.data.mineral >= this.role.buy_cost(ck, act, place)
   }
 
@@ -1182,7 +1308,7 @@ export class Player {
     )
   }
 
-  can_cache() {
+  can_stage() {
     return this.data.hand.filter(x => x).length < 6
   }
 

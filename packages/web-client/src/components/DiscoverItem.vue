@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Card, Upgrade } from '@sctavern-emulator/data'
-import type { Client } from '@sctavern-emulator/emulator'
+import type { PlayerClient } from '@sctavern-emulator/emulator'
 import RaceIcon from './RaceIcon.vue'
 
 const props = defineProps<{
   item: Card | Upgrade | String
   model: boolean
   pos: number
-  client: Client
+  client: PlayerClient
 }>()
 
 const elv = ref(5)
@@ -22,8 +22,10 @@ const elv = ref(5)
     @mouseover="elv = 10"
     @mouseout="elv = 5"
     @click="
-      client.discoverChoose({
-        pos,
+      client.post({
+        msg: '$choice',
+        category: 'discover',
+        choice: pos,
       })
     "
   >

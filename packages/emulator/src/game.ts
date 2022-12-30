@@ -1,10 +1,12 @@
 import { reactive } from '@vue/reactivity'
-import { SlaveGame } from './client'
-import { Emitter } from './emitter'
+import { DispatchTranslator, MsgKeyOf } from './dispatcher'
+import { InnerMsg, InputMsg, OutterMsg } from './events'
 import { Player, PlayerAttrib } from './player'
 import { Pool } from './pool'
-import { GameConfig, LogicBus, LogItem, OutputBus, Postable } from './types'
+import { GameConfig } from './types'
 import { Shuffler } from './utils'
+import { Game, SlaveGame } from '@nekosu/game-framework'
+import { Broadcast, Signal } from '@nekosu/game-framework/signal'
 
 interface GameAttrib {
   round: number
@@ -13,11 +15,15 @@ interface GameAttrib {
   player: (PlayerAttrib | null)[]
 }
 
-export class Game implements Postable<LogicBus> {
-  bus: Emitter<LogicBus>
-  obus: Emitter<OutputBus>
+export class GameInstance
+  extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg>
+  implements Game<InnerMsg, OutterMsg>
+{
+  slave: SlaveGame<InnerMsg, OutterMsg, GameInstance>
+  mainBroadcast: Broadcast<InnerMsg>
+  clientSignal: Signal<OutterMsg>
+
   config: GameConfig
-  slave: SlaveGame
 
   data: GameAttrib
 
@@ -25,23 +31,39 @@ export class Game implements Postable<LogicBus> {
   pool: Pool
   player: Player[]
 
-  log: LogItem[]
+  log: InputMsg[]
 
-  constructor(config: GameConfig, slave: SlaveGame) {
-    this.config = config
+  constructor(
+    config: GameConfig,
+    slave: SlaveGame<InnerMsg, OutterMsg, GameInstance>
+  ) {
+    super(msg => {
+      if ('player' in msg) {
+        return [this.player[msg.player]]
+      } else {
+        return this.player
+      }
+    })
+
     this.slave = slave
+    this.mainBroadcast = new Broadcast()
+    this.clientSignal = new Signal()
+
+    this.mainBroadcast.bind(async (msg: InnerMsg) => {
+      console.log(msg)
+      if (msg.msg[0] === '$') {
+        this.log.push(msg as InputMsg)
+      }
+      await this.$emit(msg)
+    })
+
+    this.config = config
     const count = config.role.length
     this.player = Array(count)
       .fill(null)
       .map((_, i) => {
         return new Player(this, i, config.role[i])
       })
-
-    this.bus = new Emitter(
-      'player',
-      this.player.map(p => p.bus)
-    )
-    this.obus = new Emitter('client', Array(count).fill(null))
 
     this.data = reactive({
       round: 0,
@@ -65,27 +87,14 @@ export class Game implements Postable<LogicBus> {
     return this.gen.shuffle(arr)
   }
 
-  async post<T extends keyof LogicBus>(msg: T, param: LogicBus[T]) {
-    console.log(msg)
-    if (msg[0] === '$') {
-      this.log.push({
-        msg,
-        param,
-      })
-    }
-    await this.bus.emit(msg, param)
-  }
-
-  async postOutput<T extends keyof OutputBus>(msg: T, param: OutputBus[T]) {
-    await this.obus.emit(msg, param)
-  }
-
   async start() {
     this.data.round = 1
-    await this.post('round-start', {
+    await this.mainBroadcast.emit({
+      msg: 'round-start',
       round: 1,
     })
-    await this.post('round-enter', {
+    await this.mainBroadcast.emit({
+      msg: 'round-enter',
       round: 1,
     })
   }
@@ -98,18 +107,22 @@ export class Game implements Postable<LogicBus> {
   }
 
   async next_round() {
-    await this.post('round-end', {
+    await this.mainBroadcast.emit({
+      msg: 'round-end',
       round: this.data.round,
     })
-    await this.post('round-finish', {
+    await this.mainBroadcast.emit({
+      msg: 'round-leave',
       round: this.data.round,
     })
     this.data.round += 1
     this.data.done_count = 0
-    await this.post('round-start', {
+    await this.mainBroadcast.emit({
+      msg: 'round-start',
       round: this.data.round,
     })
-    await this.post('round-enter', {
+    await this.mainBroadcast.emit({
+      msg: 'round-enter',
       round: this.data.round,
     })
   }

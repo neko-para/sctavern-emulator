@@ -13,7 +13,7 @@ import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
 import {
   autoBind,
-  autoBindUnique,
+  autoBindX,
   fake,
   isCardInstance,
   mostValueUnit,
@@ -39,7 +39,7 @@ function 黑暗容器_获得(
   nc: number,
   gc: number
 ): DescriptorGenerator {
-  return autoBind('gain-darkness', async (card, gold) => {
+  return autoBind('obtain-darkness', async (card, gold) => {
     await card.obtain_unit(us(unit, gold ? gc : nc))
   })
 }
@@ -217,30 +217,35 @@ const data: CardDescriptorTable = {
         await card.obtain_unit(us('德哈卡分身', gold ? 4 : 2))
       }
     }),
-    autoBindUnique((card, desc) => {
-      card.bus.on('round-end', async () => {
-        if (desc.disabled) {
-          return
-        }
-        if (card.player.data.mineral >= 1) {
-          card.player.persisAttrib.set('德哈卡', 1)
-        }
-      })
-      card.bus.on('round-start', async () => {
-        if (desc.disabled) {
-          return
-        }
-        if (card.player.persisAttrib.get('德哈卡')) {
-          await card.player.discover(
-            card.player.game.pool.discover(
-              c => !!c.attr.origin && c.level < 5,
-              3
+    autoBindX(
+      (card, gold, desc) => ({
+        'round-end': async () => {
+          if (desc.disabled) {
+            return
+          }
+          if (card.player.data.mineral >= 1) {
+            card.player.persisAttrib.set('德哈卡', 1)
+          }
+        },
+        'round-start': async () => {
+          if (desc.disabled) {
+            return
+          }
+          if (card.player.persisAttrib.get('德哈卡')) {
+            await card.player.discover(
+              card.player.game.pool.discover(
+                c => !!c.attr.origin && c.level < 5,
+                3
+              )
             )
-          )
-          card.player.persisAttrib.set('德哈卡', 0)
-        }
-      })
-    }, '德哈卡'),
+            card.player.persisAttrib.set('德哈卡', 0)
+          }
+        },
+      }),
+      {
+        unique: '德哈卡',
+      }
+    ),
   ],
   我叫小明: [
     autoBind('post-enter', async card => {
@@ -444,40 +449,50 @@ const data: CardDescriptorTable = {
     }),
   ],
   死亡之握: [
-    autoBindUnique((card, desc) => {
-      card.bus.on('round-end', async () => {
-        if (desc.disabled) {
-          return
-        }
-        for (const c of card.player.data.store.filter(
-          c => c !== null
-        ) as CardKey[]) {
-          const units = getCard(c).unit
-          const r: UnitKey[] = []
-          for (const k in units) {
-            const unit = k as UnitKey
-            if (!isNormal(unit) || isHero(unit)) {
-              continue
-            }
-            r.push(unit)
+    autoBindX(
+      (card, gold, desc) => ({
+        'round-end': async () => {
+          if (desc.disabled) {
+            return
           }
+          for (const c of card.player.data.store.filter(
+            c => c !== null
+          ) as CardKey[]) {
+            const units = getCard(c).unit
+            const r: UnitKey[] = []
+            for (const k in units) {
+              const unit = k as UnitKey
+              if (!isNormal(unit) || isHero(unit)) {
+                continue
+              }
+              r.push(unit)
+            }
+            await card.obtain_unit(
+              card.player.game.gen.shuffle(r).slice(0, desc.gold ? 2 : 1)
+            )
+          }
+        },
+      }),
+      {
+        unique: '死亡之握-结束',
+      }
+    ),
+    autoBindX(
+      (card, gold, desc) => ({
+        'store-refreshed': async () => {
+          if (desc.disabled) {
+            return
+          }
+          const units = [...new Set(card.data.units.filter(u => !isHero(u)))]
           await card.obtain_unit(
-            card.player.game.gen.shuffle(r).slice(0, desc.gold ? 2 : 1)
+            card.player.game.gen.shuffle(units).slice(0, desc.gold ? 2 : 1)
           )
-        }
-      })
-    }, '死亡之握-结束'),
-    autoBindUnique((card, desc) => {
-      card.bus.on('refreshed', async () => {
-        if (desc.disabled) {
-          return
-        }
-        const units = [...new Set(card.data.units.filter(u => !isHero(u)))]
-        await card.obtain_unit(
-          card.player.game.gen.shuffle(units).slice(0, desc.gold ? 2 : 1)
-        )
-      })
-    }, '死亡之握-刷新'),
+        },
+      }),
+      {
+        unique: '死亡之握-刷新',
+      }
+    ),
   ],
 }
 

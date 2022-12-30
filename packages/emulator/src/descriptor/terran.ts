@@ -8,8 +8,10 @@ import {
   UnitKey,
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
-import { CardDescriptorTable, DescriptorGenerator, LogicBus } from '../types'
-import { autoBind, autoBindUnique, isCardInstance, refP, us } from '../utils'
+import { CardDescriptorTable, DescriptorGenerator } from '../types'
+import { autoBind, autoBindX, isCardInstance, us } from '../utils'
+import { GetMsg, MsgKeyOf } from '../dispatcher'
+import { InnerMsg } from '../events'
 
 export enum RenewPolicy {
   never,
@@ -17,57 +19,50 @@ export enum RenewPolicy {
   instant,
 }
 
-export function 任务<T extends keyof LogicBus>(
+export function 任务<T extends MsgKeyOf<InnerMsg>>(
   msg: T,
   count: number,
   reward: (card: CardInstance, gold: boolean) => Promise<void>,
-  pred: (p: LogicBus[T]) => boolean = () => true,
+  pred: (p: GetMsg<InnerMsg, T>) => boolean = () => true,
   policy: RenewPolicy = RenewPolicy.never
 ): DescriptorGenerator {
-  return (card, gold) => {
-    card.attrib.set('task', 0)
-    card.view.set(
-      '任务',
-      () => `任务进度: ${card.attrib.get('task')} / ${count}`
-    )
-    let n = 0
-    const bus = card.bus
-    bus.begin()
-    bus.on(msg, async p => {
-      if (n < count && pred(p)) {
-        n += 1
-        card.attrib.set('task', n)
-        if (n === count) {
-          await reward(card, gold)
-          await card.post('task-done', {
-            ...refP(card.player),
-            target: card,
-          })
-          if (policy === RenewPolicy.instant) {
-            n = 0
-            card.attrib.set('task', 0)
+  return autoBindX(
+    (card, gold) => ({
+      [msg]: async (param: GetMsg<InnerMsg, T>) => {
+        if (card.attrib.get('task') < count && pred(param)) {
+          card.attrib.alter('task', 1)
+          if (card.attrib.get('task') === count) {
+            await reward(card, gold)
+            await card.player.post({
+              msg: 'task-done',
+              target: card,
+            })
+            if (policy === RenewPolicy.instant) {
+              card.attrib.set('task', 0)
+            }
           }
         }
-      }
-    })
-    switch (policy) {
-      case RenewPolicy.roundend:
-        bus.on('round-end', async () => {
-          n = 0
+      },
+      'round-end': async () => {
+        if (policy === RenewPolicy.roundend) {
           card.attrib.set('task', 0)
-        })
-        break
+        }
+      },
+    }),
+    {
+      init: card => {
+        card.attrib.set('task', 0)
+        card.view.set(
+          '任务',
+          () => `任务进度: ${card.attrib.get('task')} / ${count}`
+        )
+      },
     }
-    return reactive({
-      gold,
-
-      unbind: bus.end(),
-    })
-  }
+  )
 }
 
 function 快速生产(unit: UnitKey, nc: number, gc: number): DescriptorGenerator {
-  return autoBind('fast-prod', async (card, gold) => {
+  return autoBind('fast-produce', async (card, gold) => {
     await card.obtain_unit(us(unit, gold ? gc : nc))
   })
 }
@@ -125,7 +120,7 @@ const data: CardDescriptorTable = {
   好兄弟: [快速生产('陆战队员', 4, 6), 反应堆('陆战队员')],
   挖宝奇兵: [
     任务(
-      'refreshed',
+      'store-refreshed',
       5,
       async card => {
         await card.player.discover(
@@ -174,7 +169,7 @@ const data: CardDescriptorTable = {
   科考小队: [
     进场切换挂件(),
     任务(
-      'refreshed',
+      'store-refreshed',
       2,
       async (card, gold) => {
         await card.obtain_unit(us('歌利亚', gold ? 2 : 1))
@@ -201,7 +196,7 @@ const data: CardDescriptorTable = {
     }),
   ],
   斯台特曼: [
-    autoBind('fast-prod', async (card, gold) => {
+    autoBind('fast-produce', async (card, gold) => {
       for (const c of card.around()) {
         c.replace_unit(c.find('歌利亚', gold ? 2 : 1), elited)
         c.replace_unit(
@@ -290,33 +285,40 @@ const data: CardDescriptorTable = {
         c.replace_unit(c.find('陆战队员(精英)', gold ? 2 : 1), '帝盾卫兵')
       }
     }),
-    autoBindUnique((card, desc) => {
-      card.player.attrib.alter('沃菲尔德', 0)
-      card.view.set('沃菲尔德', () => {
-        if (desc.disabled) {
-          return '禁用'
-        }
-        const v = card.player.attrib.get('沃菲尔德')
-        if (v === null || v < (desc.gold ? 2 : 1)) {
-          return `启用 ${v || 0}`
-        } else {
-          return `停用 ${v}`
-        }
-      })
-      card.bus.on('card-selled', async ({ target }) => {
-        if (desc.disabled) {
-          return
-        }
-        if (target.data.race !== 'T') {
-          return
-        }
-        if (card.player.attrib.get('沃菲尔德') >= (desc.gold ? 2 : 1)) {
-          return
-        }
-        card.player.attrib.alter('沃菲尔德', 1)
-        await card.obtain_unit(target.data.units.filter(isNormal))
-      })
-    }, '沃菲尔德'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-selled': async ({ target }) => {
+          if (desc.disabled) {
+            return
+          }
+          if (target.data.race !== 'T') {
+            return
+          }
+          if (card.player.attrib.get('沃菲尔德') >= (desc.gold ? 2 : 1)) {
+            return
+          }
+          card.player.attrib.alter('沃菲尔德', 1)
+          await card.obtain_unit(target.data.units.filter(isNormal))
+        },
+      }),
+      {
+        unique: '沃菲尔德',
+        init: (card, gold, desc) => {
+          card.player.attrib.alter('沃菲尔德', 0)
+          card.view.set('沃菲尔德', () => {
+            if (desc.disabled) {
+              return '禁用'
+            }
+            const v = card.player.attrib.get('沃菲尔德')
+            if (v === null || v < (desc.gold ? 2 : 1)) {
+              return `启用 ${v || 0}`
+            } else {
+              return `停用 ${v}`
+            }
+          })
+        },
+      }
+    ),
   ],
   帝国舰队: [
     任务(
@@ -334,7 +336,7 @@ const data: CardDescriptorTable = {
   ],
   黄昏之翼: [快速生产('黄昏之翼', 1, 2), 反应堆('女妖')],
   艾尔游骑兵: [
-    autoBind('fast-prod', async (card, gold) => {
+    autoBind('fast-produce', async (card, gold) => {
       await card.left()?.obtain_unit(us('水晶塔', gold ? 2 : 1))
     }),
     autoBind('round-end', async (card, gold) => {
@@ -364,14 +366,14 @@ const data: CardDescriptorTable = {
         }
       }
     }),
-    autoBind('fast-prod', async (card, gold) => {
+    autoBind('fast-produce', async (card, gold) => {
       for (const c of card.player.all_of('T')) {
         c.replace_unit(c.find('火蝠', gold ? 3 : 2), elited)
       }
     }),
   ],
   复制中心: [
-    autoBind('fast-prod', async (card, gold) => {
+    autoBind('fast-produce', async (card, gold) => {
       for (const c of card.player.data.hand) {
         if (!c) {
           continue

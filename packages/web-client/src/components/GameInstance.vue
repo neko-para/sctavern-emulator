@@ -46,7 +46,7 @@ const project_tree = `${project}/tree/${gitHashFull}`
             v-for="(act, i) in player.data.globalActs"
             :key="`GlobalAct-${i}`"
             :disabled="status.model || !act.enable"
-            @click="client.post(act.message, { player: player.pos })"
+            @click="client.post(act.message)"
             >{{ act.name }}</v-btn
           >
 
@@ -64,7 +64,9 @@ const project_tree = `${project}/tree/${gitHashFull}`
                 @click="
                   !status.model &&
                     player.data.ability.enable &&
-                    client.requestAbility()
+                    client.post({
+                      msg: '$ability',
+                    })
                 "
                 >{{ player.data.ability.data.ability
                 }}{{
@@ -131,7 +133,13 @@ const project_tree = `${project}/tree/${gitHashFull}`
           <v-btn
             v-if="status.discoverExtra"
             variant="text"
-            @click="client.discoverChoose({ pos: -1 })"
+            @click="
+              client.post({
+                msg: '$choice',
+                category: 'discover',
+                choice: -1,
+              })
+            "
             color="red"
             >{{ status.discoverExtra }}</v-btn
           >
@@ -144,10 +152,10 @@ const project_tree = `${project}/tree/${gitHashFull}`
             >版本:
             <a :href="project_tree" target="_blank">{{ gitHash }}</a></span
           >
-          <span class="mb-1">种子: {{ client.game.game.config.seed }}</span>
+          <span class="mb-1">种子: {{ client.slave.game.config.seed }}</span>
           <span
             class="mt-1"
-            v-for="(p, k) in client.game.game.pool.pack"
+            v-for="(p, k) in client.slave.game.pool.pack"
             :key="`PackInfo-${k}`"
           >
             {{ k }}
@@ -180,8 +188,6 @@ const project_tree = `${project}/tree/${gitHashFull}`
 }
 .enterSelect {
   font-weight: 600;
-}
-.heroExtra {
 }
 .heroExtra ul {
   list-style: none;

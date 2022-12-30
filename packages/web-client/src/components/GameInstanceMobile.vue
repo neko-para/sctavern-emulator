@@ -39,9 +39,17 @@ const extraDlg = ref(false)
           ></discover-item>
         </v-card-text>
         <v-card-actions v-if="status.discoverExtra">
-          <v-btn @click="client.discoverChoose({ pos: -1 })" color="red">{{
-            status.discoverExtra
-          }}</v-btn>
+          <v-btn
+            @click="
+              client.post({
+                msg: '$choice',
+                category: 'discover',
+                choice: -1,
+              })
+            "
+            color="red"
+            >{{ status.discoverExtra }}</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -69,7 +77,12 @@ const extraDlg = ref(false)
               ? ''
               : 'grey'
           "
-          @click="player.data.ability.enable && client.requestAbility()"
+          @click="
+            player.data.ability.enable &&
+              client.post({
+                msg: '$ability',
+              })
+          "
           >{{ player.data.ability.data.ability
           }}{{
             player.data.ability.prog_cur !== -1
@@ -86,7 +99,7 @@ const extraDlg = ref(false)
           :key="`GlobalAct-${i}`"
           class="mr-1"
           :disabled="status.model || !act.enable"
-          @click="client.post(act.message, { player: player.pos })"
+          @click="client.post(act.message)"
           >{{ act.name }}</v-btn
         >
 

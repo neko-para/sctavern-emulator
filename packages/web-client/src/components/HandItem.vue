@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { getCard, type CardKey } from '@sctavern-emulator/data'
-import type { Client } from '@sctavern-emulator/emulator'
+import type { PlayerClient } from '@sctavern-emulator/emulator'
 import TemplateRefer from './TemplateRefer.vue'
 import RaceIcon from './RaceIcon.vue'
 
@@ -10,7 +10,7 @@ const props = defineProps<{
   model: boolean
   pos: number
   selected: boolean
-  client: Client
+  client: PlayerClient
 }>()
 
 const cardInfo = computed(() => {
@@ -29,7 +29,14 @@ const elv = ref(5)
     }"
     @mouseover="elv = 10"
     @mouseout="elv = 5"
-    @click="!model && client.selectChoose(card ? `H${pos}` : 'none')"
+    @click="
+      !model &&
+        client.post({
+          msg: '$select',
+          area: card ? 'hand' : 'none',
+          choice: card ? pos : -1,
+        })
+    "
   >
     <template v-if="card && cardInfo">
       <div class="d-flex">
@@ -44,7 +51,7 @@ const elv = ref(5)
           variant="flat"
           :color="act.name === '三连' ? 'yellow' : ''"
           :disabled="model || !act.enable"
-          @click="client.post(act.message, { player: client.pos, place: pos })"
+          @click="client.post(act.message)"
           >{{ act.name }}</v-btn
         >
       </div>

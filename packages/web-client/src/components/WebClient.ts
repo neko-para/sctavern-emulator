@@ -1,17 +1,11 @@
 import type { Card, Upgrade } from '@sctavern-emulator/data'
-import {
-  Client,
-  SlaveGame,
-  type Adapter,
-  type InputBus,
-  type LogItem,
-} from '@sctavern-emulator/emulator'
+import { type $SlaveGame, PlayerClient } from '@sctavern-emulator/emulator'
 import type { ClientStatus } from './types'
 
-export class WebClient extends Client {
+export class WebClient extends PlayerClient {
   status: ClientStatus
 
-  constructor(game: SlaveGame, pos: number, status: ClientStatus) {
+  constructor(game: $SlaveGame, pos: number, status: ClientStatus) {
     super(game, pos)
     this.status = status
   }
@@ -54,7 +48,7 @@ export class WebClient extends Client {
     this.status.model = false
   }
 }
-
+/*
 export class ClientAdapter implements Adapter {
   onPosted: (item: LogItem) => void
   sock: WebSocket
@@ -82,3 +76,4 @@ export class ClientAdapter implements Adapter {
     })
   }
 }
+*/

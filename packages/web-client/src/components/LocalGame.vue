@@ -40,7 +40,7 @@ const game = new LocalGame({
   mutation: replay.mutation,
 })
 
-const client = new WebClient(game.slave, 0, status)
+const client = game.slave.bind(sg => new WebClient(sg, 0, status)) as WebClient
 
 const replaying = ref(false)
 const replayStatus = ref<'play' | 'pause'>('play')
@@ -154,18 +154,24 @@ function handleKey(ev: KeyboardEvent) {
     case '7': {
       const pos = Number(ev.key) - 1
       if (client.player.data.present[pos]) {
-        client.selectChoose(`P${pos}`)
+        client.post({
+          msg: '$select',
+          area: 'present',
+          choice: pos,
+        })
       } else {
-        client.selectChoose('none')
+        client.post({
+          msg: '$select',
+          area: 'none',
+          choice: -1,
+        })
       }
       break
     }
     default: {
       for (const act of client.player.data.globalActs) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message, {
-            player: client.pos,
-          })
+          client.post(act.message)
         }
       }
       const m = /^([HSP])(\d)$/.exec(status.selected)
@@ -186,10 +192,7 @@ function handleKey(ev: KeyboardEvent) {
       })()
       for (const act of acts) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message, {
-            player: client.pos,
-            place: pos,
-          })
+          client.post(act.message)
         }
       }
     }
@@ -243,7 +246,11 @@ main()
           v-model="obtainCardKey"
           @keyup.enter="
             obtainCardChoice.length > 0 &&
-              client.requestObtainCard(obtainCardChoice[0].name)
+              client.post({
+                msg: '$cheat',
+                type: 'card',
+                cardt: obtainCardChoice[0].name,
+              })
           "
         ></v-text-field>
         <div class="d-flex flex-column">
@@ -254,7 +261,13 @@ main()
               enterSelect: i === 0,
             }"
             :key="`OCChoice-${i}`"
-            @click="client.requestObtainCard(c.name)"
+            @click="
+              client.post({
+                msg: '$cheat',
+                type: 'card',
+                cardt: c.name,
+              })
+            "
             >{{ c.pinyin }} {{ c.name }}</v-btn
           >
         </div>
@@ -276,12 +289,14 @@ main()
             @keyup.enter="
               obtainUnitChoice.length > 0 &&
                 client.status.selected[0] === 'P' &&
-                client.requestObtainUnit(
-                  Number(client.status.selected.substring(1)),
-                  Array(Number(obtainUnitCount)).fill(
+                client.post({
+                  msg: '$cheat',
+                  type: 'unit',
+                  place: Number(client.status.selected.substring(1)),
+                  units: Array(Number(obtainUnitCount)).fill(
                     obtainUnitChoice[0].name
-                  ) as UnitKey[]
-                )
+                  ) as UnitKey[],
+                })
             "
           ></v-text-field>
           <v-text-field
@@ -293,21 +308,23 @@ main()
         <div class="d-flex flex-column">
           <v-btn
             variant="flat"
-            v-for="(c, i) in obtainUnitChoice"
+            v-for="(u, i) in obtainUnitChoice"
             :class="{
               enterSelect: i === 0,
             }"
             :key="`OUChoice-${i}`"
             @click="
               client.status.selected[0] === 'P' &&
-                client.requestObtainUnit(
-                  Number(client.status.selected.substring(1)),
-                  Array(Number(obtainUnitCount)).fill(
-                    obtainUnitChoice[i].name
-                  ) as UnitKey[]
-                )
+                client.post({
+                  msg: '$cheat',
+                  type: 'unit',
+                  place: Number(client.status.selected.substring(1)),
+                  units: Array(Number(obtainUnitCount)).fill(
+                    u.name
+                  ) as UnitKey[],
+                })
             "
-            >{{ c.pinyin }} {{ c.name }}</v-btn
+            >{{ u.pinyin }} {{ u.name }}</v-btn
           >
         </div>
       </v-card-text>
@@ -329,7 +346,14 @@ main()
         @click="obtainUnitDlg = true"
         >单位</v-btn
       >
-      <v-btn :disabled="status.model" @click="client.requestResource()"
+      <v-btn
+        :disabled="status.model"
+        @click="
+          client.post({
+            msg: '$cheat',
+            type: 'resource',
+          })
+        "
         >资源</v-btn
       >
       <template v-if="replaying">

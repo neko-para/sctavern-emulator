@@ -11,33 +11,26 @@ import {
 } from '@sctavern-emulator/data'
 import { CardInstance } from '../card'
 import { CardDescriptorTable, DescriptorGenerator } from '../types'
-import {
-  autoBind,
-  autoBindSome,
-  autoBindUnique,
-  isCardInstance,
-  refC,
-  us,
-} from '../utils'
+import { autoBind, autoBindX, isCardInstance, us } from '../utils'
 
 function 集结X(
   power: number,
   func: (card: CardInstance, gold: boolean) => Promise<void>,
   id = 0
 ): DescriptorGenerator {
-  return autoBindSome((card, gold) => {
-    card.bus.on('round-end', async () => {
+  return autoBindX((card, gold) => ({
+    'round-end': async () => {
       const n = Math.min(2, Math.floor(card.data.power / power))
       for (let i = 0; i < n; i++) {
         await card.regroup(id)
       }
-    })
-    card.bus.on('regroup', async ({ id: rid }) => {
+    },
+    'req-regroup': async ({ id: rid }) => {
       if (rid === id || rid === -1) {
         await func(card, gold)
       }
-    })
-  })
+    },
+  }))
 }
 
 function 集结(
@@ -86,10 +79,9 @@ const data: CardDescriptorTable = {
   ],
   万叉奔腾: [集结(2, '狂热者', 1, 2)],
   折跃信标: [
-    autoBindUnique(
-      (card, desc) => {
-        card.view.set('折跃信标', () => (desc.disabled ? '停用' : '启用'))
-        card.bus.on('wrap', async param => {
+    autoBindX(
+      (card, gold, desc) => ({
+        wrap: async param => {
           if (desc.disabled) {
             return
           }
@@ -98,10 +90,15 @@ const data: CardDescriptorTable = {
           } else {
             // ???
           }
-        })
-      },
-      '折跃信标',
-      true
+        },
+      }),
+      {
+        unique: '折跃信标',
+        uniqueNoGold: true,
+        init: (card, gold, desc) => {
+          card.view.set('折跃信标', () => (desc.disabled ? '停用' : '启用'))
+        },
+      }
     ),
   ],
   艾尔之刃: [
@@ -199,13 +196,16 @@ const data: CardDescriptorTable = {
         },
       })
     },
-    autoBind('obtain-unit-post', async (card, gold, { units }) => {
-      if (units.includes('水晶塔') || units.includes('虚空水晶塔')) {
+    autoBind('obtain-unit', async (card, gold, { time, units }) => {
+      if (
+        time === 'post' &&
+        (units.includes('水晶塔') || units.includes('虚空水晶塔'))
+      ) {
         await card.obtain_unit(us('莫汗达尔', gold ? 2 : 1))
       }
     }),
-    autoBind('obtain-unit-prev', async (card, gold, param) => {
-      if (param.way !== 'wrap') {
+    autoBind('obtain-unit', async (card, gold, param) => {
+      if (param.time !== 'prev' || param.way !== 'wrap') {
         return
       }
       param.units = param.units.map(u => (isMachine(u) ? '尤尔兰' : u))
@@ -216,19 +216,9 @@ const data: CardDescriptorTable = {
       card.replace_unit(card.find('泰坦棱镜<已收起>'), '泰坦棱镜')
       card.player.resort_unique('光复艾尔')
     }),
-    autoBindUnique(
-      (card, desc) => {
-        desc.manualDisable = computed<boolean>(() => {
-          return card.data.units.indexOf('泰坦棱镜') === -1
-        }) as unknown as boolean
-        card.view.set('光复艾尔', () =>
-          card.find('泰坦棱镜').length > 0
-            ? desc.disabled
-              ? '停用'
-              : '启用'
-            : '禁用'
-        )
-        card.bus.on('card-selled', async param => {
+    autoBindX(
+      (card, gold, desc) => ({
+        'card-selled': async param => {
           if (desc.disabled) {
             return
           }
@@ -247,10 +237,24 @@ const data: CardDescriptorTable = {
               .filter(u => desc.gold || !isHero(u))
           )
           card.player.resort_unique('光复艾尔')
-        })
-      },
-      '光复艾尔',
-      true
+        },
+      }),
+      {
+        unique: '光复艾尔',
+        uniqueNoGold: true,
+        init: (card, gold, desc) => {
+          desc.manualDisable = computed<boolean>(() => {
+            return card.data.units.indexOf('泰坦棱镜') === -1
+          }) as unknown as boolean
+          card.view.set('光复艾尔', () =>
+            card.find('泰坦棱镜').length > 0
+              ? desc.disabled
+                ? '停用'
+                : '启用'
+              : '禁用'
+          )
+        },
+      }
     ),
   ],
   菲尼克斯: [
@@ -268,12 +272,12 @@ const data: CardDescriptorTable = {
   酒馆后勤处: [
     autoBind('post-enter', async card => {
       for (const c of card.player.present.filter(isCardInstance)) {
-        await card.post('regroup', {
-          ...refC(c),
+        await c.post({
+          msg: 'req-regroup',
           id: -1,
         })
-        await card.post('regroup', {
-          ...refC(c),
+        await c.post({
+          msg: 'req-regroup',
           id: -1,
         })
       }
@@ -291,16 +295,21 @@ const data: CardDescriptorTable = {
     }),
   ],
   阿尔达瑞斯: [
-    autoBindUnique((card, desc) => {
-      card.bus.on('round-end', async () => {
-        if (desc.disabled) {
-          return
-        }
-        if (card.player.count_present().P >= 5) {
-          await card.obtain_unit(us('英雄不朽者', desc.gold ? 2 : 1))
-        }
-      })
-    }, '阿尔达瑞斯'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'round-end': async () => {
+          if (desc.disabled) {
+            return
+          }
+          if (card.player.count_present().P >= 5) {
+            await card.obtain_unit(us('英雄不朽者', desc.gold ? 2 : 1))
+          }
+        },
+      }),
+      {
+        unique: '阿尔达瑞斯',
+      }
+    ),
   ],
   阿塔尼斯: [
     autoBind('round-end', async (card, gold) => {
@@ -309,19 +318,24 @@ const data: CardDescriptorTable = {
         ...us('阿塔尼斯', gold ? 2 : 0),
       ])
     }),
-    autoBindUnique((card, desc) => {
-      card.bus.on('round-end', async () => {
-        if (desc.disabled) {
-          return
-        }
-        for (const c of card.player.present.filter(isCardInstance)) {
-          await card.post('regroup', {
-            ...refC(c),
-            id: -1,
-          })
-        }
-      })
-    }, '阿塔尼斯'),
+    autoBindX(
+      (card, gold, desc) => ({
+        'round-end': async () => {
+          if (desc.disabled) {
+            return
+          }
+          for (const c of card.player.present.filter(isCardInstance)) {
+            await c.post({
+              msg: 'req-regroup',
+              id: -1,
+            })
+          }
+        },
+      }),
+      {
+        unique: '阿塔尼斯',
+      }
+    ),
   ],
   净化之光: [
     autoBind('round-end', async (card, gold) => {
@@ -363,10 +377,12 @@ const data: CardDescriptorTable = {
     }),
   ],
   英雄叉: [
-    autoBind('obtain-unit-prev', async (card, gold, param) => {
-      param.units = param.units.map(u =>
-        u === '狂热者(精英)' ? '卡尔达利斯' : u
-      )
+    autoBind('obtain-unit', async (card, gold, param) => {
+      if (param.time === 'prev') {
+        param.units = param.units.map(u =>
+          u === '狂热者(精英)' ? '卡尔达利斯' : u
+        )
+      }
     }),
   ],
 }

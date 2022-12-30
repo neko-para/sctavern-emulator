@@ -11,6 +11,7 @@
     "typescript": "*"
   },
   "dependencies": {
+    "@nekosu/game-framework": "^1.0.12",
     "@sctavern-emulator/data": "*",
     "@vue/reactivity": "^3.2.45",
     "random": "*"
