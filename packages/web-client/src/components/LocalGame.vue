@@ -28,7 +28,7 @@ const status = reactive<ClientStatus>({
   insert: false,
   selected: 'none',
   discoverItems: [],
-  discoverCancel: false,
+  discoverExtra: '',
 })
 
 const replay = decompress(props.replay) as GameReplay
