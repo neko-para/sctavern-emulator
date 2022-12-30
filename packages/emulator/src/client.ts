@@ -6,7 +6,7 @@ import {
   Slot,
 } from '@nekosu/game-framework'
 import { Card, Upgrade } from '@sctavern-emulator/data'
-import { InnerMsg, InputMsg, OutterMsg } from './events'
+import { InnerMsg, OutterMsg } from './events'
 import { GameInstance } from './game'
 import { Player } from './player'
 import { DistributiveOmit, GameConfig, GameReplay, LogItem } from './types'
