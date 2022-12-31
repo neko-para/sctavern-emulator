@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { LocalGame, type GameReplay } from '@sctavern-emulator/emulator'
+import { LocalGame } from '@nekosu/game-framework'
+import {
+  GameInstance,
+  type InnerMsg,
+  type GameReplay,
+  type OutterMsg,
+} from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import {
   AllCard,
@@ -33,14 +39,22 @@ const status = reactive<ClientStatus>({
 
 const replay = decompress(props.replay) as GameReplay
 
-const game = new LocalGame({
-  pack: replay.pack,
-  seed: replay.seed,
-  role: replay.role,
-  mutation: replay.mutation,
-})
+const game = new LocalGame<InnerMsg, OutterMsg, GameInstance>([
+  sg =>
+    new GameInstance(
+      {
+        pack: replay.pack,
+        seed: replay.seed,
+        role: replay.role,
+        mutation: replay.mutation,
+      },
+      sg
+    ),
+])
 
-const client = game.slave.bind(sg => new WebClient(sg, 0, status)) as WebClient
+const client = game.slaves[0].bind(
+  sg => new WebClient(sg, 0, status)
+) as WebClient
 
 const replaying = ref(false)
 const replayStatus = ref<'play' | 'pause'>('play')
@@ -68,9 +82,9 @@ function nextReplay() {
 }
 
 async function main() {
-  game.master.poll()
-  game.slave.poll()
-  game.slave.game.start()
+  game.start(sg => {
+    sg.game.start()
+  })
 
   replaying.value = true
   await client.replay(replay, async () => {
@@ -208,7 +222,7 @@ function doExport() {
     seed: replay.seed,
     role: replay.role,
     mutation: replay.mutation,
-    log: game.slave.game.log,
+    log: game.slaves[0].game.log,
   })
   expDlg.value = true
 }

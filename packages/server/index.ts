@@ -1,48 +1,48 @@
-import {
-  type ClientConnection,
-  Signal,
-  Slot,
-  MasterGame,
-} from '@nekosu/game-framework'
-import { type InnerMsg, type $MasterGame } from '@sctavern-emulator/emulator'
-import { WebSocketServer, WebSocket } from 'ws'
+import { Signal, RemoteServer, type IWebSocket } from '@nekosu/game-framework'
+import { type InnerMsg } from '@sctavern-emulator/emulator'
+import { WebSocketServer } from 'ws'
 
-export function WebsockConnect(sock: WebSocket): ClientConnection<InnerMsg> {
-  const conns: ClientConnection<InnerMsg> = {
-    signal: new Signal(),
-    slot: new Slot(),
-  }
-  sock.on('message', data => {
-    conns.signal.emit(JSON.parse(data.toString()) as InnerMsg)
-  })
-  conns.slot.bind(async item => {
-    sock.send(JSON.stringify(item))
-  })
-  return conns
-}
-
-class Server {
-  server: WebSocketServer
-  adapters: ClientConnection<InnerMsg>[]
-
-  constructor() {
-    this.server = new WebSocketServer({
-      port: 8080,
-    })
-    this.adapters = []
-
-    this.server.on('connection', conn => {
-      console.log('in')
-      const cc = WebsockConnect(conn)
-      this.adapters.push(cc)
-      if (this.adapters.length === 2) {
-        console.log('start')
-        const game: $MasterGame = new MasterGame(this.adapters)
-        this.adapters = []
-        game.poll()
+new RemoteServer<InnerMsg>(
+  {
+    clientFactory: () => null,
+    serverFactory: port => {
+      const srv = {
+        server: new WebSocketServer({
+          port,
+        }),
+        connected: new Signal<IWebSocket>(),
       }
-    })
-  }
-}
-
-new Server()
+      srv.server.on('connection', socket => {
+        const s: IWebSocket = {
+          recv: new Signal(),
+          send: new Signal(),
+          status: new Signal(),
+          ctrl: new Signal(),
+        }
+        socket.on('open', () => {
+          s.status.emit('open')
+        })
+        socket.on('close', () => {
+          s.status.emit('close')
+        })
+        s.ctrl.connect(async req => {
+          switch (req) {
+            case 'close':
+              socket.close()
+              break
+          }
+        })
+        s.send.connect(async item => {
+          socket.send(item)
+        })
+        socket.on('message', data => {
+          s.recv.emit(data.toString())
+        })
+        srv.connected.emit(s)
+      })
+      return srv
+    },
+  },
+  8080,
+  2
+)

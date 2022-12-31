@@ -5,7 +5,12 @@ import {
   type InnerMsg,
 } from '@sctavern-emulator/emulator'
 import type { ClientStatus } from './types'
-import type { ClientConnection } from '@nekosu/game-framework'
+import {
+  Signal,
+  type ClientConnection,
+  type IWebSocket,
+  type IWebSocketFactory,
+} from '@nekosu/game-framework'
 
 export class WebClient extends PlayerClient {
   status: ClientStatus
@@ -54,19 +59,35 @@ export class WebClient extends PlayerClient {
   }
 }
 
-export async function WebsockConnect(
-  conns: ClientConnection<InnerMsg>,
-  url: string,
-  init: () => void = () => {}
-) {
-  const sock = new WebSocket(url)
-  sock.addEventListener('open', () => {
-    init()
-  })
-  sock.addEventListener('message', ({ data }) => {
-    conns.signal.emit(JSON.parse(data) as InnerMsg)
-  })
-  conns.slot.bind(async item => {
-    sock.send(JSON.stringify(item))
-  })
+export const WebsockFactory: IWebSocketFactory = {
+  serverFactory: () => null,
+  clientFactory: url => {
+    const sock = new WebSocket(url)
+    const s: IWebSocket = {
+      send: new Signal(),
+      recv: new Signal(),
+      status: new Signal(),
+      ctrl: new Signal(),
+    }
+    sock.onopen = () => {
+      s.status.emit('open')
+    }
+    sock.onclose = () => {
+      s.status.emit('close')
+    }
+    sock.onmessage = ({ data }) => {
+      s.recv.emit(data)
+    }
+    s.send.connect(async item => {
+      sock.send(item)
+    })
+    s.ctrl.connect(async req => {
+      switch (req) {
+        case 'close':
+          sock.close()
+          break
+      }
+    })
+    return s
+  },
 }

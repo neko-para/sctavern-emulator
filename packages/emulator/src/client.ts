@@ -1,34 +1,18 @@
-import {
-  Client,
-  MasterGame,
-  Signal,
-  SlaveGame,
-  Slot,
-} from '@nekosu/game-framework'
+import { Client, MasterGame, Signal, SlaveGame } from '@nekosu/game-framework'
 import { Card, Upgrade } from '@sctavern-emulator/data'
 import { InnerMsg, OutterMsg } from './events'
 import { GameInstance } from './game'
 import { Player } from './player'
-import { DistributiveOmit, GameConfig, GameReplay, LogItem } from './types'
+import { DistributiveOmit, GameReplay, LogItem } from './types'
 
 export type $MasterGame = MasterGame<InnerMsg>
 export type $SlaveGame = SlaveGame<InnerMsg, OutterMsg, GameInstance>
 export type $Client = Client<InnerMsg, OutterMsg, GameInstance>
 
-export class LocalGame {
-  master: $MasterGame
-  slave: $SlaveGame
-
-  constructor(config: GameConfig) {
-    this.slave = new SlaveGame(sg => new GameInstance(config, sg))
-    this.master = new MasterGame([this.slave.getClientConnection()])
-  }
-}
-
 export class PlayerClient implements $Client {
   slave: $SlaveGame
-  clientSignal: Signal<InnerMsg>
-  clientSlot: Slot<OutterMsg>
+  $send: Signal<InnerMsg>
+  $recv: Signal<OutterMsg>
 
   pos: number
   player: Player
@@ -37,8 +21,8 @@ export class PlayerClient implements $Client {
 
   constructor(slave: $SlaveGame, pos: number) {
     this.slave = slave
-    this.clientSignal = new Signal()
-    this.clientSlot = new Slot()
+    this.$send = new Signal()
+    this.$recv = new Signal()
 
     this.pos = pos
     this.player = this.slave.game.player[pos]
@@ -48,7 +32,7 @@ export class PlayerClient implements $Client {
     }
     this.stop = false
 
-    this.clientSlot.bind(async item => {
+    this.$recv.connect(async item => {
       if (item.client !== this.pos) {
         return
       }
@@ -110,7 +94,7 @@ export class PlayerClient implements $Client {
       player: this.pos,
       ...msg,
     }
-    await this.clientSignal.emit(rm)
+    await this.$send.emit(rm)
     return rm
   }
 

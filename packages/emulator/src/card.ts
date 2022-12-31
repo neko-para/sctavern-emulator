@@ -216,7 +216,7 @@ export class CardInstance extends DispatchTranslator<
       card: this.data.pos === -1 ? this : this.data.pos,
       ...msg,
     }
-    await this.player.game.mainBroadcast.emit(rm)
+    await this.player.game.$game.emit(rm)
     return rm
   }
 

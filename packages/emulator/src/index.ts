@@ -4,7 +4,6 @@ import { Player } from './player'
 import { CardInstance, type CardInstanceAttrib } from './card'
 import { Shuffler } from './utils'
 import {
-  LocalGame,
   PlayerClient,
   type $MasterGame,
   type $SlaveGame,
@@ -23,4 +22,4 @@ export type {
   InnerMsg,
   OutterMsg,
 }
-export { GameInstance, Player, CardInstance, Shuffler, PlayerClient, LocalGame }
+export { GameInstance, Player, CardInstance, Shuffler, PlayerClient }

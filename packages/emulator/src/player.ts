@@ -365,7 +365,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       player: this.pos,
       ...msg,
     }
-    await this.game.mainBroadcast.emit(rm)
+    await this.game.$game.emit(rm)
     return rm
   }
 
@@ -376,7 +376,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       client: this.pos,
       ...msg,
     }
-    await this.game.clientSignal.emit(rm)
+    await this.game.$client.emit(rm)
     return rm
   }
 
@@ -881,7 +881,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       let quit = false
       this.resolves.insert = (v: number) => {
         quit = true
-        this.game.clientSignal
+        this.game.$client
           .emit({
             msg: 'insert',
             time: 'end',
@@ -891,7 +891,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
             resolve(v)
           })
       }
-      this.game.clientSignal.emit({
+      this.game.$client.emit({
         msg: 'insert',
         time: 'begin',
         client,
@@ -906,7 +906,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       let quit = false
       this.resolves.discover = (v: number) => {
         quit = true
-        this.game.clientSignal
+        this.game.$client
           .emit({
             msg: 'discover',
             time: 'end',
@@ -918,7 +918,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
             resolve(v)
           })
       }
-      this.game.clientSignal.emit({
+      this.game.$client.emit({
         msg: 'discover',
         time: 'begin',
         client,
@@ -935,7 +935,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       let quit = false
       this.resolves.deploy = (v: number) => {
         quit = true
-        this.game.clientSignal
+        this.game.$client
           .emit({
             msg: 'deploy',
             time: 'end',
@@ -945,7 +945,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
             resolve(v)
           })
       }
-      this.game.clientSignal.emit({
+      this.game.$client.emit({
         msg: 'deploy',
         time: 'begin',
         client,

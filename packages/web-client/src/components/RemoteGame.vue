@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { SlaveGame } from '@nekosu/game-framework'
-import { GameInstance, type $SlaveGame } from '@sctavern-emulator/emulator'
+import { RemoteGame } from '@nekosu/game-framework'
+import {
+  GameInstance,
+  type InnerMsg,
+  type OutterMsg,
+} from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import type { ClientStatus } from './types'
-import { WebClient, WebsockConnect } from './WebClient'
+import { WebClient, WebsockFactory } from './WebClient'
 
 const props = defineProps<{
   target: string
@@ -22,7 +26,7 @@ const status = reactive<ClientStatus>({
   discoverExtra: null,
 })
 
-const game: $SlaveGame = new SlaveGame(
+const rgame = new RemoteGame<InnerMsg, OutterMsg, GameInstance>(
   sg =>
     new GameInstance(
       {
@@ -32,20 +36,18 @@ const game: $SlaveGame = new SlaveGame(
         mutation: [],
       },
       sg
-    )
+    ),
+  WebsockFactory,
+  props.target,
+  () => {
+    rgame.start()
+    rgame.slave.game.start()
+  }
 )
 
-WebsockConnect(game.getClientConnection(), props.target, () => {
-  game.game.start()
-})
-
-const client = game.bind(
+const client = rgame.slave.bind(
   sg => new WebClient(sg, props.pos, status)
 ) as WebClient
-
-async function main() {
-  game.poll()
-}
 
 function handleKey(ev: KeyboardEvent) {
   if (status.model) {
@@ -107,15 +109,13 @@ function handleKey(ev: KeyboardEvent) {
 }
 
 document.onkeydown = handleKey
-
-main()
 </script>
 
 <template>
   <game-instance-chooser :mobile="mobile" :status="status" :client="client">
     <span>
-      {{ game.game.player[0].data.value }},
-      {{ game.game.player[1].data.value }}
+      {{ rgame.slave.game.player[0].data.value }},
+      {{ rgame.slave.game.player[1].data.value }}
     </span>
   </game-instance-chooser>
 </template>

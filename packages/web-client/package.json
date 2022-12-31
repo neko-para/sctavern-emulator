@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@mdi/font": "5.9.55",
-    "@nekosu/game-framework": "^1.0.13",
+    "@nekosu/game-framework": "^1.1.1",
     "@sctavern-emulator/data": "*",
     "@sctavern-emulator/emulator": "*",
     "buffer": "^6.0.3",

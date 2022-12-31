@@ -6,7 +6,7 @@ import { Pool } from './pool'
 import { GameConfig } from './types'
 import { Shuffler } from './utils'
 import { Game, SlaveGame } from '@nekosu/game-framework'
-import { Broadcast, Signal } from '@nekosu/game-framework/signal'
+import { Signal } from '@nekosu/game-framework/signal'
 
 interface GameAttrib {
   round: number
@@ -20,8 +20,8 @@ export class GameInstance
   implements Game<InnerMsg, OutterMsg>
 {
   slave: SlaveGame<InnerMsg, OutterMsg, GameInstance>
-  mainBroadcast: Broadcast<InnerMsg>
-  clientSignal: Signal<OutterMsg>
+  $game: Signal<InnerMsg>
+  $client: Signal<OutterMsg>
 
   config: GameConfig
 
@@ -46,10 +46,10 @@ export class GameInstance
     })
 
     this.slave = slave
-    this.mainBroadcast = new Broadcast()
-    this.clientSignal = new Signal()
+    this.$game = new Signal()
+    this.$client = new Signal()
 
-    this.mainBroadcast.bind(async (msg: InnerMsg) => {
+    this.$game.connect(async (msg: InnerMsg) => {
       console.log(msg)
       if (msg.msg[0] === '$') {
         this.log.push(msg as InputMsg)
@@ -89,11 +89,11 @@ export class GameInstance
 
   async start() {
     this.data.round = 1
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-start',
       round: 1,
     })
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-enter',
       round: 1,
     })
@@ -107,21 +107,21 @@ export class GameInstance
   }
 
   async next_round() {
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-end',
       round: this.data.round,
     })
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-leave',
       round: this.data.round,
     })
     this.data.round += 1
     this.data.done_count = 0
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-start',
       round: this.data.round,
     })
-    await this.mainBroadcast.emit({
+    await this.$game.emit({
       msg: 'round-enter',
       round: this.data.round,
     })
