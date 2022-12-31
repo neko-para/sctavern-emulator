@@ -143,7 +143,7 @@ function apply() {
           <v-card-text>
             <v-radio-group v-model="type" inline>
               <v-radio value="local" label="本地"></v-radio>
-              <v-radio value="remote" label="远程" disabled></v-radio>
+              <v-radio value="remote" label="远程"></v-radio>
             </v-radio-group>
           </v-card-text>
           <template v-if="type === 'local'">

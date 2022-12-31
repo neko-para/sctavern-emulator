@@ -10,6 +10,7 @@ import {
   type $SlaveGame,
   type $Client,
 } from './client'
+import type { InnerMsg, OutterMsg } from './events'
 
 export type {
   LogItem,
@@ -19,5 +20,7 @@ export type {
   $MasterGame,
   $SlaveGame,
   $Client,
+  InnerMsg,
+  OutterMsg,
 }
 export { GameInstance, Player, CardInstance, Shuffler, PlayerClient, LocalGame }

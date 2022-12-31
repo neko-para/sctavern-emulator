@@ -1,39 +1,29 @@
 import {
-  Adapter,
-  LogItem,
-  InputBus,
+  type ClientConnection,
+  Signal,
+  Slot,
   MasterGame,
-} from '@sctavern-emulator/emulator'
+} from '@nekosu/game-framework'
+import { type InnerMsg, type $MasterGame } from '@sctavern-emulator/emulator'
 import { WebSocketServer, WebSocket } from 'ws'
 
-class ServerAdapter implements Adapter {
-  onPosted: (item: LogItem) => void
-  sock: WebSocket
-
-  async post<T extends keyof InputBus>(msg: T, param: InputBus[T]) {
-    this.sock.send(
-      JSON.stringify({
-        msg,
-        param,
-      })
-    )
+export function WebsockConnect(sock: WebSocket): ClientConnection<InnerMsg> {
+  const conns: ClientConnection<InnerMsg> = {
+    signal: new Signal(),
+    slot: new Slot(),
   }
-
-  constructor(conn: WebSocket) {
-    this.onPosted = () => {
-      //
-    }
-
-    this.sock = conn
-    this.sock.on('message', data => {
-      this.onPosted(JSON.parse(data.toString()) as LogItem)
-    })
-  }
+  sock.on('message', data => {
+    conns.signal.emit(JSON.parse(data.toString()) as InnerMsg)
+  })
+  conns.slot.bind(async item => {
+    sock.send(JSON.stringify(item))
+  })
+  return conns
 }
 
 class Server {
   server: WebSocketServer
-  adapters: ServerAdapter[]
+  adapters: ClientConnection<InnerMsg>[]
 
   constructor() {
     this.server = new WebSocketServer({
@@ -43,12 +33,13 @@ class Server {
 
     this.server.on('connection', conn => {
       console.log('in')
-      this.adapters.push(new ServerAdapter(conn))
+      const cc = WebsockConnect(conn)
+      this.adapters.push(cc)
       if (this.adapters.length === 2) {
-        const game = new MasterGame(this.adapters)
+        console.log('start')
+        const game: $MasterGame = new MasterGame(this.adapters)
         this.adapters = []
         game.poll()
-        game.adapter
       }
     })
   }

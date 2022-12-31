@@ -4,7 +4,7 @@ import { SlaveGame } from '@nekosu/game-framework'
 import { GameInstance, type $SlaveGame } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import type { ClientStatus } from './types'
-import { WebClient } from './WebClient'
+import { WebClient, WebsockConnect } from './WebClient'
 
 const props = defineProps<{
   target: string
@@ -35,9 +35,13 @@ const game: $SlaveGame = new SlaveGame(
     )
 )
 
-// game.getClientConnection()
+WebsockConnect(game.getClientConnection(), props.target, () => {
+  game.game.start()
+})
 
-const client = new WebClient(game, props.pos, status)
+const client = game.bind(
+  sg => new WebClient(sg, props.pos, status)
+) as WebClient
 
 async function main() {
   game.poll()

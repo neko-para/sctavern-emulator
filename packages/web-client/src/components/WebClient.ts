@@ -1,6 +1,11 @@
 import type { Card, Upgrade } from '@sctavern-emulator/data'
-import { type $SlaveGame, PlayerClient } from '@sctavern-emulator/emulator'
+import {
+  type $SlaveGame,
+  PlayerClient,
+  type InnerMsg,
+} from '@sctavern-emulator/emulator'
 import type { ClientStatus } from './types'
+import type { ClientConnection } from '@nekosu/game-framework'
 
 export class WebClient extends PlayerClient {
   status: ClientStatus
@@ -48,32 +53,20 @@ export class WebClient extends PlayerClient {
     this.status.model = false
   }
 }
-/*
-export class ClientAdapter implements Adapter {
-  onPosted: (item: LogItem) => void
-  sock: WebSocket
 
-  async post<T extends keyof InputBus>(msg: T, param: InputBus[T]) {
-    this.sock.send(
-      JSON.stringify({
-        msg,
-        param,
-      })
-    )
-  }
-
-  constructor(open = () => {}, url: string = 'ws://localhost:8080') {
-    this.onPosted = () => {
-      //
-    }
-
-    this.sock = new WebSocket(url)
-    this.sock.addEventListener('open', () => {
-      open()
-    })
-    this.sock.addEventListener('message', ({ data }) => {
-      this.onPosted(JSON.parse(data) as LogItem)
-    })
-  }
+export async function WebsockConnect(
+  conns: ClientConnection<InnerMsg>,
+  url: string,
+  init: () => void = () => {}
+) {
+  const sock = new WebSocket(url)
+  sock.addEventListener('open', () => {
+    init()
+  })
+  sock.addEventListener('message', ({ data }) => {
+    conns.signal.emit(JSON.parse(data) as InnerMsg)
+  })
+  conns.slot.bind(async item => {
+    sock.send(JSON.stringify(item))
+  })
 }
-*/
