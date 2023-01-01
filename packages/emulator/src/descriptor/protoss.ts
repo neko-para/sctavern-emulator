@@ -186,16 +186,11 @@ const data: CardDescriptorTable = {
   ],
   黄金舰队: [集结(5, '侦察机', 1, 2), 集结(7, '风暴战舰', 1, 2, 'normal', 1)],
   尤尔兰: [
-    (card, gold) => {
-      card.attrib.set('供能', gold ? 8 : 5)
-      return reactive({
-        gold,
-
-        unbind() {
-          card.attrib.set('供能', 0)
-        },
-      })
-    },
+    autoBindX(() => ({}), {
+      init: (card, gold) => ({
+        供能: gold ? 8 : 5,
+      }),
+    }),
     autoBind('obtain-unit', async (card, gold, { time, units }) => {
       if (
         time === 'post' &&

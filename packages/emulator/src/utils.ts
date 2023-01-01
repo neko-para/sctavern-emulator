@@ -48,8 +48,11 @@ export function autoBindX(
   option?: {
     unique?: string
     uniqueNoGold?: true
-    init?: (card: CardInstance, gold: boolean, desc: Descriptor) => void
-    attr?: Record<string, number>
+    init?: (
+      card: CardInstance,
+      gold: boolean,
+      desc: Descriptor
+    ) => Record<string, number> | void
   }
 ): DescriptorGenerator {
   return (card, gold) => {
@@ -59,18 +62,18 @@ export function autoBindX(
       unique: option?.unique,
       uniqueNoGold: !!option?.uniqueNoGold,
     })
-    option?.init?.(card, gold, desc)
-    if (option?.attr) {
-      for (const k in option.attr) {
-        card.attrib.alter(k, option.attr[k])
+    const attr = option?.init?.(card, gold, desc)
+    if (attr) {
+      for (const k in attr) {
+        card.attrib.alter(k, attr[k])
       }
     }
     const obj = factory(card, gold, desc)
     card.$on(obj)
     desc.unbind = () => {
-      if (option?.attr) {
-        for (const k in option.attr) {
-          card.attrib.alter(k, -option.attr[k])
+      if (attr) {
+        for (const k in attr) {
+          card.attrib.alter(k, -attr[k])
         }
       }
       card.$off(obj)
