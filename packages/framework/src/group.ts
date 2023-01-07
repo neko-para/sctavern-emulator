@@ -7,7 +7,7 @@ import type {
 import { ClientSymbol, WsRpcClient, WsRpcServer, type RpcNotifier } from './rpc'
 import { Err, Ok, type tResult } from './result'
 import { RemoteServer } from './slave'
-import { Md5 } from './utils'
+import { Compress, Decompress, Md5 } from './utils'
 import { Signal } from './signal'
 
 export const enum GroupError {
@@ -288,7 +288,7 @@ export class GroupServer<C extends GroupGameConfig, InputMessage> {
       current: null | GroupID
     },
     {
-      notifier: RpcNotifier<GroupRpcDefinition<C>>
+      notifier: RpcNotifier<GroupRpcDefinition<C>> | null
     }
   >
   group: Record<
@@ -316,6 +316,38 @@ export class GroupServer<C extends GroupGameConfig, InputMessage> {
         }
       )
     })
+  }
+
+  save() {
+    return Compress({
+      user: Object.keys(this.user.user)
+        .map(k => this.user.user[k])
+        .map(o => ({
+          name: o.name,
+          pswd: o.pswd,
+        })),
+    })
+  }
+
+  load(buf: string) {
+    const v = Decompress<{
+      user: {
+        name: string
+        pswd: string
+      }[]
+    }>(buf)
+    for (const info of v?.user || []) {
+      this.user.user = {}
+      this.user.fromName = {}
+      this.user.session = {}
+
+      this.user.register(
+        info.name,
+        info.pswd,
+        { current: null },
+        { notifier: null }
+      )
+    }
   }
 
   test_session(ss: SessionID) {
@@ -368,7 +400,7 @@ export class GroupServer<C extends GroupGameConfig, InputMessage> {
     return Promise.all(
       Object.keys(this.user.session).map(ss => {
         const info = this.user.test(ss).unwrap()
-        return info.session.extra.notifier(
+        return info.session.extra.notifier?.(
           request,
           rp(info.user.id, info.session.id)
         )
@@ -396,7 +428,7 @@ export class GroupServer<C extends GroupGameConfig, InputMessage> {
           this.user
             .test(ss)
             .unwrap()
-            .session?.extra.notifier(request, rp(uid, ss, pos))
+            .session?.extra.notifier?.(request, rp(uid, ss, pos))
         }
       })
     )

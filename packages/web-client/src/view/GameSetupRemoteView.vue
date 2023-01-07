@@ -118,7 +118,6 @@ const tempPassword = ref('')
 const errorMessage = ref('')
 
 function showResult<T, E extends GroupError>(v: tResult<T, E>) {
-  console.log(v)
   v.match(
     () => {
       errorMessage.value = ''
