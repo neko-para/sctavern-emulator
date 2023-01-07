@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { RemoteGame } from '@nekosu/game-framework'
+import { ref, reactive } from 'vue'
+import { RemoteGame, SlaveGame } from '@sctavern-emulator/framework'
 import {
   GameInstance,
+  type GroupGameConfig,
   type InnerMsg,
   type OutterMsg,
 } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import type { ClientStatus } from './types'
-import { WebClient, WebsockFactory } from './WebClient'
+import { WebClient } from './WebClient'
+import { clientFactory } from '@/websock'
 
 const props = defineProps<{
   target: string
+  game: string
+  id: string
   pos: number
+  config: GroupGameConfig
   mobile: boolean
 }>()
 
@@ -26,28 +31,29 @@ const status = reactive<ClientStatus>({
   discoverExtra: null,
 })
 
-const rgame = new RemoteGame<InnerMsg, OutterMsg, GameInstance>(
-  sg =>
-    new GameInstance(
-      {
-        pack: ['核心'],
-        seed: '1',
-        role: ['SCV', '副官'],
-        mutation: [],
-      },
-      sg
-    ),
-  WebsockFactory,
-  props.target,
-  () => {
-    rgame.start()
-    rgame.slave.game.start()
-  }
-)
+const rgame = ref<RemoteGame<InnerMsg, OutterMsg, GameInstance> | null>(null)
+const client = ref<WebClient | null>(null)
 
-const client = rgame.slave.bind(
-  sg => new WebClient(sg, props.pos, status)
-) as WebClient
+async function main() {
+  const s = await new Promise<SlaveGame<InnerMsg, OutterMsg, GameInstance>>(
+    resolve => {
+      rgame.value = new RemoteGame<InnerMsg, OutterMsg, GameInstance>(
+        sg => new GameInstance(props.config, sg),
+        clientFactory,
+        props.target,
+        props.id,
+        props.game,
+        sg => {
+          sg.game.start()
+          resolve(sg)
+        }
+      )
+    }
+  )
+  client.value = s.bind(sg => new WebClient(sg, props.pos, status)) as WebClient
+}
+
+main()
 
 function handleKey(ev: KeyboardEvent) {
   if (status.model) {
@@ -62,14 +68,14 @@ function handleKey(ev: KeyboardEvent) {
     case '6':
     case '7': {
       const pos = Number(ev.key) - 1
-      if (client.player.data.present[pos]) {
-        client.post({
+      if (client.value?.player.data.present[pos]) {
+        client.value?.post({
           msg: '$select',
           area: 'present',
           choice: pos,
         })
       } else {
-        client.post({
+        client.value?.post({
           msg: '$select',
           area: 'none',
           choice: -1,
@@ -78,9 +84,9 @@ function handleKey(ev: KeyboardEvent) {
       break
     }
     default: {
-      for (const act of client.player.data.globalActs) {
+      for (const act of client.value?.player.data.globalActs || []) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message)
+          client.value?.post(act.message)
         }
       }
       const m = /^([HSP])(\d)$/.exec(status.selected)
@@ -92,16 +98,16 @@ function handleKey(ev: KeyboardEvent) {
       const acts = (() => {
         switch (stype) {
           case 'H':
-            return client.player.data.handActs[pos]
+            return client.value?.player.data.handActs[pos]
           case 'S':
-            return client.player.data.storeActs[pos]
+            return client.value?.player.data.storeActs[pos]
           case 'P':
-            return client.player.data.presentActs[pos]
+            return client.value?.player.data.presentActs[pos]
         }
       })()
-      for (const act of acts) {
+      for (const act of acts || []) {
         if (ev.key === act.accelerator && act.enable) {
-          client.post(act.message)
+          client.value?.post(act.message)
         }
       }
     }
@@ -112,10 +118,15 @@ document.onkeydown = handleKey
 </script>
 
 <template>
-  <game-instance-chooser :mobile="mobile" :status="status" :client="client">
+  <game-instance-chooser
+    v-if="client"
+    :mobile="mobile"
+    :status="status"
+    :client="(client as WebClient)"
+  >
     <span>
-      {{ rgame.slave.game.player[0].data.value }},
-      {{ rgame.slave.game.player[1].data.value }}
+      {{ rgame?.slave?.game.player[0].data.value }},
+      {{ rgame?.slave?.game.player[1].data.value }}
     </span>
   </game-instance-chooser>
 </template>

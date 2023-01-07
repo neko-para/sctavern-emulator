@@ -1,4 +1,4 @@
-import type { GameConfig, GameReplay, LogItem } from './types'
+import type { GameConfig, GroupGameConfig, GameReplay, LogItem } from './types'
 import { GameInstance } from './game'
 import { Player } from './player'
 import { CardInstance, type CardInstanceAttrib } from './card'
@@ -15,6 +15,7 @@ export type {
   LogItem,
   GameReplay,
   GameConfig,
+  GroupGameConfig,
   CardInstanceAttrib,
   $MasterGame,
   $SlaveGame,

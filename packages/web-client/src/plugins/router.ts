@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import GameSetupView from '@/view/GameSetupView.vue'
+import GameSetupLocalView from '@/view/GameSetupLocalView.vue'
+import GameSetupRemoteView from '@/view/GameSetupRemoteView.vue'
 import LocalGameView from '@/view/LocalGameView.vue'
 import RemoteGameView from '@/view/RemoteGameView.vue'
 
@@ -7,7 +8,12 @@ const routes = [
   {
     name: 'Setup',
     path: '/',
-    component: GameSetupView,
+    component: GameSetupLocalView,
+  },
+  {
+    name: 'SetupRemote',
+    path: '/setup/remote',
+    component: GameSetupRemoteView,
   },
   {
     name: 'Local',

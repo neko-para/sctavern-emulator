@@ -1,48 +1,18 @@
-import { Signal, RemoteServer, type IWebSocket } from '@nekosu/game-framework'
-import { type InnerMsg } from '@sctavern-emulator/emulator'
-import { WebSocketServer } from 'ws'
+import { GroupServer } from '@sctavern-emulator/framework'
+import { GameConfig, type InnerMsg } from '@sctavern-emulator/emulator'
+import { serverFactory } from './websock'
 
-new RemoteServer<InnerMsg>(
+GroupServer.create<
   {
-    clientFactory: () => null,
-    serverFactory: port => {
-      const srv = {
-        server: new WebSocketServer({
-          port,
-        }),
-        connected: new Signal<IWebSocket>(),
-      }
-      srv.server.on('connection', socket => {
-        const s: IWebSocket = {
-          recv: new Signal(),
-          send: new Signal(),
-          status: new Signal(),
-          ctrl: new Signal(),
-        }
-        socket.on('open', () => {
-          s.status.emit('open')
-        })
-        socket.on('close', () => {
-          s.status.emit('close')
-        })
-        s.ctrl.connect(async req => {
-          switch (req) {
-            case 'close':
-              socket.close()
-              break
-          }
-        })
-        s.send.connect(async item => {
-          socket.send(item)
-        })
-        socket.on('message', data => {
-          s.recv.emit(data.toString())
-        })
-        srv.connected.emit(s)
-      })
-      return srv
-    },
-  },
-  8080,
-  2
-)
+    min_players: number
+    max_players: number
+  } & GameConfig,
+  InnerMsg
+>(serverFactory, 8080, {
+  min_players: 2,
+  max_players: 2,
+  pack: ['核心'],
+  role: ['白板', '白板'],
+  seed: '1',
+  mutation: [],
+})

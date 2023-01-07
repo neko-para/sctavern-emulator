@@ -5,8 +5,7 @@ import { Player, PlayerAttrib } from './player'
 import { Pool } from './pool'
 import { GameConfig } from './types'
 import { Shuffler } from './utils'
-import { Game, SlaveGame } from '@nekosu/game-framework'
-import { Signal } from '@nekosu/game-framework/signal'
+import { Game, SlaveGame, Signal } from '@sctavern-emulator/framework'
 
 interface GameAttrib {
   round: number
@@ -50,7 +49,7 @@ export class GameInstance
     this.$client = new Signal()
 
     this.$game.connect(async (msg: InnerMsg) => {
-      console.log(msg)
+      11
       if (msg.msg[0] === '$') {
         this.log.push(msg as InputMsg)
       }

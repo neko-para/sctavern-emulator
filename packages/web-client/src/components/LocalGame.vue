@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { LocalGame } from '@nekosu/game-framework'
+import { LocalGame } from '@sctavern-emulator/framework'
 import {
   GameInstance,
   type InnerMsg,
   type GameReplay,
   type OutterMsg,
+  type GameConfig,
 } from '@sctavern-emulator/emulator'
 import GameInstanceChooser from './GameInstanceChooser.vue'
 import {
@@ -39,18 +40,15 @@ const status = reactive<ClientStatus>({
 
 const replay = decompress(props.replay) as GameReplay
 
-const game = new LocalGame<InnerMsg, OutterMsg, GameInstance>([
-  sg =>
-    new GameInstance(
-      {
-        pack: replay.pack,
-        seed: replay.seed,
-        role: replay.role,
-        mutation: replay.mutation,
-      },
-      sg
-    ),
-])
+const game = new LocalGame<InnerMsg, OutterMsg, GameInstance>(
+  {
+    pack: replay.pack,
+    seed: replay.seed,
+    role: replay.role,
+    mutation: replay.mutation,
+  },
+  [(sg, cfg) => new GameInstance(cfg as GameConfig, sg)]
+)
 
 const client = game.slaves[0].bind(
   sg => new WebClient(sg, 0, status)

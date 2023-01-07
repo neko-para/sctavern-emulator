@@ -52,6 +52,11 @@ export interface GameConfig {
   mutation: MutationKey[]
 }
 
+export interface GroupGameConfig extends GameConfig {
+  min_players: number
+  max_players: number
+}
+
 export type LogItem = InputMsg
 
 export interface GameReplay extends GameConfig {

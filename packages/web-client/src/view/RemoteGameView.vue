@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import RemoteGame from '@/components/RemoteGame.vue'
 import { isMobile } from '@/utils'
+import { Decompress } from '@sctavern-emulator/framework'
+import type { RemoteOption } from '@/components/types'
 
 const route = useRoute()
+const router = useRouter()
 
-const target = route.query.target as string
-const pos = route.query.pos as string
+const option =
+  Decompress<RemoteOption>(route.query.option as string) ||
+  (() => {
+    router.back()
+    return {} as RemoteOption
+  })()
 </script>
 
 <template>
   <remote-game
-    :target="target"
-    :pos="Number(pos)"
+    :target="option.target"
+    :game="option.game"
+    :id="option.id"
+    :pos="option.pos"
+    :config="option.config"
     :mobile="isMobile()"
   ></remote-game>
 </template>

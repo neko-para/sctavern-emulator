@@ -1,4 +1,9 @@
-import { Client, MasterGame, Signal, SlaveGame } from '@nekosu/game-framework'
+import {
+  Client,
+  MasterGame,
+  Signal,
+  SlaveGame,
+} from '@sctavern-emulator/framework'
 import { Card, Upgrade } from '@sctavern-emulator/data'
 import { InnerMsg, OutterMsg } from './events'
 import { GameInstance } from './game'
