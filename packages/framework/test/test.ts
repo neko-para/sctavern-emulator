@@ -6,7 +6,7 @@ import {
   type Game,
   SlaveGame,
   type Client,
-  GroupClient
+  GroupClient,
 } from '../src'
 
 process.stdin.setRawMode(true)
@@ -145,7 +145,7 @@ async function main() {
     string
   >(serverFactory, 8080, {
     min_players: 2,
-    max_players: 2
+    max_players: 2,
   })
 
   console.log('server started')

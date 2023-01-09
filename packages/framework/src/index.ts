@@ -25,7 +25,7 @@ import {
   SlaveGame,
   LocalGame,
   RemoteGame,
-  RemoteServer
+  RemoteServer,
 } from './slave'
 export type { ClientConnection }
 export { MasterGame, SlaveGame, LocalGame, RemoteGame, RemoteServer }
@@ -33,18 +33,18 @@ export { MasterGame, SlaveGame, LocalGame, RemoteGame, RemoteServer }
 import type { Game, Client } from './types'
 export type { Game, Client }
 
-import { Compress, Decompress, Md5 } from './utils'
-export { Compress, Decompress, Md5 }
+import { Compress, Decompress, Md5, LCG } from './utils'
+export { Compress, Decompress, Md5, LCG }
 
 import type {
   IWebSocket,
   IWebSocketServer,
   IWebSocketServerFactory,
-  IWebSocketClientFactory
+  IWebSocketClientFactory,
 } from './websock'
 export type {
   IWebSocket,
   IWebSocketServer,
   IWebSocketServerFactory,
-  IWebSocketClientFactory
+  IWebSocketClientFactory,
 }

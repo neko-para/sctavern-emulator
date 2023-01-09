@@ -60,14 +60,7 @@ export interface GroupGameConfig extends GameConfig {
 export type LogItem = InputMsg
 
 export interface GameReplay extends GameConfig {
-  pack: string[]
-  seed: string
-  role: RoleKey[]
   log: LogItem[]
-}
-
-export interface Postable<Bus> {
-  post<T extends keyof Bus>(msg: T, param: Bus[T]): Promise<void>
 }
 
 export type DistributiveOmit<T, K extends keyof T> = T extends unknown
