@@ -21,6 +21,9 @@ import {
 import { compress, decompress } from '@/utils'
 import type { ClientStatus } from './types'
 import { WebClient } from './WebClient'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps<{
   replay: string
@@ -225,6 +228,24 @@ function doExport() {
   expDlg.value = true
 }
 
+function doBackward() {
+  const l = game.slaves[0].game.log
+  const rp = compress({
+    pack: replay.pack,
+    seed: replay.seed,
+    role: replay.role,
+    mutation: replay.mutation,
+    log: l.slice(0, l.length - 1),
+  })
+  console.log('?')
+  router.push({
+    name: 'Local',
+    query: {
+      replay: rp,
+      interval: '0',
+    },
+  })
+}
 document.onkeydown = handleKey
 
 main()
@@ -352,6 +373,7 @@ main()
       }"
     >
       <v-btn :disabled="status.model" @click="doExport()">导出</v-btn>
+      <v-btn @click="doBackward()">撤销</v-btn>
       <v-btn :disabled="status.model" @click="obtainCardDlg = true">卡牌</v-btn>
       <v-btn
         :disabled="status.model || client.status.selected[0] !== 'P'"
