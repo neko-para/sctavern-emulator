@@ -73,6 +73,7 @@ export interface Card {
 
 export interface Term {
   name: TermKey
+  pinyin: string
   type: 'term'
   race: Race
   bref: string
@@ -123,6 +124,7 @@ export interface Unit {
 
 export interface Upgrade {
   name: UpgradeKey
+  pinyin: string
   type: 'upgrade'
   override: boolean
   category: UpgradeCategory
@@ -132,6 +134,7 @@ export interface Upgrade {
 
 export interface Role {
   name: RoleKey
+  pinyin: string
   type: 'role'
   ability: string
   desc: string
@@ -140,6 +143,7 @@ export interface Role {
 
 export interface Mutation {
   name: MutationKey
+  pinyin: string
   type: 'mutation'
   prole?: RoleKey
 }

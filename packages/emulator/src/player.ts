@@ -309,6 +309,7 @@ export class Player extends DispatchTranslator<MsgKeyOf<InnerMsg>, InnerMsg> {
       ability: {
         data: {
           type: 'role',
+          pinyin: 'bb',
           name: '白板',
           ability: '',
           desc: '',

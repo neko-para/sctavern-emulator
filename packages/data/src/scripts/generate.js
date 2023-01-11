@@ -49,13 +49,11 @@ async function main() {
   ;['card', 'unit', 'term', 'upgrade', 'role', 'mutation'].forEach(k => {
     result[k].forEach(obj => {
       obj.type = k
-      if (k === 'card' || k === 'unit') {
-        obj.pinyin =
-          obj.pinyin ||
-          pinyin(obj.name, { style: 'first_letter', segment: true })
-            .map(([s]) => s[0])
-            .reduce((a, b) => a + b, '')
-      }
+      obj.pinyin =
+        obj.pinyin ||
+        pinyin(obj.name, { style: 'first_letter', segment: 'segmentit' })
+          .map(([s]) => s[0])
+          .reduce((a, b) => a + b, '')
     })
   })
   result.card.forEach(c => {
