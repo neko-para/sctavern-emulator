@@ -147,6 +147,12 @@ const project_tree = `${project}/tree/${gitHashFull}`
       </div>
       <v-card class="d-flex flex-column ml-auto" style="height: min-content">
         <v-card-text class="d-flex flex-column">
+          <span class="text-h5">
+            该项目已经停止维护<br />请考虑使用<a
+              href="https://neko-para.github.io/sctavern/#/"
+              >新版本</a
+            >
+          </span>
           <a :href="project" class="mb-1" target="_blank">Github</a>
           <span class="mb-1"
             >版本:
